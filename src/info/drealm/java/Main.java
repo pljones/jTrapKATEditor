@@ -1,40 +1,34 @@
 package info.drealm.java;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-
-import net.miginfocom.swing.MigLayout;
+import java.awt.Insets;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.ButtonGroup;
-import javax.swing.JSeparator;
-import javax.swing.JTabbedPane;
-import javax.swing.JComboBox;
-import javax.swing.JPanel;
-import javax.swing.JLabel;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JTextField;
 import javax.swing.DefaultComboBoxModel;
-
-import java.awt.Dimension;
-import java.awt.Color;
-
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.border.EtchedBorder;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.UIManager;
+import javax.swing.border.EtchedBorder;
 
-import java.awt.Insets;
+import net.miginfocom.swing.MigLayout;
 
 public class Main {
 
@@ -93,6 +87,14 @@ public class Main {
 		frmTrapkatSysexEditor.setTitle("TrapKAT SysEx Editor");
 		frmTrapkatSysexEditor.setBounds(100, 100, 880, 516);
 		frmTrapkatSysexEditor.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		// ===============================================================================================
+		// ===============================================================================================
+		// ==
+		// == Menu
+		// ==
+		// ===============================================================================================
+		// ===============================================================================================
 
 		JMenuBar menuBar = new JMenuBar();
 		frmTrapkatSysexEditor.setJMenuBar(menuBar);
@@ -220,7 +222,6 @@ public class Main {
 		mnTODisplayMidiNotes.add(rdbtnmntmTODMNAsNamesC4);
 		bgTODMN.add(rdbtnmntmTODMNAsNamesC4);
 
-		bgTODMN.add(rdbtnmntmTODMNAsNumbers);
 
 		JMenuItem mntmToolsConvert = new JMenuItem("Convert...");
 		mnTools.add(mntmToolsConvert);
@@ -250,7 +251,13 @@ public class Main {
 		JMenuItem mntmAbout = new JMenuItem("About...");
 		mnHelp.add(mntmAbout);
 
-		// --------------------------------
+		// ===============================================================================================
+		// ===============================================================================================
+		// ==
+		// == Selector bar and pads
+		// ==
+		// ===============================================================================================
+		// ===============================================================================================
 
 		frmTrapkatSysexEditor.getContentPane().setLayout(
 				new MigLayout("insets 3", "[grow]", "[grow,fill][bottom]"));
@@ -772,7 +779,7 @@ public class Main {
 		pnPadSplash.add(lblPadSplash,
 				"cell 0 0,alignx trailing,aligny baseline");
 		pnPadSplash.add(cbxPadSplash, "cell 1 0,grow");
-		pnPedals.add(pnPadSplash, "cell 1 0");
+		pnPedals.add(pnPadSplash, "cell 2 0");
 
 		JPanel pnHH = new JPanel();
 		pnHH.setBorder(null);
@@ -841,14 +848,24 @@ public class Main {
 		pnPadBass.add(cbxPadBass, "cell 1 0,grow");
 		pnPedals.add(pnPadBass, "cell 6 0");
 
+		// ===============================================================================================
+		// ===============================================================================================
+		// ==
+		// == Pad and Kit Details
+		// ==
+		// ===============================================================================================
+		// ===============================================================================================
+
+		// ===============================================================================================
+		// == Pad Details
+		// ===============================================================================================
+
 		JTabbedPane tpnKitPadsDetails = new JTabbedPane(JTabbedPane.TOP);
 		pnKitsPads.add(tpnKitPadsDetails, "cell 0 1,grow");
 
 		JPanel pnPadDetails = new JPanel();
 		tpnKitPadsDetails.addTab("Pad Details", null, pnPadDetails, null);
-		pnPadDetails.setLayout(new MigLayout("insets 5, gapx 2, gapy 0",
-				"[][16px:n,right][][16px:n][][][16px:n][][16px:n][]",
-				"[][][][][][][]"));
+		pnPadDetails.setLayout(new MigLayout("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]"));
 
 		JLabel lblSlots = new JLabel("Slots:");
 		pnPadDetails.add(lblSlots, "cell 0 0");
@@ -906,6 +923,25 @@ public class Main {
 		cbxSlot6.setMaximumSize(new Dimension(80, 32767));
 		cbxSlot6.setModel(new DefaultComboBoxModel<String>(padCbxItems));
 		cbxSlot6.setEditable(true);
+
+		JPanel pnLinkTo = new JPanel();
+		pnLinkTo.setBorder(null);
+		pnLinkTo.setLayout(new MigLayout("insets 5", "[grow,right][left,fill]",
+				"[]"));
+
+		JLabel lblLinkTo = new JLabel("Link To");
+		lblLinkTo.setDisplayedMnemonic('L');
+		pnLinkTo.add(lblLinkTo, "cell 0 0");
+
+		JComboBox<String> cbxLinkTo = new JComboBox<String>();
+		lblLinkTo.setLabelFor(cbxLinkTo);
+		/* Dynamic per pad selected excluding "this pad": */
+		cbxLinkTo.setModel(new DefaultComboBoxModel<String>(pads1_24));
+		cbxLinkTo.setMaximumRowCount(25);
+		cbxLinkTo.setMaximumSize(new Dimension(48, 32767));
+		pnLinkTo.add(cbxLinkTo, "cell 1 0");
+
+		pnPadDetails.add(pnLinkTo, "cell 1 5 2 1,alignx center,aligny center");
 
 		JLabel lblPadCurve = new JLabel("Curve:");
 		lblPadCurve.setDisplayedMnemonic('C');
@@ -1091,24 +1127,9 @@ public class Main {
 		spnInternalMargin.setModel(new SpinnerNumberModel(199, null, 255, 1));
 		pnGlobalPadDynamics.add(spnInternalMargin, "cell 7 2");
 
-		JPanel pnLinkTo = new JPanel();
-		pnLinkTo.setBorder(null);
-		pnLinkTo.setLayout(new MigLayout("insets 5", "[grow,right][left,fill]",
-				"[]"));
-
-		JLabel lblLinkTo = new JLabel("Link To");
-		lblLinkTo.setDisplayedMnemonic('L');
-		pnLinkTo.add(lblLinkTo, "cell 0 0");
-
-		JComboBox<String> cbxLinkTo = new JComboBox<String>();
-		lblLinkTo.setLabelFor(cbxLinkTo);
-		/* Dynamic per pad selected excluding "this pad": */
-		cbxLinkTo.setModel(new DefaultComboBoxModel<String>(pads1_24));
-		cbxLinkTo.setMaximumRowCount(25);
-		cbxLinkTo.setMaximumSize(new Dimension(48, 32767));
-		pnLinkTo.add(cbxLinkTo, "cell 1 0");
-
-		pnPadDetails.add(pnLinkTo, "cell 1 5 2 1,alignx center,aligny center");
+		// ===============================================================================================
+		// == More Slots
+		// ===============================================================================================
 
 		JPanel pnMoreSlots = new JPanel();
 		tpnKitPadsDetails.addTab("More Slots", null, pnMoreSlots, null);
@@ -1228,6 +1249,10 @@ public class Main {
 		cbxSlot16.setModel(new DefaultComboBoxModel<String>(padCbxItems));
 		cbxSlot16.setEditable(true);
 		pnMoreSlots.add(cbxSlot16, "cell 5 4");
+
+		// ===============================================================================================
+		// == Kit Details
+		// ===============================================================================================
 
 		JPanel pnKitDetails = new JPanel();
 		tpnKitPadsDetails.addTab("Kit Details", null, pnKitDetails, null);
@@ -1433,6 +1458,14 @@ public class Main {
 		JPanel pnGlobal = new JPanel();
 		tpnMain.addTab("Global", null, pnGlobal, null);
 		pnGlobal.setLayout(new MigLayout("insets 5", "[]", "[]"));
+
+		// ===============================================================================================
+		// ===============================================================================================
+		// ==
+		// == Global
+		// ==
+		// ===============================================================================================
+		// ===============================================================================================
 		
 		JLabel lblBeingReworked = new JLabel("Being reworked");
 		pnGlobal.add(lblBeingReworked, "cell 0 0");

@@ -5,3 +5,4 @@ bin/
 .cache
 miglayout-4.0-ideutil.jar
 miglayout-4.0-swing.jar
+.settings

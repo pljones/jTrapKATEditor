@@ -1,2 +1,0 @@
-Main-Class: info.drealm.java.Main
-Class-Path: lib/miglayout15-swing.jar

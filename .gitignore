@@ -6,3 +6,5 @@ bin/
 miglayout-4.0-ideutil.jar
 miglayout-4.0-swing.jar
 .settings
+one-jar
+lib

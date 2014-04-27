@@ -6,3 +6,15 @@ MSWindows, I have given in and decided to port my TrapKAT SysEx Editor
 to the JVM.
 
 The target is to have it feature (and probably bug) identical.
+
+
+DEPENDENCIES
+============
+
+Running the jar file should be as simple as
+	java -jar jTrapKATEditor.jar
+or double-clicking on Windows.  To make this work, the build
+depends on P. Simon Tuffs' One-Jar packaging system.  If you
+want to build from source, get one-jar-boot-0.97.jar and unzip
+it into "one-jar", then use the Makefile.  (I had to do things
+my own way, naturally.)

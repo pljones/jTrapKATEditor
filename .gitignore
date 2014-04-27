@@ -8,3 +8,5 @@ miglayout-4.0-swing.jar
 .settings
 one-jar
 lib
+src/info/drealm/java/
+.classpath

@@ -2,6 +2,7 @@ package info.drealm.scala
 
 import javax.swing.border._
 import scala.swing._
+import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.spinner._
 
@@ -24,16 +25,17 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
     val fcFunctions = Seq("Off", "CC#01 (Mod Wheel)", "CC#04 (F/C 0..64)", "CC#04 (F/C 0..127)", "Hat Note")
     val fcCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7")
 
-    contents += (new MigPanel("insets 0", "[grow]", "[][][grow]") {
+    val pnKitsPadsTop = new MigPanel("insets 0", "[grow]", "[][][grow]") {
         name = "pnKitsPadsTop"
 
-        contents += (new MigPanel("insets 0", "[][][][grow,fill][][][grow,fill][][][]", "[]") {
+        val pnSelector = new MigPanel("insets 0", "[][][][grow,fill][][][grow,fill][][][]", "[]") {
             name = "pnSelector"
 
             val lblSelectKit = new Label("Select Kit:")
             contents += (lblSelectKit, "cell 0 0,alignx right")
 
             val cbxSelectKit = new ComboBox((1 to 24) map (x => x + ". New Kit")) {
+                name = "cbxSelectKit"
                 peer.setMaximumRowCount(24)
                 // Uhhhhh, right...
                 lblSelectKit.peer.setLabelFor(peer.asInstanceOf[java.awt.Component])
@@ -50,6 +52,7 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
             contents += (lblKitName, "cell 4 0,alignx right")
 
             val txtKitName = new swing.TextField() {
+                name = "txtKitName"
                 lblKitName.peer.setLabelFor(peer)
                 columns = 16
             }
@@ -60,6 +63,7 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
             contents += (lblSelectPad, "cell 7 0,alignx right")
 
             val cbxSelectPad = new ComboBox(allPads) {
+                name = "cbxSelectPad"
                 peer.setMaximumRowCount(28)
                 lblSelectPad.peer.setLabelFor(peer.asInstanceOf[java.awt.Component])
                 lblSelectPad.peer.setDisplayedMnemonic('P')
@@ -70,10 +74,11 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
             val lblPadEdited = new Label("Edited")
             contents += (lblPadEdited, "cell 9 0")
 
-        }, "cell 0 0,growx,aligny baseline")
+        }
 
-        contents += (new MigPanel("insets 0, gap 0", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
+        val pnPads = new MigPanel("insets 0, gap 0", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
             name = "pnPads"
+
             (for (
                 row <- (0 to 3) zip Seq(
                     List(0, 0, 18, 19, 20, 21, 0, 0),
@@ -96,9 +101,9 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
                     listenTo(cbxPad)
                 }, pad._1 + ",grow")
             })
-        }, "cell 0 1, grow")
+        }
 
-        contents += (new MigPanel("insets 0", "[grow,leading][][][grow,fill][][grow,fill][][][grow,trailing]", "[]") {
+        val pnPedals=new MigPanel("insets 0", "[grow,leading][][][grow,fill][][grow,fill][][][grow,trailing]", "[]") {
             name = "pnPedals"
 
             Seq(("cell 1 0", "Chick"), ("cell 2 0", "Splash"), ("cell 6 0", "B/C"), ("cell 7 0", "Bass")) map (pad => {
@@ -133,13 +138,19 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
 
             }, "cell 3 0")
 
-        }, "cell 0 2,grow")
+        }
 
-    }, "cell 0 0,grow")
+        contents += (pnSelector, "cell 0 0,growx,aligny baseline")
+        contents += (pnPads, "cell 0 1, grow")
+        contents += (pnPedals, "cell 0 2,grow")
 
-    contents += (new TabbedPane() {
+    }
+
+    val tpnKitPadsDetails = new TabbedPane() {
+        listenTo(selection)
+        reactions += { case tpnE: SelectionChanged => publish(new eventX.TabChangeEvent(selection.page)) }
+
         name = "tpnKitPadsDetails"
-
         pages += new TabbedPane.Page("Pad Details", new MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]") {
             name = "pnPadDetails"
 
@@ -267,6 +278,7 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
         }
 
         pages += new TabbedPane.Page("More Slots", new MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
+            name = "pnMoreSlots"
 
             contents += (new Label("Slots:"), "cell 0 0")
 
@@ -303,6 +315,7 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
         }
 
         pages += new TabbedPane.Page("Kit Details", new MigPanel("insets 5, gapx 2, gapy 0", "[][][16px:n][][16px:n][][][][4px:n][][][]", "[][][][][][][]") {
+            name = "pnKitDetails"
 
             Seq((0, "Curve", padCurves, false), (1, "Gate", padGates, true)) map { x =>
                 val lbl = new Label(x._2 + ":")
@@ -435,7 +448,7 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
                     }
                     (lbl, spn, ckb)
                 } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) map { t =>
-                    contents += (t._1._1, "cell " + (5 + 3 * t._2._2) + " " + (1 + t._2._1)+",alignx right")
+                    contents += (t._1._1, "cell " + (5 + 3 * t._2._2) + " " + (1 + t._2._1) + ",alignx right")
                     contents += (t._1._2, "cell " + (6 + 3 * t._2._2) + " " + (1 + t._2._1))
                     listenTo(t._1._2)
                     t._1._3 match {
@@ -447,10 +460,20 @@ object pnKitsPads extends TabbedPane.Page("Kits & Pads", new MigPanel("insets 3"
                     }
                 }
 
-        }) {
-            name = "tpKitDetails"
-        }
+        })
+    }
 
-    }, "cell 0 1,grow")
+    contents += (pnKitsPadsTop, "cell 0 0,grow")
+    contents += (tpnKitPadsDetails, "cell 0 1,grow")
+
+    listenTo(pnKitsPadsTop)
+    listenTo(tpnKitPadsDetails)
+    reactions += {
+        case e => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+    }
 
 })

@@ -3,12 +3,9 @@ package info.drealm.scala
 import swing._
 import swing.event._
 import info.drealm.scala.migPanel._
+import info.drealm.scala.eventX._
 
 object frmTrapkatSysexEditor extends MainFrame {
-    class FileMenuEvent(val menuItem: MenuItem) extends Event
-    class EditMenuEvent(val menuItem: MenuItem) extends Event
-    class ToolsMenuEvent(val menuItem: MenuItem) extends Event
-    class HelpMenuEvent(val menuItem: MenuItem) extends Event
 
     iconImage = toolkit.getImage("resources/tk_wild2-sq.png")
     resizable = false
@@ -17,31 +14,44 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     menuBar = jTrapKATEditorMenuBar
 
+    private[this] object tpnMain extends TabbedPane {
+        listenTo(selection)
+        reactions += { case tpnE: SelectionChanged => publish(new TabChangeEvent(selection.page)) }
+
+        name = "tpnMain"
+        pages += pnKitsPads
+        pages += new TabbedPane.Page("Global", new MigPanel("insets 5", "[]", "[]") {
+            name = "pnGlobal"
+            contents += (new Label("Being reworked"), "cell 0 0")
+        })
+    }
+
     contents = new MigPanel("insets 3", "[grow]", "[grow, fill][bottom]") {
 
-        contents += (new TabbedPane() {
-            name = "tpnMain"
-            pages += pnKitsPads
-            pages += new TabbedPane.Page("Global", new MigPanel("insets 5", "[]", "[]") {
-                name = "pnGlobal"
-                contents += (new Label("Being reworked"), "cell 0 0")
-            })
-        }, "cell 0 0,grow")
+        contents += (tpnMain, "cell 0 0,grow")
 
         contents += (new Label("MIDI OX SysEx Transmit: 512 bytes, 8 buffers, 160ms between buffers, 320ms after F7"), "cell 0 1,alignx center")
 
     }
 
     listenTo(menuBar)
+    listenTo(tpnMain)
+    listenTo(pnKitsPads.content)
     reactions += {
-        case mie: jTrapKATEditorMenuBar.MenuItemEvent => {
-            mie.menuItem.name match {
-                case miName if miName.startsWith("miFile")  => publish(new FileMenuEvent(mie.menuItem))
-                case miName if miName.startsWith("miEdit")  => publish(new EditMenuEvent(mie.menuItem))
-                case miName if miName.startsWith("miTools") => publish(new ToolsMenuEvent(mie.menuItem))
-                case miName if miName.startsWith("miHelp")  => publish(new HelpMenuEvent(mie.menuItem))
-                case otherwise                              => {}
-            }
+        case miE: MenuItemEvent => {
+            deafTo(this)
+            publish(miE)
+            listenTo(this)
+        }
+        case mnE: MenuEvent => {
+            deafTo(this)
+            publish(mnE)
+            listenTo(this)
+        }
+        case tpnE: TabChangeEvent => {
+            deafTo(this)
+            publish(tpnE)
+            listenTo(this)
         }
     }
 

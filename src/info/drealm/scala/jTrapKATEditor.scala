@@ -10,14 +10,15 @@ object jTrapKATEditor extends SimpleSwingApplication {
 
     def top = frmTrapkatSysexEditor
 
+    //TODO: This should say what is unsaved and ask for confirmation to lose it.
     def loseUnsavedChanges = {
         true
     }
 
     listenTo(frmTrapkatSysexEditor)
     reactions += {
-        case me: frmTrapkatSysexEditor.FileMenuEvent => {
-            me.menuItem.name.stripPrefix("miFile") match {
+        case mie: eventX.FileMenuEvent => {
+            mie.source.name.stripPrefix("miFile") match {
                 case "NewV3" if (loseUnsavedChanges) => Console.println("File NewV3")
                 case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV3")
                 case "Open" if (loseUnsavedChanges)  => Console.println("File Open")
@@ -43,30 +44,72 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
                 case "Close" if (loseUnsavedChanges) => Console.println("File Close")
                 case "Exit" if (loseUnsavedChanges)  => quit
-                case otherwise                       => {}
+                case otherwise => {
+                    Console.println("File event " + mie.source.name)
+                }
             }
         }
-        case me: frmTrapkatSysexEditor.EditMenuEvent => {
-            me.menuItem.name.stripPrefix("miEdit") match {
-                case "Undo"     => {}
-                case "Redo"     => {}
-                case "CopyKit"  => {}
-                case "SwapKits" => {}
-                case "CopyPad"  => {}
-                case "PastePad" => {}
-                case "SwapPads" => {}
-                case otherwise  => {}
+        case mie: eventX.EditMenuEvent => {
+            mie.source.name.stripPrefix("miEdit") match {
+                case "Undo"     => Console.println("Edit Undo")
+                case "Redo"     => Console.println("Edit Redo")
+                case "CopyKit"  => Console.println("Edit CopyKit")
+                case "SwapKits" => Console.println("Edit SwapKits")
+                case "CopyPad"  => Console.println("Edit CopyPad")
+                case "PastePad" => Console.println("Edit PastePad")
+                case "SwapPads" => Console.println("Edit SwapPads")
+                case otherwise => {
+                    Console.println("Edit event " + mie.source.name)
+                }
             }
         }
-        case me: frmTrapkatSysexEditor.ToolsMenuEvent => {
-            me.menuItem.name.stripPrefix("miTools") match {
-                case otherwise => {}
+        case mie: eventX.ToolsMenuEvent => {
+            mie.source.name.stripPrefix("miTools") match {
+                case "OptionsDMNAsNumbers" => Console.println("Tools Options DMN AsNumbers")
+                case "OptionsDMNAsNamesC3" => Console.println("Tools Options DMN AsNamesC3")
+                case "OptionsDMNAsNamesC4" => Console.println("Tools Options DMN AsNamesC4")
+                case "Convert"             => Console.println("Tools Convert")
+                case otherwise => {
+                    Console.println("Tools event " + mie.source.name)
+                }
             }
         }
-        case me: frmTrapkatSysexEditor.HelpMenuEvent => {
-            me.menuItem.name.stripPrefix("miHelp") match {
-                case otherwise => {}
+        case mie: eventX.HelpMenuEvent => {
+            mie.source.name.stripPrefix("miHelp") match {
+                case "Contents"           => Console.println("Help Contents")
+                case "CheckForUpdate"     => Console.println("Help CheckForUpdate")
+                case "CheckAutomatically" => Console.println("Help CheckAutomatically")
+                case "About"              => Console.println("Help About")
+                case otherwise => {
+                    Console.println("Help event " + mie.source.name)
+                }
             }
         }
+        case mne: eventX.MenuEvent => {
+            mne.source.name.stripPrefix("mn") match {
+                case "File"            => Console.println("File menu " + mne.action)
+                case "Edit"            => Console.println("Edit menu " + mne.action)
+                case "Tools"           => Console.println("Tools menu " + mne.action)
+                case "ToolsOptions"    => Console.println("Tools Options menu " + mne.action)
+                case "ToolsOptionsDMN" => Console.println("Tools Options DMN menu " + mne.action)
+                case "Help"            => Console.println("Help menu " + mne.action)
+                case otherwise => {
+                    Console.println("MenuEvent" + mne.source.name + " action " + mne.action)
+                }
+            }
+        }
+        case tpe: eventX.TabChangeEvent => {
+            tpe.source.content.name.stripPrefix("pn") match {
+                case "KitsPads"   => Console.println("Main KitsPads")
+                case "Global"     => Console.println("Main Global")
+                case "PadDetails" => Console.println("KitPadsDetails PadDetails")
+                case "MoreSlots"  => Console.println("KitPadsDetails MoreSlots")
+                case "KitDetails" => Console.println("KitPadsDetails KitDetails")
+                case otherwise => {
+                    Console.println("tab " + otherwise)
+                }
+            }
+        }
+        case e => Console.println("Event " + e)
     }
 }

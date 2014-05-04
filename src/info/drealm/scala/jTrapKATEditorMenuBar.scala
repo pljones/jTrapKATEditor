@@ -1,16 +1,48 @@
 package info.drealm.scala
 
-import java.awt.event.{InputEvent, KeyEvent}
+import java.awt.event.{ InputEvent, KeyEvent }
 import javax.swing.KeyStroke
 
 import swing._
 import swing.event._
 
 object jTrapKATEditorMenuBar extends MenuBar {
+    def menuEventCallback(source: Menu, action: eventX.MenuEvent.Action) = {
+        deafTo(this)
+        publish(new eventX.MenuEvent(source, action))
+        listenTo(this)
+    }
+    class RichMenu(title: String) extends Menu(title) {
 
-    class MenuItemEvent(val menuItem: MenuItem) extends Event
-    def menuItemEventCallback(mi: MenuItem) = publish(new MenuItemEvent(mi))
+        reactions += {
+            case e: eventX.MenuCanceled   => menuEventCallback(e.source, eventX.MenuEvent.Canceled)
+            case e: eventX.MenuDeselected => menuEventCallback(e.source, eventX.MenuEvent.Deselected)
+            case e: eventX.MenuSelected   => menuEventCallback(e.source, eventX.MenuEvent.Selected)
+        }
 
+        private[this] final def MenuListener(f1: javax.swing.event.MenuEvent => Unit, f2: javax.swing.event.MenuEvent => Unit, f3: javax.swing.event.MenuEvent => Unit) = new javax.swing.event.MenuListener {
+            def menuCanceled(e: javax.swing.event.MenuEvent) { f1(e) }
+            def menuDeselected(e: javax.swing.event.MenuEvent) { f2(e) }
+            def menuSelected(e: javax.swing.event.MenuEvent) { f3(e) }
+        }
+        peer.addMenuListener(MenuListener(
+            { e => publish(new eventX.MenuCanceled(this)) },
+            { e => publish(new eventX.MenuDeselected(this)) },
+            { e => publish(new eventX.MenuSelected(this)) }
+        ))
+    }
+
+    def menuItemEventCallback(source: MenuItem) = {
+        deafTo(this)
+        listenTo(this)
+        source.name match {
+            case miName if miName.startsWith("miFile")  => publish(new eventX.FileMenuEvent(source))
+            case miName if miName.startsWith("miEdit")  => publish(new eventX.EditMenuEvent(source))
+            case miName if miName.startsWith("miTools") => publish(new eventX.ToolsMenuEvent(source))
+            case miName if miName.startsWith("miHelp")  => publish(new eventX.HelpMenuEvent(source))
+            case otherwise                              => {}
+        }
+    }
     class RichMenuItem(private val _title: String,
                        private val _name: String,
                        private val _accelerator: Option[KeyStroke],
@@ -23,7 +55,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         def this(title: String, name: String, mnemonic: event.Key.Value, accelerator: KeyStroke) = this(title, name, Some(accelerator), Some(mnemonic))
         def this(title: String, name: String, accelerator: KeyStroke, mnemonic: event.Key.Value) = this(title, name, Some(accelerator), Some(mnemonic))
 
-        reactions += { case ButtonClicked(_) => menuItemEventCallback(this) }
+        reactions += { case e: ButtonClicked => menuItemEventCallback(e.source.asInstanceOf[MenuItem]) }
 
         name = _name
 
@@ -39,11 +71,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
             case Some(m) => mnemonic = m
             case None    => {}
         }
-
     }
 
-    object mnFile extends Menu("File") {
-
+    object mnFile extends RichMenu("File") {
         name = "mnFile"
         mnemonic = Key.F
 
@@ -69,8 +99,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         contents += new RichMenuItem("Exit", "miFileExit", Key.X, KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK))
     }
 
-    object mnEdit extends Menu("Edit") {
-
+    object mnEdit extends RichMenu("Edit") {
         name = "mnEdit"
         mnemonic = Key.E
 
@@ -90,19 +119,18 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
     }
 
-    object mnTools extends Menu("Tools") {
-
+    object mnTools extends RichMenu("Tools") {
         name = "mnTools"
         mnemonic = Key.T
 
-        contents += new Menu("Options") {
+        contents += new RichMenu("Options") {
+            name = "mnToolsOptions"
             mnemonic = Key.O
-            name = "miToolsOptions"
 
-            contents += new Menu("Display MIDI Notes") {
-                name = "miToolsOptionsDMN"
+            contents += new RichMenu("Display MIDI Notes") {
+                name = "mnToolsOptionsDMN"
 
-                val bgTODMN = new ButtonGroup();
+                private[this] val bgTODMN = new ButtonGroup();
 
                 contents += new RadioMenuItem("As Numbers") {
                     name = "miToolsOptionsDMNAsNumbers"
@@ -120,14 +148,13 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     bgTODMN.buttons.add(this)
                     reactions += { case ButtonClicked(_) => menuItemEventCallback(this) }
                 }
-
             }
         }
 
         contents += new RichMenuItem("Convert...", "miToolsConvert", Key.C)
     }
 
-    object mnHelp extends Menu("Help") {
+    object mnHelp extends RichMenu("Help") {
 
         name = "mnHelp"
         mnemonic = Key.H

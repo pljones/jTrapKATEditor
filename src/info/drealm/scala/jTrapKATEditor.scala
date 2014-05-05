@@ -1,10 +1,13 @@
 package info.drealm.scala
 
 import javax.swing.UIManager
-import swing.SimpleSwingApplication
+import swing._
+import swing.event._
+import info.drealm.scala.eventX._
 
 object jTrapKATEditor extends SimpleSwingApplication {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    UIManager.put("swing.boldMetal", false);
 
     //override def shutdown() = {}
 
@@ -17,7 +20,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
 
     listenTo(frmTrapkatSysexEditor)
     reactions += {
-        case mie: eventX.FileMenuEvent => {
+        case mie: FileMenuEvent => {
             mie.source.name.stripPrefix("miFile") match {
                 case "NewV3" if (loseUnsavedChanges) => Console.println("File NewV3")
                 case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV3")
@@ -49,7 +52,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
-        case mie: eventX.EditMenuEvent => {
+        case mie: EditMenuEvent => {
             mie.source.name.stripPrefix("miEdit") match {
                 case "Undo"     => Console.println("Edit Undo")
                 case "Redo"     => Console.println("Edit Redo")
@@ -63,7 +66,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
-        case mie: eventX.ToolsMenuEvent => {
+        case mie: ToolsMenuEvent => {
             mie.source.name.stripPrefix("miTools") match {
                 case "OptionsDMNAsNumbers" => Console.println("Tools Options DMN AsNumbers")
                 case "OptionsDMNAsNamesC3" => Console.println("Tools Options DMN AsNamesC3")
@@ -74,7 +77,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
-        case mie: eventX.HelpMenuEvent => {
+        case mie: HelpMenuEvent => {
             mie.source.name.stripPrefix("miHelp") match {
                 case "Contents"           => Console.println("Help Contents")
                 case "CheckForUpdate"     => Console.println("Help CheckForUpdate")
@@ -85,7 +88,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
-        case mne: eventX.MenuEvent => {
+        case mne: MenuEvent => {
             mne.source.name.stripPrefix("mn") match {
                 case "File"            => Console.println("File menu " + mne.action)
                 case "Edit"            => Console.println("Edit menu " + mne.action)
@@ -98,7 +101,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
-        case tpe: eventX.TabChangeEvent => {
+        case tpe: TabChangeEvent => {
             tpe.source.content.name.stripPrefix("pn") match {
                 case "KitsPads"   => Console.println("Main KitsPads")
                 case "Global"     => Console.println("Main Global")
@@ -106,10 +109,37 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 case "MoreSlots"  => Console.println("KitPadsDetails MoreSlots")
                 case "KitDetails" => Console.println("KitPadsDetails KitDetails")
                 case otherwise => {
-                    Console.println("tab " + otherwise)
+                    Console.println("TabChangeEvent " + otherwise)
                 }
             }
         }
-        case e => Console.println("Event " + e)
+        case cbxE: SelectionChanged if (cbxE.source.isInstanceOf[ComboBox[_]]) => {
+            cbxE.source.name.stripPrefix("cbx") match {
+                case otherwise => {
+                    Console.println("ComboBox SelectionChanged " + otherwise)
+                }
+            }
+        }
+        case spnE: ValueChanged if (spnE.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
+            spnE.source.name.stripPrefix("spn") match {
+                case otherwise => {
+                    Console.println("Spinner ValueChanged " + otherwise)
+                }
+            }
+        }
+        case ckbE: ButtonClicked if (ckbE.source.isInstanceOf[CheckBox]) => {
+            ckbE.source.name.stripPrefix("ckb") match {
+                case otherwise => {
+                    Console.println("CheckBox 'ButtonClicked' " + otherwise)
+                }
+            }
+        }
+        case txtE: EditDone if (txtE.source.isInstanceOf[TextField]) => {
+            txtE.source.name.stripPrefix("txt") match {
+                case otherwise => {
+                    Console.println("TextField EditDone " + otherwise)
+                }
+            }
+        }
     }
 }

@@ -15,15 +15,55 @@ object frmTrapkatSysexEditor extends MainFrame {
     menuBar = jTrapKATEditorMenuBar
 
     private[this] object tpnMain extends TabbedPane {
-        listenTo(selection)
-        reactions += { case tpnE: SelectionChanged => publish(new TabChangeEvent(selection.page)) }
 
         name = "tpnMain"
-        pages += pnKitsPads
-        pages += new TabbedPane.Page("Global", new MigPanel("insets 5", "[]", "[]") {
+
+        val pnGlobal = new MigPanel("insets 5", "[]", "[]") {
             name = "pnGlobal"
             contents += (new Label("Being reworked"), "cell 0 0")
-        })
+        }
+
+        pages += new TabbedPane.Page("Kits & Pads", pnKitsPads) { name = "tpKitsPads" }
+        pages += new TabbedPane.Page("Global", pnGlobal) { name = "tpGlobal" }
+
+        listenTo(selection)
+        listenTo(pnKitsPads)
+        listenTo(pnGlobal)
+
+        reactions += {
+            case e: TabChangeEvent => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => e.source match {
+                case tpnE: TabbedPane => {
+                    deafTo(this)
+                    publish(new TabChangeEvent(tpnE.selection.page))
+                    listenTo(this)
+                }
+            }
+            case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: ValueChanged if (e.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: ButtonClicked if (e.source.isInstanceOf[CheckBox]) => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: EditDone if (e.source.isInstanceOf[TextField]) => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+        }
     }
 
     contents = new MigPanel("insets 3", "[grow]", "[grow, fill][bottom]") {
@@ -36,7 +76,7 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     listenTo(menuBar)
     listenTo(tpnMain)
-    listenTo(pnKitsPads.content)
+
     reactions += {
         case miE: MenuItemEvent => {
             deafTo(this)
@@ -48,9 +88,29 @@ object frmTrapkatSysexEditor extends MainFrame {
             publish(mnE)
             listenTo(this)
         }
-        case tpnE: TabChangeEvent => {
+        case e: TabChangeEvent => {
             deafTo(this)
-            publish(tpnE)
+            publish(e)
+            listenTo(this)
+        }
+        case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: ValueChanged if (e.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: ButtonClicked if (e.source.isInstanceOf[CheckBox]) => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: EditDone if (e.source.isInstanceOf[TextField]) => {
+            deafTo(this)
+            publish(e)
             listenTo(this)
         }
     }

@@ -8,12 +8,13 @@ object PadSlot {
     val padFunction = Seq("Off", "Seq Start", "Seq Stop", "Seq Cont", "Alt Reset", "Next Kit", "Prev Kit")
 }
 
-class Pad(pad: String) extends MigPanel("insets 2", "[grow,right][fill,left]", "[]") {
+class Pad(pad: String) extends MigPanel("insets 4 2 4 2", "[grow,right][fill,left]", "[]") {
 
     name = "pnPad" + pad
     private[this] val lblPadSlot = new Label("" + pad)
     private[this] val cbxPadSlot = new RichComboBox(PadSlot.padFunction, "cbxPad" + pad, lblPadSlot) {
         makeEditable()
+        peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField].setColumns(4)
         selection.index = -1
         selection.item = ""
     }
@@ -32,8 +33,8 @@ class Pad(pad: String) extends MigPanel("insets 2", "[grow,right][fill,left]", "
 
 class Slot(private[this] val slot: Integer) extends Tuple3(slot, new Label("" + slot), new RichComboBox(PadSlot.padFunction, "cbxSlot" + slot) {
     makeEditable()
-    selection.index = -1
-    selection.item = ""
+    peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField].setColumns(4)
+    selection.index = 0
 }) {
     _2.peer.setDisplayedMnemonic(("" + slot).last)
     // Uhhhhh, right...

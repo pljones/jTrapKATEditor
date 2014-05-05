@@ -74,7 +74,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
         }
 
-        private[this] val pnPads = new MigPanel("insets 0, gap 0", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
+        private[this] val pnPads = new MigPanel("insets 0, gapx 0", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
             name = "pnPads"
 
             (for (
@@ -113,8 +113,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val pnHH = new MigPanel("insets 2, gap 0", "[grow,right][left,fill]", "[]") {
                 name = "pnHH"
 
-                private[this] val lblHH = new Label("Hihat Pads") { peer.setDisplayedMnemonic('d') }
-                contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline")
+                private[this] val lblHH = new Label("Hihat Pads:") { peer.setDisplayedMnemonic('d') }
+                contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
                 (1 to 4) map { x =>
                     val cbxHH = new RichComboBox(Seq("Off") ++ (1 to 24), "cbxHH" + x, if (x == 1) lblHH else null) { peer.setMaximumRowCount(25) }
                     contents += (cbxHH, "cell " + x + " 0, grow")
@@ -186,7 +186,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] val lblLinkTo = new Label("Link To:") { peer.setDisplayedMnemonic('L') }
                 private[this] val cbxLinkTo = new RichComboBox(Seq("Off") ++ allPads, "cbxLinkTo", lblLinkTo)
                 contents += (lblLinkTo, "cell 0 0")
-                contents += (cbxLinkTo, "cell 0 1")
+                contents += (cbxLinkTo, "cell 1 0")
                 listenTo(cbxLinkTo.selection)
 
                 reactions += {
@@ -206,7 +206,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     if (x._4) {
                         makeEditable()
                         selection.index = -1
-                        selection.item = ""
+                        selection.item = "0.115"
                     }
                 }
                 contents += (lbl, "cell 4 " + x._1 + ",alignx right")
@@ -276,10 +276,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             val pnGlobalPadDynamics = new MigPanel("insets 0,gapx 2, gapy 0", "[4px:n][][][][][][][4px:n]", "[][4px:n][][][4px:n]") {
                 name = "pnGlobalPadDynamics"
-                border = new EtchedBorder(EtchedBorder.LOWERED, null, null)
-
-                val lblGlobalPadDynamics = new Label("Global Pad Dynamics")
-                contents += (lblGlobalPadDynamics, "cell 1 0 6 1")
+                border = new TitledBorder("Global Pad Dynamics")
 
                 Seq((0, 0, "lowLevel"), (1, 0, "thresholdManual"), (2, 0, "userMargin"),
                     (0, 1, "highLevel"), (1, 1, "thresholdActual"), (2, 1, "internalMargin")) map (tuple => {
@@ -344,57 +341,64 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
         }
 
-        val pnKitDetails = new MigPanel("insets 5, gapx 2, gapy 0", "[][][16px:n][][16px:n][][][][4px:n][][][]", "[][][][][][][]") {
+        val pnKitDetails = new MigPanel("insets 5, gapx 2, gapy 0", "[][][][16px:n,grow][][16px:n,grow][][][][4px:n][][][]", "[][][][][][][]") {
             name = "pnKitDetails"
 
-            Seq((0, "Curve", padCurves, false), (1, "Gate", padGates, true)) map { x =>
-                val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._2.head) }
-                val cbx = new RichComboBox(x._3, "cbxKit" + x._2, lbl) {
-                    if (x._4) {
-                        makeEditable()
-                        selection.index = -1
-                        selection.item = ""
-                    }
-                }
-                val ckb = new CheckBox("Various") { name = "ckbVar" + x._2 }
+            private[this] val lblKitCurve = new Label("Curve:") { peer.setDisplayedMnemonic('C') }
+            private[this] val cbxKitCurve = new RichComboBox(padCurves, "cbxKitCurve", lblKitCurve)
+            private[this] val ckbVarCurve = new CheckBox("Various") { name = "ckbVarCurve" }
 
-                contents += (lbl, "cell 0 " + x._1 + ",alignx right")
-                contents += (cbx, "cell 1 " + x._1)
-                contents += (ckb, "cell 1 " + x._1)
-
-                listenTo(cbx.selection)
-                listenTo(ckb)
+            private[this] val lblKitGate = new Label("Gate:") { peer.setDisplayedMnemonic('G') }
+            private[this] val cbxKitGate = new RichComboBox(padGates, "cbxKitGate", lblKitGate) {
+                makeEditable()
+                selection.index = -1
+                selection.item = "0.115"
             }
+            private[this] val ckbVarGate = new CheckBox("Various") { name = "ckbVarGate" }
 
-            val lblKitChannel = new Label("Channel:") { peer.setDisplayedMnemonic('n') }
-            val spnKitChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", lblKitChannel)
-            val ckbVarChannel = new CheckBox("Various") { name = "ckbVarChannel" }
+            private[this] val lblKitChannel = new Label("Channel:") { peer.setDisplayedMnemonic('n') }
+            private[this] val spnKitChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", lblKitChannel)
+            private[this] val ckbVarChannel = new CheckBox("Various") { name = "ckbVarChannel" }
+
+            contents += (lblKitCurve, "cell 0 0,alignx right")
+            contents += (cbxKitCurve, "cell 1 0")
+            contents += (ckbVarCurve, "cell 2 0")
+
+            contents += (lblKitGate, "cell 0 1,alignx right")
+            contents += (cbxKitGate, "cell 1 1,spanx 2")
+            contents += (ckbVarGate, "cell 1 1")
 
             contents += (lblKitChannel, "cell 0 2,alignx right")
-            contents += (spnKitChannel, "cell 1 2")
+            contents += (spnKitChannel, "cell 1 2,spanx 2")
             contents += (ckbVarChannel, "cell 1 2")
+
+            listenTo(cbxKitCurve.selection)
+            listenTo(ckbVarCurve)
+
+            listenTo(cbxKitGate.selection)
+            listenTo(ckbVarGate)
 
             listenTo(spnKitChannel)
             listenTo(ckbVarChannel)
 
-            contents += (new Label("Foot Controller"), "cell 0 3 2 1, center")
+            contents += (new Label("Foot Controller"), "cell 0 3 2 1, alignx center, aligny bottom")
 
-            Seq((4, "Function", fcFunctions, 'o'), (6, "Curve", fcCurves, 'v')) map { x =>
+            Seq((4, "Function", fcFunctions, 'o', ""), (6, "Curve", fcCurves, 'v', ",growx")) map { x =>
                 val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._4) }
                 val cbx = new RichComboBox(x._3, "cbxFC" + x._2, lbl)
 
                 contents += (lbl, "cell 0 " + x._1 + ",alignx right")
-                contents += (cbx, "cell 1 " + x._1)
+                contents += (cbx, "cell 1 " + x._1 + x._5)
 
                 listenTo(cbx.selection)
             }
 
-            val lblFCChannel = new Label("Channel:") { peer.setDisplayedMnemonic('l') }
-            val spnFCChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", lblFCChannel)
-            val ckbAsChick = new CheckBox("Same as Chick") { name = "ckbAsChick" }
+            private[this] val lblFCChannel = new Label("Channel:") { peer.setDisplayedMnemonic('l') }
+            private[this] val spnFCChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", lblFCChannel)
+            private[this] val ckbAsChick = new CheckBox("Same as Chick") { name = "ckbAsChick" }
 
             contents += (lblFCChannel, "cell 0 5,alignx right")
-            contents += (spnFCChannel, "cell 1 5")
+            contents += (spnFCChannel, "cell 1 5,spanx 2")
             contents += (ckbAsChick, "cell 1 5")
 
             listenTo(spnFCChannel)
@@ -430,7 +434,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
 
             }
-            contents += (pnKitVelocity, "cell 3 0 1 7,growx,aligny top")
+            contents += (pnKitVelocity, "cell 4 0 1 7,growx,aligny top")
             listenTo(pnKitVelocity)
 
             val pnSoundControl = new MigPanel("insets 0,gapx 2, gapy 0", "[][]", "[]") {
@@ -453,11 +457,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
 
             }
-            contents += (pnSoundControl, "cell 5 0 7 1,center")
+            contents += (pnSoundControl, "cell 6 0 7 1,center")
             listenTo(pnSoundControl)
 
-            Seq(("Volume", Some('l'), 127, 0, 127, true),
-                ("PrgChg", Some('g'), 1, 1, 128, true),
+            Seq(("Volume", Some('m'), 127, 0, 127, true),
+                ("PrgChg", Some('r'), 1, 1, 128, true),
                 ("TxmChn", None, 10, 1, 16, false),
                 ("MSB", None, 0, 0, 127, true),
                 ("LSB", None, 0, 0, 127, true),
@@ -470,12 +474,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                     (lbl, spn, ckb)
                 } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) map { t =>
-                    contents += (t._1._1, "cell " + (5 + 3 * t._2._2) + " " + (1 + t._2._1) + ",alignx right")
-                    contents += (t._1._2, "cell " + (6 + 3 * t._2._2) + " " + (1 + t._2._1))
+                    contents += (t._1._1, "cell " + (6 + 3 * t._2._2) + " " + (1 + t._2._1) + ",alignx right")
+                    contents += (t._1._2, "cell " + (7 + 3 * t._2._2) + " " + (1 + t._2._1))
                     listenTo(t._1._2)
                     t._1._3 match {
                         case Some(ckb) => {
-                            contents += (ckb, "cell " + (7 + 3 * t._2._2) + " " + (1 + t._2._1))
+                            contents += (ckb, "cell " + (8 + 3 * t._2._2) + " " + (1 + t._2._1))
                             listenTo(ckb)
                         }
                         case None => {}

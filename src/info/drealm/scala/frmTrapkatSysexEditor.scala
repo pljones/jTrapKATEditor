@@ -48,6 +48,11 @@ object frmTrapkatSysexEditor extends MainFrame {
                 publish(e)
                 listenTo(this)
             }
+            case e: CbxEditorFocused => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
             case e: ValueChanged if (e.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
                 deafTo(this)
                 publish(e)
@@ -94,6 +99,11 @@ object frmTrapkatSysexEditor extends MainFrame {
             listenTo(this)
         }
         case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: CbxEditorFocused => {
             deafTo(this)
             publish(e)
             listenTo(this)

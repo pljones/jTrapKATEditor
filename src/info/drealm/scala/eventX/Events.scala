@@ -19,3 +19,5 @@ case class MenuDeselected(override val source: Menu) extends ComponentEvent
 case class MenuSelected(override val source: Menu) extends ComponentEvent
 
 class TabChangeEvent(val source: TabbedPane.Page) extends Event
+
+class CbxEditorFocused (override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent

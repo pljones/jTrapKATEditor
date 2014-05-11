@@ -125,5 +125,7 @@ object frmTrapkatSysexEditor extends MainFrame {
         }
     }
 
+    layout.Focus.set(tpnMain, "cbxPad1")
+
     centerOnScreen
 }

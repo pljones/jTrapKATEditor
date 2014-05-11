@@ -98,6 +98,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
+                case e: CbxEditorFocused => {
+                    deafTo(this)
+                    publish(e)
+                    listenTo(this)
+                }
             }
         }
 
@@ -138,6 +143,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
+                case e: CbxEditorFocused => {
+                    deafTo(this)
+                    publish(e)
+                    listenTo(this)
+                }
             }
         }
 
@@ -151,6 +161,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
         reactions += {
             case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: CbxEditorFocused => {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -557,6 +572,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             listenTo(this)
         }
         case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: CbxEditorFocused => {
             deafTo(this)
             publish(e)
             listenTo(this)

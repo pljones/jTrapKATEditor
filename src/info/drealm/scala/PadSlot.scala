@@ -11,19 +11,26 @@ object PadSlot {
 class Pad(pad: String) extends MigPanel("insets 4 2 4 2", "[grow,right][fill,left]", "[]") {
 
     name = "pnPad" + pad
-    private[this] val lblPadSlot = new Label("" + pad)
-    private[this] val cbxPadSlot = new RichComboBox(PadSlot.padFunction, "cbxPad" + pad, lblPadSlot) {
+    private[this] val lblPad = new Label("" + pad)
+    private[this] val cbxPad = new RichComboBox(PadSlot.padFunction, "cbxPad" + pad, lblPad) {
         makeEditable()
         peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField].setColumns(4)
         selection.index = -1
         selection.item = ""
     }
-    contents += (lblPadSlot, "cell 0 0,alignx trailing,aligny baseline")
-    contents += (cbxPadSlot, "cell 1 0,grow")
+    contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
+    contents += (cbxPad, "cell 1 0,grow")
 
-    listenTo(cbxPadSlot.selection)
+    listenTo(cbxPad.selection)
+    listenTo(cbxPad)
+
     reactions += {
         case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: eventX.CbxEditorFocused => {
             deafTo(this)
             publish(e)
             listenTo(this)

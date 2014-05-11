@@ -3,7 +3,7 @@ package info.drealm.scala.spinner
 import swing._
 import javax.swing.{ JSpinner, SpinnerModel }
 
-class Spinner(private[this] val _model: SpinnerModel, private[this] val _name: String, private[this] val _label: scala.swing.Label) extends Component with Publisher {
+class Spinner(_model: SpinnerModel, _name: String, _label: scala.swing.Label) extends Component with Publisher {
     def this(_model: SpinnerModel, _name: String) = this(_model, _name, null)
     def this(_model: SpinnerModel) = this(_model, "", null)
 

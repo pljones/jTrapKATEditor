@@ -120,6 +120,13 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
+        case padE: CbxEditorFocused => {
+            padE.source.name.stripPrefix("cbxPad") match {
+                case otherwise => {
+                    Console.println("PadFocused " + otherwise)
+                }
+            }
+        }
         case spnE: ValueChanged if (spnE.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
             spnE.source.name.stripPrefix("spn") match {
                 case otherwise => {

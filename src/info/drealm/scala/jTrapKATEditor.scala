@@ -113,40 +113,17 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
-        case cbxE: SelectionChanged if (cbxE.source.isInstanceOf[ComboBox[_]]) => {
-            cbxE.source.name.stripPrefix("cbx") match {
-                case otherwise => {
-                    Console.println("ComboBox SelectionChanged " + otherwise)
-                }
-            }
+        case cbxE: SelectionChanged => {
+            Console.println("SelectionChanged " + cbxE.source.name)
         }
-        case padE: CbxEditorFocused => {
-            padE.source.name.stripPrefix("cbxPad") match {
-                case otherwise => {
-                    Console.println("PadFocused " + otherwise)
-                }
-            }
+        case cbxE: CbxEditorFocused => {
+            Console.println("CbxEditorFocused " + cbxE.source.name)
         }
-        case spnE: ValueChanged if (spnE.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
-            spnE.source.name.stripPrefix("spn") match {
-                case otherwise => {
-                    Console.println("Spinner ValueChanged " + otherwise)
-                }
-            }
+        case cpnE: ValueChanged => {
+            Console.println("ValueChanged " + cpnE.source.name)
         }
-        case ckbE: ButtonClicked if (ckbE.source.isInstanceOf[CheckBox]) => {
-            ckbE.source.name.stripPrefix("ckb") match {
-                case otherwise => {
-                    Console.println("CheckBox 'ButtonClicked' " + otherwise)
-                }
-            }
-        }
-        case txtE: EditDone if (txtE.source.isInstanceOf[TextField]) => {
-            txtE.source.name.stripPrefix("txt") match {
-                case otherwise => {
-                    Console.println("TextField EditDone " + otherwise)
-                }
-            }
+        case cbxE: ButtonClicked => {
+            Console.println("ButtonClicked " + cbxE.source.name)
         }
     }
 }

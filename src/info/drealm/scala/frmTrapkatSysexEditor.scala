@@ -43,7 +43,7 @@ object frmTrapkatSysexEditor extends MainFrame {
                     listenTo(this)
                 }
             }
-            case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+            case e: SelectionChanged => {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -53,17 +53,12 @@ object frmTrapkatSysexEditor extends MainFrame {
                 publish(e)
                 listenTo(this)
             }
-            case e: ValueChanged if (e.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
+            case e: ValueChanged => {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
             }
-            case e: ButtonClicked if (e.source.isInstanceOf[CheckBox]) => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: EditDone if (e.source.isInstanceOf[TextField]) => {
+            case e: ButtonClicked => {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -98,7 +93,7 @@ object frmTrapkatSysexEditor extends MainFrame {
             publish(e)
             listenTo(this)
         }
-        case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
+        case e: SelectionChanged => {
             deafTo(this)
             publish(e)
             listenTo(this)
@@ -108,17 +103,12 @@ object frmTrapkatSysexEditor extends MainFrame {
             publish(e)
             listenTo(this)
         }
-        case e: ValueChanged if (e.source.isInstanceOf[info.drealm.scala.spinner.Spinner]) => {
+        case e: ValueChanged => {
             deafTo(this)
             publish(e)
             listenTo(this)
         }
-        case e: ButtonClicked if (e.source.isInstanceOf[CheckBox]) => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: EditDone if (e.source.isInstanceOf[TextField]) => {
+        case e: ButtonClicked => {
             deafTo(this)
             publish(e)
             listenTo(this)

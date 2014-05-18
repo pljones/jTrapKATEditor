@@ -3,19 +3,23 @@ package info.drealm.scala.layout
 import scala.swing._
 
 object Focus {
-    def findInContainer(container: Container, value: String): Option[Component] = {
-        val cps = container.contents map { p => findInComponent(p, value) } filter { p => p.isDefined }
+    def findInContainer(container: Container, value: String): Option[Component] = findInContainer(container, (cp => cp.name == value))
+    def findInContainer(container: Container, found: Component => Boolean): Option[Component] = {
+        val cps = container.contents map { p => findInComponent(p, found) } filter { p => p.isDefined }
         if (cps.length > 0) cps.head else None
     }
-    def findInTabbedPane(tabbedPane: TabbedPane, value: String): Option[Component] = {
-        val cps = tabbedPane.pages map { pg => findInComponent(pg.content, value) } filter { p => p.isDefined }
+    def findInTabbedPane(tabbedPane: TabbedPane, value: String): Option[Component] = findInTabbedPane(tabbedPane, (cp => cp.name == value))
+    def findInTabbedPane(tabbedPane: TabbedPane, found: Component => Boolean): Option[Component] = {
+        val cps = tabbedPane.pages map { pg => findInComponent(pg.content, found) } filter { p => p.isDefined }
         if (cps.length > 0) cps.head else None
     }
-    def findInComponent(component: Component, value: String): Option[Component] = {
+    def findInComponent(component: Component, value: String): Option[Component] = findInComponent(component, (cp => cp.name == value))
+    def findInComponent(component: Component, found: Component => Boolean): Option[Component] = {
         component match {
-            case cn: Container  => findInContainer(cn, value)
-            case tp: TabbedPane => findInTabbedPane(tp, value)
-            case _              => if (component.name == value) Some(component) else None
+            case cn: Container   => findInContainer(cn, found)
+            case tp: TabbedPane  => findInTabbedPane(tp, found)
+            case cp if found(cp) => Some(cp)
+            case _               => None
         }
     }
 
@@ -31,7 +35,6 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
     def this(container: Container, order: Seq[String], first: String) = this(container, order, first, order.last, first, first)
     def this(container: Container, order: Seq[String]) = this(container, order, order.head, order.last)
 
-    //private[this] val lftpComparator = this.getComparator()
     private[this] lazy val firstCp = peer(first)
     private[this] lazy val lastCp = peer(last)
     private[this] lazy val defaultCp = peer(default)
@@ -54,7 +57,7 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
     }
 
     private[this] def peer(item: String): java.awt.Component = {
-//        Console.println("peer: " + item)
+        //Console.println("peer: " + item)
         Focus.findInContainer(container, item) match {
             case None => null
             case Some(cp) => cp match {
@@ -65,45 +68,41 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
         }
     }
 
-    def fn(pn: java.awt.Container) = {
-        "" +
-            (if (pn.isFocusCycleRoot()) "isRoot " else "") +
-            (if (pn.isFocusTraversalPolicyProvider() && pn.isFocusTraversalPolicySet()) "isPolicy " else "") +
-            (if (pn == container.peer) "isSelf " else "") +
-            pn
-    }
+    //def fn(pn: java.awt.Container) = "" +
+    //    (if (pn.isFocusCycleRoot()) "isRoot " else "") +
+    //    (if (pn.isFocusTraversalPolicyProvider() && pn.isFocusTraversalPolicySet()) "isPolicy " else "") +
+    //    (if (pn == container.peer) "isSelf " else "") +
+    //    pn
 
     override def getComponentAfter(pn: java.awt.Container, cp: java.awt.Component): java.awt.Component = {
-//        Console.println("getComponentAfter: " + fn(pn))
+        //Console.println("getComponentAfter: " + fn(pn))
         val pos = getPos(cp)
         if (pos < order.length - 1) peer(order(pos + 1)) else null
     }
 
     override def getComponentBefore(pn: java.awt.Container, cp: java.awt.Component): java.awt.Component = {
-//        Console.println("getComponentBefore: " + fn(pn))
+        //Console.println("getComponentBefore: " + fn(pn))
         val pos = getPos(cp)
         if (pos > 0) peer(order(pos - 1)) else null
     }
 
-    override def getFirstComponent(pn: java.awt.Container): java.awt.Component =
-        {
-            Console.println("getFirstComponent: %s -> %s".format(fn(pn), first))
-            if (pn == container.peer) firstCp else null
-        }
+    override def getFirstComponent(pn: java.awt.Container): java.awt.Component = {
+        //Console.println("getFirstComponent: %s -> %s".format(fn(pn), first))
+        if (pn == container.peer) firstCp else null
+    }
 
     override def getLastComponent(pn: java.awt.Container): java.awt.Component = {
-//        Console.println("getLastComponent: %s -> %s".format(fn(pn), last))
+        //Console.println("getLastComponent: %s -> %s".format(fn(pn), last))
         if (pn == container.peer) lastCp else null
     }
 
-    override def getDefaultComponent(pn: java.awt.Container): java.awt.Component =
-        {
-//            Console.println("getDefaultComponent: %s -> %s".format(fn(pn), default))
-            if (pn == container.peer) defaultCp else null
-        }
+    override def getDefaultComponent(pn: java.awt.Container): java.awt.Component = {
+        //Console.println("getDefaultComponent: %s -> %s".format(fn(pn), default))
+        if (pn == container.peer) defaultCp else null
+    }
 
     override def getInitialComponent(w: java.awt.Window): java.awt.Component = {
-//        Console.println("getInitialComponent: %s -> %s".format(w, initial))
+        //Console.println("getInitialComponent: %s -> %s".format(w, initial))
         initialCp
     }
 }

@@ -36,6 +36,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val cbxSelectKit = new RichComboBox((1 to 24) map (x => x + ". New Kit"), "cbxSelectKit", lblSelectKit) {
                 peer.setMaximumRowCount(24)
                 prototypeDisplayValue = Some("WWWWWWWWWWWW")
+                var currentKit = -1
+                listenTo(selection)
+                reactions += {
+                    case e: SelectionChanged if e.source == this => {
+                        if (currentKit != selection.index) {
+                            Console.println("Kit SelectionChanged " + currentKit + " -> " + selection.index)
+                            publish(new KitChanged(currentKit, selection.index))
+                            currentKit = selection.index
+                        }
+                    }
+                }
             }
             private[this] val lblKitEdited = new Label("Edited")
             private[this] val lblKitName = new Label("Name:")
@@ -45,7 +56,20 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 lblKitName.peer.setLabelFor(peer)
             }
             private[this] val lblSelectPad = new Label("Select Pad:") { peer.setDisplayedMnemonic('P') }
-            private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox(allPads, "cbxSelectPad", lblSelectPad) { peer.setMaximumRowCount(28) }
+            private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox(allPads, "cbxSelectPad", lblSelectPad) {
+                peer.setMaximumRowCount(allPads.length)
+                var currentPad = -1
+                listenTo(selection)
+                reactions += {
+                    case e: SelectionChanged if e.source == this => {
+                        if (currentPad != selection.index) {
+                            Console.println("Pad SelectionChanged " + currentPad + " -> " + selection.index)
+                            publish(new PadChanged(currentPad, selection.index))
+                            currentPad = selection.index
+                        }
+                    }
+                }
+            }
             private[this] val lblPadEdited = new Label("Edited")
 
             contents += (lblSelectKit, "cell 0 0,alignx right")
@@ -57,17 +81,22 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxSelectPad, "cell 8 0")
             contents += (lblPadEdited, "cell 9 0")
 
-            listenTo(cbxSelectKit.selection)
+            listenTo(cbxSelectKit)
             listenTo(txtKitName)
-            listenTo(cbxSelectPad.selection)
+            listenTo(cbxSelectPad)
 
             reactions += {
-                case e: SelectionChanged => {
+                case e: KitChanged => {
                     deafTo(this)
                     publish(e)
                     listenTo(this)
                 }
-                case e: EditDone => {
+                case e: PadChanged => {
+                    deafTo(this)
+                    publish(e)
+                    listenTo(this)
+                }
+                case e: ValueChanged => {
                     deafTo(this)
                     publish(e)
                     listenTo(this)
@@ -166,33 +195,34 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         listenTo(pnPads)
         listenTo(pnPedals)
 
+        // Need to turn pad numbers into something we can search for
+        // and pad names into something we can set Select Pad to.
         private[this] val padNames = (1 to 24 map { pn => "cbxPad" + pn }) ++ (Seq("Bass", "Chick", "Splash", "B/C") map { pn => "cbxPad" + pn })
 
-        private[this] var currentPad = -1
-        listenTo(pnSelector.cbxSelectPad.selection)
-
         reactions += {
-            case e: SelectionChanged if e.source == pnSelector.cbxSelectPad => {
-                if (currentPad != pnSelector.cbxSelectPad.selection.index) {
-                    currentPad = pnSelector.cbxSelectPad.selection.index
-                    Focus.findInContainer(this, padNames(currentPad)) match {
-                        case Some(cp: ComboBox[_]) => cp.peer.getEditor().getEditorComponent().requestFocus()
-                        case _                     => currentPad = -1
-                    }
-                }
+            case e: KitChanged => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: PadChanged => {
+//                Focus.findInContainer(this, padNames(e.newPad)) match {
+//                    case Some(cp: ComboBox[_]) => cp.peer.getEditor().getEditorComponent().requestFocus()
+//                    case _                     => {}
+//                }
+                deafTo(this)
+                publish(e)
+                listenTo(this)
             }
             case e: SelectionChanged => {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
             }
-            case e: CbxEditorFocused if padNames.indexOf(e.source.name) >= 0 && currentPad != padNames.indexOf(e.source.name) => {
-                pnSelector.cbxSelectPad.peer.setSelectedIndex(padNames.indexOf(e.source.name))
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
             case e: CbxEditorFocused => {
+                if (padNames.indexOf(e.source.name) >= 0)
+                    pnSelector.cbxSelectPad.selection.index = padNames.indexOf(e.source.name)
+                else {}
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -223,20 +253,56 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            private[this] val pnLinkTo = new MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
+            private[this] object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
                 name = "pnLinkTo"
 
+                private[this] class CbxLinkTo(items: Seq[String]) extends RichComboBox(items, "cbxLinkTo", lblLinkTo) {
+                    prototypeDisplayValue = Some("28 breath")
+
+                    listenTo(pnKitsPads)
+
+                    reactions += {
+                        case e: PadChanged => {
+                            deafTo(pnKitsPads)
+                            deafTo(this)
+                            publish(new ReplaceCbxLinkTo(e.newPad))
+                            listenTo(this)
+                        }
+                    }
+                }
+                private[pnPadDetails] class ReplaceCbxLinkTo(val pad: Int) extends Event
+                private[this] val model = Seq("Off") ++ allPads
+
                 private[this] val lblLinkTo = new Label("Link To:") { peer.setDisplayedMnemonic('L') }
-                private[this] val cbxLinkTo = new RichComboBox(Seq("Off") ++ allPads, "cbxLinkTo", lblLinkTo)
+                private[this] val cbxLinkTo = new CbxLinkTo(Seq())
+
                 contents += (lblLinkTo, "cell 0 0")
                 contents += (cbxLinkTo, "cell 1 0")
                 listenTo(cbxLinkTo.selection)
+                listenTo(cbxLinkTo)
 
                 reactions += {
                     case e: SelectionChanged => {
                         deafTo(this)
                         publish(e)
                         listenTo(this)
+                    }
+                    case e: ReplaceCbxLinkTo => {
+                        lblLinkTo.peer.setLabelFor(null)
+                        Focus.findInContainer(this, "cbxLinkTo") match {
+                            case Some(cp) => {
+                                deafTo(cp)
+                                deafTo(cp.asInstanceOf[ComboBox[_]].selection)
+                                contents -= cp
+                            }
+                            case None => {}
+                        }
+
+                        val cbx = new CbxLinkTo(model.take(e.pad + 1) ++ model.drop(e.pad + 2))
+                        contents += (cbx, "cell 1 0")
+                        cbx.revalidate()
+                        listenTo(cbx.selection)
+                        listenTo(cbx)
                     }
                 }
             }
@@ -344,7 +410,21 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnGlobalPadDynamics, "cell 4 3 6 4,aligny center")
             listenTo(pnGlobalPadDynamics)
 
+            private[this] val tabOrder = (2 to 6 map { slot => "cbxSlot" + slot }) ++
+                Seq("cbxLinkTo") ++
+                Seq("cbxPadCurve", "cbxPadGate", "spnPadChannel") ++
+                Seq("spnPadVelMin", "spnPadVelMax") ++
+                (7 to 0 by -1 map { flag => "ckbFlag" + flag }) ++
+                Seq("spnLowLevel", "spnHighLevel", "spnThresholdManual", "spnInternalMargin", "spnThresholdActual", "spnUserMargin")
+
             reactions += {
+                case e: pnLinkTo.ReplaceCbxLinkTo => {
+                    Console.println("pnPadDetails ReplaceCbxLinkTo setFocusTraversalPolicy")
+                    peer.setFocusTraversalPolicyProvider(false)
+                    peer.setFocusTraversalPolicy(null)
+                    peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
+                    peer.setFocusTraversalPolicyProvider(true)
+                }
                 case e: SelectionChanged => {
                     deafTo(this)
                     publish(e)
@@ -367,13 +447,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this,
-                (2 to 6 map { slot => "cbxSlot" + slot }) ++
-                    Seq("cbxLinkTo") ++
-                    Seq("cbxPadCurve", "cbxPadGate", "spnPadChannel") ++
-                    Seq("spnPadVelMin", "spnPadVelMax") ++
-                    (7 to 0 by -1 map { flag => "ckbFlag" + flag }) ++
-                    Seq("spnLowLevel", "spnHighLevel", "spnThresholdManual", "spnInternalMargin", "spnThresholdActual", "spnUserMargin")))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
@@ -614,26 +688,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         listenTo(pnMoreSlots)
         listenTo(pnKitDetails)
 
-        listenTo(pnKitsPadsTop)
-
         reactions += {
-            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => e.source match {
-                case tpn: TabbedPane => {
-                    deafTo(this)
-                    publish(new TabChangeEvent(tpn.selection.page))
-                    listenTo(this)
-                }
-            }
-            case e: SelectionChanged if (e.source.name == "cbxSelectKit") => {
-                Console.println("tpnKitPadsDetails Kit change")
+            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => {
+                val tpnE = e.source.asInstanceOf[TabbedPane]
                 deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: SelectionChanged if (e.source.name == "cbxSelectPad") => {
-                Console.println("tpnKitPadsDetails Pad change")
-                deafTo(this)
-                publish(e)
+                publish(new TabChangeEvent(tpnE.selection.page))
                 listenTo(this)
             }
             case e: SelectionChanged => {
@@ -667,6 +726,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     listenTo(tpnKitPadsDetails)
     reactions += {
         case e: TabChangeEvent => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: KitChanged => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: PadChanged => {
             deafTo(this)
             publish(e)
             listenTo(this)

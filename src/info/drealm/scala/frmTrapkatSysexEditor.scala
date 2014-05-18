@@ -36,12 +36,21 @@ object frmTrapkatSysexEditor extends MainFrame {
                 publish(e)
                 listenTo(this)
             }
-            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => e.source match {
-                case tpnE: TabbedPane => {
-                    deafTo(this)
-                    publish(new TabChangeEvent(tpnE.selection.page))
-                    listenTo(this)
-                }
+            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => {
+                val tpnE = e.source.asInstanceOf[TabbedPane]
+                deafTo(this)
+                publish(new TabChangeEvent(tpnE.selection.page))
+                listenTo(this)
+            }
+            case e: KitChanged => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
+            }
+            case e: PadChanged => {
+                deafTo(this)
+                publish(e)
+                listenTo(this)
             }
             case e: SelectionChanged => {
                 deafTo(this)

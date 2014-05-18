@@ -113,6 +113,12 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 }
             }
         }
+        case e: KitChanged => {
+            Console.println("Kit change" + (if (e.oldKit >= 0) " from " + e.oldKit else "") + " to " + e.newKit)
+        }
+        case e: PadChanged => {
+            Console.println("Pad change" + (if (e.oldPad >= 0) " from " + e.oldPad else "") + " to " + e.newPad)
+        }
         case cbxE: SelectionChanged => {
             Console.println("SelectionChanged " + cbxE.source.name)
         }

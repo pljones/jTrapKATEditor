@@ -143,7 +143,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             name = "pnPedals"
 
             private[this] val pads = Seq(("cell 1 0", "Bass"), ("cell 2 0", "Chick"), ("cell 6 0", "Splash"), ("cell 7 0", "B/C")) map (pad => {
-                val pn = new Pad(pad._2) { background = new Color(216, 216, 216) }
+                val pn = new Pad(pad._2) { background = new Color(228, 228, 228) }
                 contents += (pn, pad._1 + ",gapx 1, pad 0 -1 0 1,grow")
                 listenTo(pn)
                 pn
@@ -312,7 +312,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
             }
-            contents += (pnLinkTo, "cell 0 5 3 1,alignx center,aligny center")
+            contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center")
             listenTo(pnLinkTo)
 
             Seq((0, "Curve", padCurves, false), (1, "Gate", padGates, true)) map { x =>
@@ -337,8 +337,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (spnPadChannel, "cell 5 2")
             listenTo(spnPadChannel)
 
-            private[this] val pnPadVelocity = new MigPanel("insets 0, gap 0", "[][]", "[][][]") {
+            private[this] val pnPadVelocity = new MigPanel("insets 3, gap 0", "[][]", "[][][]") {
                 name = "pnPadVelocity"
+                background = new Color(228, 228, 228)
 
                 contents += (new Label("Velocity"), "cell 0 0 2 1,alignx center")
 
@@ -560,15 +561,19 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             order = order ++ Seq("cbxFCFunction", spnFCChannel.name, ckbAsChick.name, "cbxFCCurve")
 
-            val pnKitVelocity = new MigPanel("insets 0, gap 0", "[][]", "[][][][]") {
+            val pnKitVelocity = new MigPanel("insets 3, gap 0", "[][]", "[][][][]") {
                 name = "pnKitVelocity"
+                background = new Color(228, 228, 228)
 
                 contents += (new Label("Velocity"), "cell 0 0 2 1,alignx center")
 
                 Seq((0, "Min"), (1, "Max")) map { x =>
                     val lbl = new Label(x._2)
                     val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), "spnKitVel" + x._2, lbl)
-                    val ckb = new CheckBox("Var.") { name = "ckbVarVel" + x._2 }
+                    val ckb = new CheckBox("Var.") {
+                        name = "ckbVarVel" + x._2
+                        background = new Color(228, 228, 228)
+                    }
 
                     contents += (lbl, "cell " + x._1 + " 1,alignx center")
                     contents += (spn, "cell " + x._1 + " 2")

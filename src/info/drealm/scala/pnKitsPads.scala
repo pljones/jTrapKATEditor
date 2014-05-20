@@ -41,7 +41,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
                         if (currentKit != selection.index) {
-                            Console.println("Kit SelectionChanged " + currentKit + " -> " + selection.index)
                             publish(new KitChanged(currentKit, selection.index))
                             currentKit = selection.index
                         }
@@ -63,7 +62,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
                         if (currentPad != selection.index) {
-                            Console.println("Pad SelectionChanged " + currentPad + " -> " + selection.index)
                             publish(new PadChanged(currentPad, selection.index))
                             currentPad = selection.index
                         }

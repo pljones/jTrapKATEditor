@@ -23,7 +23,7 @@ object jTrapKATEditor extends SimpleSwingApplication {
         case mie: FileMenuEvent => {
             mie.source.name.stripPrefix("miFile") match {
                 case "NewV3" if (loseUnsavedChanges) => Console.println("File NewV3")
-                case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV3")
+                case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV4")
                 case "Open" if (loseUnsavedChanges)  => Console.println("File Open")
                 case save if save.startsWith("Save") => {
                     save.stripPrefix("Save") match {

@@ -205,10 +205,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 listenTo(this)
             }
             case e: PadChanged => {
-//                Focus.findInContainer(this, padNames(e.newPad)) match {
-//                    case Some(cp: ComboBox[_]) => cp.peer.getEditor().getEditorComponent().requestFocus()
-//                    case _                     => {}
-//                }
+                // I am not entirely happy with this as it steals focus
+                // from the Select Pad combo -- on first key press, too,
+                // so you can't type "12" to get to pad 12.
+                Focus.findInContainer(this, padNames(e.newPad)) match {
+                    case Some(cp: ComboBox[_]) => cp.peer.getEditor().getEditorComponent().requestFocus()
+                    case _                     => {}
+                }
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -219,6 +222,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 listenTo(this)
             }
             case e: CbxEditorFocused => {
+                // This is a bit gruesome, too.
+                // I guess I could publish and subscribe... bah...
                 if (padNames.indexOf(e.source.name) >= 0)
                     pnSelector.cbxSelectPad.selection.index = padNames.indexOf(e.source.name)
                 else {}

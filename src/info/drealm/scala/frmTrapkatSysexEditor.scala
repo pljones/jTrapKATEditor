@@ -102,6 +102,16 @@ object frmTrapkatSysexEditor extends MainFrame {
             publish(e)
             listenTo(this)
         }
+        case e: KitChanged => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: PadChanged => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
         case e: SelectionChanged => {
             deafTo(this)
             publish(e)

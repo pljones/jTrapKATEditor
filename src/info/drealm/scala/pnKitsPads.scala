@@ -111,7 +111,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
             name = "pnPads"
 
-            private[this] val pads = (for {
+            (for {
                 row <- (0 to 3) zip Seq(
                     List(0, 0, 18, 19, 20, 21, 0, 0),
                     List(0, 17, 6, 7, 8, 9, 22, 0),
@@ -120,7 +120,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 );
                 col <- (0 to 7) zip row._2;
                 if col._2 != 0
-            } yield ("cell " + col._1 + " " + row._1, col._2)) map { pad =>
+            } yield ("cell " + col._1 + " " + row._1, col._2)) foreach { pad =>
                 val pn = new Pad("" + pad._2) { background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250) }
                 contents += (pn, pad._1 + ",grow")
                 listenTo(pn)
@@ -147,7 +147,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][grow,fill][][][grow,trailing]", "[]") {
             name = "pnPedals"
 
-            private[this] val pads = Seq(("cell 1 0", "Bass"), ("cell 2 0", "Chick"), ("cell 6 0", "Splash"), ("cell 7 0", "B/C")) map (pad => {
+            Seq(("cell 1 0", "Bass"), ("cell 2 0", "Chick"), ("cell 6 0", "Splash"), ("cell 7 0", "B/C")) foreach (pad => {
                 val pn = new Pad(pad._2) { background = new Color(228, 228, 228) }
                 contents += (pn, pad._1 + ",gapx 1, pad 0 -1 0 1,grow")
                 listenTo(pn)
@@ -160,7 +160,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 private[this] val lblHH = new Label("Hihat Pads:") { peer.setDisplayedMnemonic('d') }
                 contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
-                (1 to 4) map { x =>
+                (1 to 4) foreach { x =>
                     val cbxHH = new RichComboBox(Seq("Off") ++ (1 to 24), "cbxHH" + x, if (x == 1) lblHH else null) { peer.setMaximumRowCount(25) }
                     contents += (cbxHH, "cell " + x + " 0, grow")
                     listenTo(cbxHH.selection)
@@ -248,7 +248,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             contents += (new Label("Slots:"), "cell 0 0")
 
-            private[this] val slots = (2 to 6) map { slot => new Slot(slot) } map { s =>
+            (2 to 6) map { slot => new Slot(slot) } foreach { s =>
                 {
                     contents += (s._2, "cell 1 " + (s._1 - 2) + ",alignx right")
                     contents += (s._3, "cell 2 " + (s._1 - 2) + ",gapy 2,grow")
@@ -316,7 +316,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center")
             listenTo(pnLinkTo)
 
-            Seq((0, "Curve", padCurves, false), (1, "Gate", GateTime.gateSelection, true)) map { x =>
+            Seq((0, "Curve", padCurves, false), (1, "Gate", GateTime.gateSelection, true)) foreach { x =>
                 val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._2.head) }
                 val cbx = new RichComboBox(x._3, "cbxPad" + x._2, lbl) {
                     if (x._4) {
@@ -345,7 +345,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label("Velocity"), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min"), (1, "Max")) map { x =>
+                Seq((0, "Min"), (1, "Max")) foreach { x =>
                     val lbl = new Label(x._2)
                     val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), "spnPadVel" + x._2, lbl)
                     contents += (lbl, "cell " + x._1 + " 1,alignx center")
@@ -369,7 +369,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label("Flags"), "cell 0 0 9 1,alignx center")
 
-                (7 to 0 by -1) map { flag =>
+                (7 to 0 by -1) foreach { flag =>
                     val ckbFlag = new CheckBox("" + flag) {
                         name = "ckbFlag" + flag
                         margin = new Insets(0, 0, 0, 0)
@@ -397,7 +397,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 border = new TitledBorder("Global Pad Dynamics")
 
                 Seq((0, 0, "lowLevel", "Low Dyn"), (1, 0, "thresholdManual", "Threshold"), (2, 0, "thresholdActual", "thresholdActual"),
-                    (0, 1, "highLevel", "High Dyn"), (1, 1, "internalMargin", "Pad Idle"), (2, 1, "userMargin", "userMargin")) map (tuple => {
+                    (0, 1, "highLevel", "High Dyn"), (1, 1, "internalMargin", "Pad Idle"), (2, 1, "userMargin", "userMargin")) foreach (tuple => {
                         val lbl = new Label(tuple._4 + ":")
                         val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, null, 255, 1), "spn" + tuple._3.capitalize, lbl)
 
@@ -458,7 +458,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             contents += (new Label("Slots:"), "cell 0 0")
 
-            (7 to 11) map { slot => new Slot(slot) } map { s =>
+            (7 to 11) map { slot => new Slot(slot) } foreach { s =>
                 {
                     contents += (s._2, "cell 1 " + (s._1 - 7) + ",alignx right")
                     contents += (s._3, "cell 2 " + (s._1 - 7) + ",gapy 2,grow")
@@ -467,7 +467,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            (12 to 16) map { slot => new Slot(slot) } map { s =>
+            (12 to 16) map { slot => new Slot(slot) } foreach { s =>
                 {
                     contents += (s._2, "cell 4 " + (s._1 - 12) + ",alignx right")
                     contents += (s._3, "cell 5 " + (s._1 - 12) + ",gapy 2,grow")
@@ -489,7 +489,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, (7 to 16 map { slot => "cbxSlot" + slot })))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, (7 to 16) map { slot => "cbxSlot" + slot }))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
@@ -543,7 +543,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             contents += (new Label("Foot Controller"), "cell 0 3 2 1, alignx center, aligny bottom")
 
-            Seq((4, "Function", fcFunctions, 'o', ""), (6, "Curve", fcCurves, 'v', ",growx")) map { x =>
+            Seq((4, "Function", fcFunctions, 'o', ""), (6, "Curve", fcCurves, 'v', ",growx")) foreach { x =>
                 val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._4) }
                 val cbx = new RichComboBox(x._3, "cbxFC" + x._2, lbl)
                 contents += (lbl, "cell 0 " + x._1 + ",alignx right")
@@ -570,7 +570,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label("Velocity"), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min"), (1, "Max")) map { x =>
+                Seq((0, "Min"), (1, "Max")) foreach { x =>
                     val lbl = new Label(x._2)
                     val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), "spnKitVel" + x._2, lbl)
                     val ckb = new CheckBox("Var.") {
@@ -643,7 +643,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         case true  => Some(new CheckBox("Off") { name = "ckb" + t._1 })
                     }
                     (lbl, spn, ckb)
-                } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) map { t =>
+                } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) foreach { t =>
                     contents += (t._1._1, "cell " + (6 + 3 * t._2._2) + " " + (1 + t._2._1) + ",alignx right")
                     contents += (t._1._2, "cell " + (7 + 3 * t._2._2) + " " + (1 + t._2._1) + ",growx")
                     listenTo(t._1._2)

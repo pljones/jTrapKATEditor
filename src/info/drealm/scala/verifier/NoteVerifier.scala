@@ -11,7 +11,7 @@ object NoteVerifier {
 
     // Set the input verifier on a collection of pad and slot editors
     // These RichComboBoxes *must* be editable (else null for you)
-    def set(padsSlots: Seq[info.drealm.scala.RichComboBox[String]], v: NoteVerifier): Unit = padsSlots map (p => p.editorPeer.setInputVerifier(v))
+    def set(padsSlots: Seq[info.drealm.scala.RichComboBox[String]], v: NoteVerifier): Unit = padsSlots foreach (p => p.editorPeer.setInputVerifier(v))
 }
 
 // Verify that a pad or slot value is either one of the

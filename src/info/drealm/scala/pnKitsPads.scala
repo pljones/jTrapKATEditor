@@ -11,13 +11,17 @@ import info.drealm.scala.layout._
 object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     name = "pnKitsPads"
 
-    private[this] val allPads = (1 to 28) map (x => x + (x match {
-        case 25 => " bass"
-        case 26 => " chick"
-        case 27 => " splash"
-        case 28 => " breath"
-        case _  => ""
-    }))
+    private[this] val allPads = (1 to 28) map (x => x match {
+        case 25 => "Bass"
+        case 26 => "Chick"
+        case 27 => "Splash"
+        case 28 => "B/C"
+        case _  => x
+    })
+    private[this] val padNames = allPads map (x => "cbxPad" + x)
+    private[this] val slotNames = (2 to 16) map (x => "cbxSlot" + x)
+    private[this] val padSlotNames = padNames ++ slotNames
+
     private[this] val padCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7", "Curve 8",
         "2nd Note @ Hardest", "2nd Note @ Hard", "2nd Note @ Medium", "2nd Note @ Soft", "2 Note Layer",
         "Xfade @ Middle", "Xswitch @ Middle", "1@Medium;3@Hardest", "2@Medium;3@Hard", "2Double 1;3Medium",
@@ -25,6 +29,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     private[this] val padGates = Seq("Latch Mode", "Infinite", "Roll Mode")
     private[this] val fcFunctions = Seq("Off", "CC#01 (Mod Wheel)", "CC#04 (F/C 0..64)", "CC#04 (F/C 0..127)", "Hat Note")
     private[this] val fcCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7")
+
+    def verifyNotesAs(v: verifier.NoteVerifier) = verifier.NoteVerifier.set(padSlotNames map (ps => Focus.findInContainer(this, ps).get.asInstanceOf[RichComboBox[String]]), v)
 
     private[this] object pnKitsPadsTop extends MigPanel("insets 0", "[grow]", "[][][grow]") {
         name = "pnKitsPadsTop"
@@ -193,10 +199,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         listenTo(pnSelector)
         listenTo(pnPads)
         listenTo(pnPedals)
-
-        // Need to turn pad numbers into something we can search for
-        // and pad names into something we can set Select Pad to.
-        private[this] val padNames = (1 to 24 map { pn => "cbxPad" + pn }) ++ (Seq("Bass", "Chick", "Splash", "B/C") map { pn => "cbxPad" + pn })
 
         reactions += {
             case e: KitChanged => {

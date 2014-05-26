@@ -68,9 +68,18 @@ object jTrapKATEditor extends SimpleSwingApplication {
         }
         case mie: ToolsMenuEvent => {
             mie.source.name.stripPrefix("miTools") match {
-                case "OptionsDMNAsNumbers" => Console.println("Tools Options DMN AsNumbers")
-                case "OptionsDMNAsNamesC3" => Console.println("Tools Options DMN AsNamesC3")
-                case "OptionsDMNAsNamesC4" => Console.println("Tools Options DMN AsNamesC4")
+                case "OptionsDMNAsNumbers" => {
+                    Console.println("Tools Options DMN AsNumbers")
+                    frmTrapkatSysexEditor.verifyNotesAs(verifier.NoteVerifier.numbers)
+                }
+                case "OptionsDMNAsNamesC3" => {
+                    Console.println("Tools Options DMN AsNamesC3")
+                    frmTrapkatSysexEditor.verifyNotesAs(verifier.NoteVerifier.asNamesC3)
+                }
+                case "OptionsDMNAsNamesC4" => {
+                    Console.println("Tools Options DMN AsNamesC4")
+                    frmTrapkatSysexEditor.verifyNotesAs(verifier.NoteVerifier.asNamesC4)
+                }
                 case "Convert"             => Console.println("Tools Convert")
                 case otherwise => {
                     Console.println("Tools event " + mie.source.name)

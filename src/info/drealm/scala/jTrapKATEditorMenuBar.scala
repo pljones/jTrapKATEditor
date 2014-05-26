@@ -131,6 +131,8 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 name = "mnToolsOptionsDMN"
 
                 private[this] val bgTODMN = new ButtonGroup();
+                
+                def dmnAs = if (bgTODMN.selected.isDefined) bgTODMN.selected.get.name.stripPrefix("miToolsOptionsDMNAs") else "" 
 
                 contents += new RadioMenuItem("As Numbers") {
                     name = "miToolsOptionsDMNAsNumbers"

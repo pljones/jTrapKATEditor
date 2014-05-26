@@ -1,6 +1,6 @@
 package info.drealm.scala
 
-import scala.swing.{ComboBox, Label}
+import scala.swing.{ ComboBox, Label, Swing }
 import scala.swing.event._
 
 class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends ComboBox[A](items) {
@@ -15,7 +15,32 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
 
     override def makeEditable()(implicit editor: ComboBox[A] => ComboBox.Editor[A]) {
         super.makeEditable()
-        listenTo(editor(this).component)
-        reactions += { case e: FocusGained => publish(new eventX.CbxEditorFocused(this)) }
+        val theEditor = (editor(this).component)
+        listenTo(theEditor)
+        listenTo(theEditor.keys)
+        reactions += {
+            case e: FocusGained if e.source == theEditor => {
+                deafTo(theEditor)
+                publish(new eventX.CbxEditorFocused(this))
+                listenTo(theEditor)
+            }
+
+            // I tried reading about key maps
+            // This looked a lot easier :)
+            // Catch ESC and replace editor text with current selected item value:
+            case e: KeyTyped if e.char == 27 && e.modifiers == 0 => {
+                editorPeer.setText(this.selection.item.asInstanceOf[String])
+            }
+        }
+    }
+
+    def editor: Option[swing.TextField] = editable match {
+        case true  => Some(swing.Component.wrap(editorPeer).asInstanceOf[swing.TextField])
+        case false => None
+    }
+
+    def editorPeer: javax.swing.JTextField = editable match {
+        case true  => peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField]
+        case false => null
     }
 }

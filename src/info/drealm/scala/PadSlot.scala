@@ -14,7 +14,7 @@ class Pad(pad: String) extends MigPanel("insets 4 2 4 2", "[grow,right][fill,lef
     private[this] val lblPad = new Label("" + pad)
     private[this] val cbxPad = new RichComboBox(PadSlot.padFunction, "cbxPad" + pad, lblPad) {
         makeEditable()
-        peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField].setColumns(4)
+        editorPeer.setColumns(4)
         selection.index = -1
         selection.item = ""
     }
@@ -40,10 +40,44 @@ class Pad(pad: String) extends MigPanel("insets 4 2 4 2", "[grow,right][fill,lef
 
 class Slot(private[this] val slot: Integer) extends Tuple3(slot, new Label("" + slot), new RichComboBox(PadSlot.padFunction, "cbxSlot" + slot) {
     makeEditable()
-    peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField].setColumns(4)
+    editorPeer.setColumns(4)
     selection.index = 0
 }) {
     _2.peer.setDisplayedMnemonic(("" + slot).last)
     // Uhhhhh, right...
     _2.peer.setLabelFor(_3.peer.asInstanceOf[java.awt.Component])
+}
+
+// For note names, we need to convert to 0..127 based on note and octave
+// number.
+// "octave" should be set to indicate the octave for middle C (note 60),
+// e.g. 3 for C3=60 or 4 for C4=60.
+trait NoteNameToNumber {
+    val notes = "CDEFGAB"
+    val octave: Int
+    /**
+     * Used to convert note name to note number
+     *
+     * @param noteName String representation of a note (such as "C#2")
+     * @param octave   Number that follows "C" for middle C (note 60)
+     * @return         The integer note number
+     */
+    def toNumber(noteName: String): Int = {
+        try {
+            val note = notes.indexOf(noteName.head.toUpper)
+            val sharp = noteName.indexOf('#') == 1
+            val flat = noteName.indexOf('b') == 1
+            val octaveNum = noteName.drop(1 + (if (sharp || flat) 1 else 0)).toInt
+            if (note < 0) -1
+            else note +
+                (if (sharp) 1 else 0) +
+                (if (flat) -1 else 0) +
+                (octaveNum - octave + 5) * 12
+        }
+        catch {
+            // At the moment, allow empty string
+            // TODO: just return -1
+            case _: Throwable => if (noteName == "") 0 else -1
+        }
+    }
 }

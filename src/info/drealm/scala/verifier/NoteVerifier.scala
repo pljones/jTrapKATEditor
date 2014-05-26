@@ -11,10 +11,7 @@ object NoteVerifier {
 
     // Set the input verifier on a collection of pad and slot editors
     // These RichComboBoxes *must* be editable (else null for you)
-    def set(padsSlots: Seq[info.drealm.scala.RichComboBox[String]], v: NoteVerifier) = {
-        Console.println("NoteValidator set: " + padsSlots)
-        padsSlots map (p => p.editorPeer.setInputVerifier(v))
-    }
+    def set(padsSlots: Seq[info.drealm.scala.RichComboBox[String]], v: NoteVerifier): Unit = padsSlots map (p => p.editorPeer.setInputVerifier(v))
 }
 
 // Verify that a pad or slot value is either one of the
@@ -22,7 +19,8 @@ object NoteVerifier {
 class NoteVerifier extends InputVerifier {
 
     // Use pattern matching to neatly get the ComboBox
-    // Then commit the text field to the item
+    // If the verifier is happy, tidy the value up and commit it
+    // Either way, set the editor to the ComboBox value
     override def shouldYieldFocus(c: JComponent): Boolean = {
         c match {
             case e: JTextField => e.getParent() match {
@@ -45,27 +43,28 @@ class NoteVerifier extends InputVerifier {
     }
 
     // Use pattern matching to neatly get the ComboBox
-    // Then pass pads and slots to our verifier (else false)
+    // Check the padFunctions for the value
+    // Otherwise check for a value 0 to 127
     def verify(c: JComponent): Boolean = {
         c match {
             case e: JTextField => e.getParent() match {
-                case cb: JComboBox[_] => padSlotOK(e.getText())
-                case _                => false
+                case cb: JComboBox[_] => {
+                    val value = e.getText().trim().capitalize
+                    PadSlot.padFunction.contains(value) || padSlotOK(value)
+                }
+                case _ => false
             }
             case _ => false
         }
     }
 
     // String must be an int 0 to 127
-    def padSlotOK(value: String): Boolean = {
-        PadSlot.padFunction.contains(value.trim().capitalize) ||
-            (try {
-                val note = value.toInt
-                note >= 0 && note <= 127
-            }
-            catch {
-                case _: Throwable => false
-            })
+    def padSlotOK(value: String): Boolean = try {
+        val note = value.toInt
+        note >= 0 && note <= 127
+    }
+    catch {
+        case _: Throwable => false
     }
 
 }

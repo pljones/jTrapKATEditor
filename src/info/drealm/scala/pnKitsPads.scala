@@ -26,7 +26,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         "2nd Note @ Hardest", "2nd Note @ Hard", "2nd Note @ Medium", "2nd Note @ Soft", "2 Note Layer",
         "Xfade @ Middle", "Xswitch @ Middle", "1@Medium;3@Hardest", "2@Medium;3@Hard", "2Double 1;3Medium",
         "3 Note Layer", "4 Note VelShift", "4 Note Layer", "Alternating", "Control + 3 Notes")
-    private[this] val padGates = Seq("Latch Mode", "Infinite", "Roll Mode")
     private[this] val fcFunctions = Seq("Off", "CC#01 (Mod Wheel)", "CC#04 (F/C 0..64)", "CC#04 (F/C 0..127)", "Hat Note")
     private[this] val fcCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7")
 
@@ -317,11 +316,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center")
             listenTo(pnLinkTo)
 
-            Seq((0, "Curve", padCurves, false), (1, "Gate", padGates, true)) map { x =>
+            Seq((0, "Curve", padCurves, false), (1, "Gate", GateTime.gateSelection, true)) map { x =>
                 val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._2.head) }
                 val cbx = new RichComboBox(x._3, "cbxPad" + x._2, lbl) {
                     if (x._4) {
                         makeEditable()
+                        editorPeer.setInputVerifier(GateTime.verifier)
                         selection.index = -1
                         selection.item = "0.115"
                     }
@@ -503,8 +503,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val ckbVarCurve = new CheckBox("Various") { name = "ckbVarCurve" }
 
             private[this] val lblKitGate = new Label("Gate:") { peer.setDisplayedMnemonic('G') }
-            private[this] val cbxKitGate = new RichComboBox(padGates, "cbxKitGate", lblKitGate) {
+            private[this] val cbxKitGate = new RichComboBox(GateTime.gateSelection, "cbxKitGate", lblKitGate) {
                 makeEditable()
+                editorPeer.setInputVerifier(GateTime.verifier)
                 selection.index = -1
                 selection.item = "0.115"
             }

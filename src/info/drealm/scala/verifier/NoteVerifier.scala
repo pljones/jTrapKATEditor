@@ -25,7 +25,7 @@ class NoteVerifier extends InputVerifier {
         c match {
             case e: JTextField => e.getParent() match {
                 case cb: JComboBox[_] if super.shouldYieldFocus(c) => {
-                    PadSlot.padFunction.indexOf(e.getText().trim().capitalize) match {
+                    PadSlot.padFunction.indexOf(e.getText().trim().toLowerCase().capitalize) match {
                         case x if x >= 0 => e.setText(PadSlot.padFunction(x))
                         case _           => e.setText("" + e.getText().toInt)
                     }
@@ -34,6 +34,7 @@ class NoteVerifier extends InputVerifier {
                 }
                 case cb: JComboBox[_] => {
                     e.setText(cb.getSelectedItem().asInstanceOf[String])
+                    e.selectAll()
                     true
                 }
                 case _ => false
@@ -49,7 +50,7 @@ class NoteVerifier extends InputVerifier {
         c match {
             case e: JTextField => e.getParent() match {
                 case cb: JComboBox[_] => {
-                    val value = e.getText().trim().capitalize
+                    val value = e.getText().trim().toLowerCase().capitalize
                     PadSlot.padFunction.contains(value) || padSlotOK(value)
                 }
                 case _ => false

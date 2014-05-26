@@ -2,7 +2,7 @@ package info.drealm.scala
 
 object GateTime {
     val verifier = new GateTimeVerifier
-    val gateSelection = Seq("Latch Mode", "Infinite", "Roll Mode")
+    val gateSelection = Seq("Latch mode", "Infinite", "Roll mode")
 
     def roundGateTime(value: String): String = toString(fromString(value))
 
@@ -29,7 +29,7 @@ object GateTime {
         case large if value < 253   => 4.2 + ((value - 231) * 0.1)
         case _                      => throw new IllegalArgumentException("Can only convert bytes 0 to 252 to Double; use toString for higher values")
     }
-    def fromString(value: String): Int = gateSelection.indexOf(value.trim().capitalize) match {
+    def fromString(value: String): Int = gateSelection.indexOf(value.trim().toLowerCase().capitalize) match {
         case -1 => toByte(value.toDouble)
         case x  => (253 + x).toInt
     }
@@ -60,6 +60,7 @@ class GateTimeVerifier extends javax.swing.InputVerifier {
                 }
                 case cb: JComboBox[_] => {
                     e.setText(cb.getSelectedItem().asInstanceOf[String])
+                    e.selectAll()
                     true
                 }
                 case _ => false

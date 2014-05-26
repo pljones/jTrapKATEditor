@@ -5,7 +5,7 @@ import swing.event._
 import info.drealm.scala.migPanel._
 
 object PadSlot {
-    val padFunction = Seq("Off", "Seq Start", "Seq Stop", "Seq Cont", "Alt Reset", "Next Kit", "Prev Kit")
+    val padFunction = Seq("Off", "Seq start", "Seq stop", "Seq cont", "Alt reset", "Next kit", "Prev kit")
 }
 
 class Pad(pad: String) extends MigPanel("insets 4 2 4 2", "[grow,right][fill,left]", "[]") {

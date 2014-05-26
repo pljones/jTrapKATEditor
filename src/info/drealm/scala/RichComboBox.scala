@@ -20,9 +20,9 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
         listenTo(theEditor.keys)
         reactions += {
             case e: FocusGained if e.source == theEditor => {
-                deafTo(theEditor)
+                deafTo(this)
                 publish(new eventX.CbxEditorFocused(this))
-                listenTo(theEditor)
+                listenTo(this)
             }
 
             // I tried reading about key maps

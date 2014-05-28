@@ -562,7 +562,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             listenTo(spnFCChannel)
             listenTo(ckbAsChick)
 
-            order = order ++ Seq("cbxFCFunction", spnFCChannel.name, ckbAsChick.name, "cbxFCCurve")
+            order = order ++ Seq("cbxFCFunction", "spnFCChannel", "ckbAsChick", "cbxFCCurve")
 
             val pnKitVelocity = new MigPanel("insets 3, gap 0", "[][]", "[][][][]") {
                 name = "pnKitVelocity"

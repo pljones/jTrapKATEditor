@@ -13,29 +13,31 @@ object GateTime {
      * No one ever uses "signed bytes" in the real world.  Ever...
      * Forcing use of larger data types by not supporting unsigned values at all
      * is simply ridiculous.
+     * To avoid some of that, magic (byteValue & intMask) is used to up-cast
+     * without sign extension, to keep the logic readable.
      */
 
-    def toByte(value: Double): Int = value match {
+    def toByte(value: Double): Byte = value match {
         case negative if value < 0     => throw new IllegalArgumentException("Can only convert positive doubles to Byte")
         case tooSmall if value < 0.005 => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
         case tooBig if value >= 6.4    => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
-        case tiny if value < 0.4       => ((value - 0.005) / 0.005).toInt
-        case medium if value < 4.2     => (79 + ((value - 0.4) / 0.025)).toInt
-        case large                     => (231 + ((value - 4.2) / 0.1)).toInt
+        case tiny if value < 0.4       => ((value - 0.005) / 0.005).toByte
+        case medium if value < 4.2     => (79 + ((value - 0.4) / 0.025)).toByte
+        case large                     => (231 + ((value - 4.2) / 0.1)).toByte
     }
-    def fromByte(value: Int): Double = value match {
-        case tiny if value <= 79    => 0.005 + (value * 0.005)
-        case medium if value <= 231 => 0.4 + ((value - 79) * 0.025)
-        case large if value < 253   => 4.2 + ((value - 231) * 0.1)
-        case _                      => throw new IllegalArgumentException("Can only convert bytes 0 to 252 to Double; use toString for higher values")
+    def fromByte(v: Byte): Double = (0x000000ff & v) match {
+        case tiny if tiny <= 79      => 0.005 + (tiny * 0.005)
+        case medium if medium <= 231 => 0.4 + ((medium - 79) * 0.025)
+        case large if large < 253    => 4.2 + ((large - 231) * 0.1)
+        case _                       => throw new IllegalArgumentException("Can only convert bytes 0 to 252 to Double; use toString for higher values")
     }
-    def fromString(value: String): Int = gateSelection.indexOf(value.trim().toLowerCase().capitalize) match {
+    def fromString(value: String): Byte = gateSelection.indexOf(value.trim().toLowerCase().capitalize) match {
         case -1 => toByte(value.toDouble)
-        case x  => (253 + x).toInt
+        case x  => (253 + x).toByte
     }
-    def toString(value: Int): String = value match {
-        case x if x < 253 => f"${fromByte(value)}%.3f"
-        case otherwise    => gateSelection(value - 253)
+    def toString(v: Byte): String = (0x000000ff & v) match {
+        case x if x < 253 => f"${fromByte(v)}%.3f"
+        case index        => gateSelection(index - 253)
     }
 }
 

@@ -30,6 +30,7 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
             // Catch ESC and replace editor text with current selected item value:
             case e: KeyTyped if e.char == 27 && e.modifiers == 0 => {
                 editorPeer.setText(this.selection.item.asInstanceOf[String])
+                editorPeer.selectAll()
             }
         }
     }

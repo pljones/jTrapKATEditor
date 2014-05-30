@@ -19,9 +19,8 @@ object GateTime {
 
     def toGateTime(value: String): Byte = gateSelection.indexOf(value.trim().toLowerCase().capitalize) match {
         case -1 => value.toDouble match {
-            case negative if negative < 0     => throw new IllegalArgumentException("Can only convert positive doubles to Byte")
-            case tooSmall if tooSmall < 0.005 => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
-            case tooBig if tooBig >= 6.4      => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
+            case tooSmall if tooSmall < 0.005 => throw new IllegalArgumentException("Numeric value must be 0.005 or over and under 6.4")
+            case tooBig if tooBig >= 6.4      => throw new IllegalArgumentException("Numeric value must be 0.005 or over and under 6.4")
             case tiny if tiny < 0.4           => ((tiny - 0.005) / 0.005).toByte
             case medium if medium < 4.2       => (79 + ((medium - 0.4) / 0.025)).toByte
             case large                        => (231 + ((large - 4.2) / 0.1)).toByte

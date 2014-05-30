@@ -13,12 +13,16 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
         _label.peer.setLabelFor(peer.asInstanceOf[javax.swing.JComboBox[_]])
     }
 
+    var editreset: A = null.asInstanceOf[A]
     override def makeEditable()(implicit editor: ComboBox[A] => ComboBox.Editor[A]) {
         super.makeEditable()
         val theEditor = (editor(this).component)
+        listenTo(this)
         listenTo(theEditor)
         listenTo(theEditor.keys)
         reactions += {
+            case e: eventX.ItemDeselected => editreset = e.item.asInstanceOf[A]
+            case e: eventX.ItemSelected if editorPeer.getInputVerifier() != null && !editorPeer.getInputVerifier().verify(editorPeer) => selection.item = editreset
             case e: FocusGained if e.source == theEditor => {
                 deafTo(this)
                 publish(new eventX.CbxEditorFocused(this))
@@ -35,6 +39,15 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
         }
     }
 
+    peer.addItemListener(ItemListener(
+        e => {
+            publish(new eventX.ItemDeselected(this, e.getItem()))
+        },
+        e => {
+            publish(new eventX.ItemSelected(this, e.getItem()))
+        }
+    ))
+
     def editor: Option[swing.TextField] = editable match {
         case true  => Some(swing.Component.wrap(editorPeer).asInstanceOf[swing.TextField])
         case false => None
@@ -43,5 +56,13 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
     def editorPeer: javax.swing.JTextField = editable match {
         case true  => peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField]
         case false => null
+    }
+
+    final def ItemListener(deselected: java.awt.event.ItemEvent => Unit,
+                           selected: java.awt.event.ItemEvent => Unit) = new java.awt.event.ItemListener {
+        def itemStateChanged(e: java.awt.event.ItemEvent) = e.getStateChange() match {
+            case java.awt.event.ItemEvent.DESELECTED => deselected(e)
+            case java.awt.event.ItemEvent.SELECTED   => selected(e)
+        }
     }
 }

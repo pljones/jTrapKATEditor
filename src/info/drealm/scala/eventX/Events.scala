@@ -20,7 +20,13 @@ case class MenuSelected(override val source: Menu) extends ComponentEvent
 
 class TabChangeEvent(val source: TabbedPane.Page) extends Event
 
-class CbxEditorFocused (override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
+trait ItemEvent extends ComponentEvent {
+    val item: Any
+}
+class ItemDeselected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
+class ItemSelected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
+class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
 
-class KitChanged (val oldKit: Int, val newKit: Int) extends Event
-class PadChanged (val oldPad: Int, val newPad: Int) extends Event
+class KitChanged(val oldKit: Int, val newKit: Int) extends Event
+class PadChanged(val oldPad: Int, val newPad: Int) extends Event
+

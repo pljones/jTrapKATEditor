@@ -4,7 +4,7 @@ object GateTime {
     val verifier = new GateTimeVerifier
     val gateSelection = Seq("Latch mode", "Infinite", "Roll mode")
 
-    def roundGateTime(value: String): String = toString(fromString(value))
+    def roundGateTime(value: String): String = toString(toGateTime(value))
 
     /*
      * Minor rant time.
@@ -17,27 +17,22 @@ object GateTime {
      * without sign extension, to keep the logic readable.
      */
 
-    def toByte(value: Double): Byte = value match {
-        case negative if value < 0     => throw new IllegalArgumentException("Can only convert positive doubles to Byte")
-        case tooSmall if value < 0.005 => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
-        case tooBig if value >= 6.4    => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
-        case tiny if value < 0.4       => ((value - 0.005) / 0.005).toByte
-        case medium if value < 4.2     => (79 + ((value - 0.4) / 0.025)).toByte
-        case large                     => (231 + ((value - 4.2) / 0.1)).toByte
-    }
-    def fromByte(v: Byte): Double = (0x000000ff & v) match {
-        case tiny if tiny <= 79      => 0.005 + (tiny * 0.005)
-        case medium if medium <= 231 => 0.4 + ((medium - 79) * 0.025)
-        case large if large < 253    => 4.2 + ((large - 231) * 0.1)
-        case _                       => throw new IllegalArgumentException("Can only convert bytes 0 to 252 to Double; use toString for higher values")
-    }
-    def fromString(value: String): Byte = gateSelection.indexOf(value.trim().toLowerCase().capitalize) match {
-        case -1 => toByte(value.toDouble)
-        case x  => (253 + x).toByte
+    def toGateTime(value: String): Byte = gateSelection.indexOf(value.trim().toLowerCase().capitalize) match {
+        case -1 => value.toDouble match {
+            case negative if negative < 0     => throw new IllegalArgumentException("Can only convert positive doubles to Byte")
+            case tooSmall if tooSmall < 0.005 => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
+            case tooBig if tooBig >= 6.4      => throw new IllegalArgumentException("Can only convert doubles from 0.005 to under 6.4 to Byte")
+            case tiny if tiny < 0.4           => ((tiny - 0.005) / 0.005).toByte
+            case medium if medium < 4.2       => (79 + ((medium - 0.4) / 0.025)).toByte
+            case large                        => (231 + ((large - 4.2) / 0.1)).toByte
+        }
+        case x => (253 + x).toByte
     }
     def toString(v: Byte): String = (0x000000ff & v) match {
-        case x if x < 253 => f"${fromByte(v)}%.3f"
-        case index        => gateSelection(index - 253)
+        case tiny if tiny <= 79      => f"${0.005 + (tiny * 0.005)}%.3f"
+        case medium if medium <= 231 => f"${0.4 + ((medium - 79) * 0.025)}%.3f"
+        case large if large < 253    => f"${4.2 + ((large - 231) * 0.1)}%.3f"
+        case index                   => gateSelection(index - 253)
     }
 }
 
@@ -86,7 +81,7 @@ class GateTimeVerifier extends javax.swing.InputVerifier {
 
     def gateTimeOK(gateTime: String): Boolean = {
         try {
-            GateTime.fromString(gateTime)
+            GateTime.toGateTime(gateTime)
             true
         }
         catch {

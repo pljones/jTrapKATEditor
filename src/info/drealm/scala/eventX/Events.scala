@@ -29,4 +29,5 @@ class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) e
 
 class KitChanged(val oldKit: Int, val newKit: Int) extends Event
 class PadChanged(val oldPad: Int, val newPad: Int) extends Event
+class DisplayNotesAs(val oldMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode, val newMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode) extends Event
 

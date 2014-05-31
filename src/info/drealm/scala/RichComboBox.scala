@@ -22,7 +22,11 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
         listenTo(theEditor.keys)
         reactions += {
             case e: eventX.ItemDeselected => editreset = e.item.asInstanceOf[A]
-            case e: eventX.ItemSelected if editorPeer.getInputVerifier() != null && !editorPeer.getInputVerifier().verify(editorPeer) => selection.item = editreset
+            case e: eventX.ItemSelected if editorPeer.getInputVerifier() != null && !editorPeer.getInputVerifier().verify(editorPeer) => {
+                deafTo(this)
+                selection.item = editreset
+                listenTo(this)
+            }
             case e: FocusGained if e.source == theEditor => {
                 deafTo(this)
                 publish(new eventX.CbxEditorFocused(this))

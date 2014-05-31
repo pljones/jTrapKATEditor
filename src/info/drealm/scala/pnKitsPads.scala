@@ -29,8 +29,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     private[this] val fcFunctions = Seq("Off", "CC#01 (Mod Wheel)", "CC#04 (F/C 0..64)", "CC#04 (F/C 0..127)", "Hat Note")
     private[this] val fcCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7")
 
-    def verifyNotesAs(v: verifier.NoteVerifier) = verifier.NoteVerifier.set(padSlotNames map (ps => Focus.findInContainer(this, ps).get.asInstanceOf[RichComboBox[String]]), v)
-
     private[this] object pnKitsPadsTop extends MigPanel("insets 0", "[grow]", "[][][grow]") {
         name = "pnKitsPadsTop"
 
@@ -318,14 +316,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             Seq((0, "Curve", padCurves, false), (1, "Gate", GateTime.gateSelection, true)) foreach { x =>
                 val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._2.head) }
-                val cbx = new RichComboBox(x._3, "cbxPad" + x._2, lbl) {
-                    if (x._4) {
-                        makeEditable()
-                        editorPeer.setInputVerifier(GateTime.verifier)
-                        selection.index = -1
-                        selection.item = "0.115"
-                    }
-                }
+                val cbx = if (x._4) new GateTimeComboBox("cbxPad" + x._2, lbl) else new RichComboBox(x._3, "cbxPad" + x._2, lbl)
+
                 contents += (lbl, "cell 4 " + x._1 + ",alignx right")
                 contents += (cbx, "cell 5 " + x._1)
 
@@ -503,12 +495,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val ckbVarCurve = new CheckBox("Various") { name = "ckbVarCurve" }
 
             private[this] val lblKitGate = new Label("Gate:") { peer.setDisplayedMnemonic('G') }
-            private[this] val cbxKitGate = new RichComboBox(GateTime.gateSelection, "cbxKitGate", lblKitGate) {
-                makeEditable()
-                editorPeer.setInputVerifier(GateTime.verifier)
-                selection.index = -1
-                selection.item = "0.115"
-            }
+            private[this] val cbxKitGate = new GateTimeComboBox("cbxKitGate", lblKitGate)
             private[this] val ckbVarGate = new CheckBox("Various") { name = "ckbVarGate" }
 
             private[this] val lblKitChannel = new Label("Channel:") { peer.setDisplayedMnemonic('n') }

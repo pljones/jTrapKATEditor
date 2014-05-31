@@ -1,10 +1,7 @@
 package info.drealm.scala
 
 object GateTime {
-    val verifier = new GateTimeVerifier
     val gateSelection = Seq("Latch mode", "Infinite", "Roll mode")
-
-    def roundGateTime(value: String): String = toString(toGateTime(value))
 
     /*
      * Minor rant time.
@@ -33,59 +30,66 @@ object GateTime {
         case large if large < 253    => f"${4.2 + ((large - 231) * 0.1)}%.3f"
         case index                   => gateSelection(index - 253)
     }
-}
 
-class GateTimeVerifier extends javax.swing.InputVerifier {
+    val verifier = new javax.swing.InputVerifier {
 
-    import swing._
-    import javax.swing.{ JComponent, JComboBox, JTextField }
+        import swing._
+        import javax.swing.{ JComponent, JComboBox, JTextField }
 
-    // Use pattern matching to neatly get the ComboBox
-    // If super.shouldYieldFocus is true and this is not a dropdown value
-    // round it to nearest known value
-    override def shouldYieldFocus(c: JComponent): Boolean = {
-        c match {
-            case e: JTextField => e.getParent() match {
-                case cb: JComboBox[_] if super.shouldYieldFocus(c) => {
-                    cb.setSelectedItem(e.getText())
-                    if (cb.getSelectedIndex() == -1) {
-                        e.setText(GateTime.roundGateTime(e.getText()))
+        // Use pattern matching to neatly get the ComboBox
+        // If super.shouldYieldFocus is true and this is not a dropdown value
+        // round it to nearest known value
+        override def shouldYieldFocus(c: JComponent): Boolean = {
+            c match {
+                case e: JTextField => e.getParent() match {
+                    case cb: JComboBox[_] if super.shouldYieldFocus(c) => {
                         cb.setSelectedItem(e.getText())
+                        if (cb.getSelectedIndex() == -1) {
+                            e.setText(GateTime.toString(toGateTime(e.getText())))
+                            cb.setSelectedItem(e.getText())
+                        }
+                        true
                     }
-                    true
-                }
-                case cb: JComboBox[_] => {
-                    e.setText(cb.getSelectedItem().asInstanceOf[String])
-                    e.selectAll()
-                    true
+                    case cb: JComboBox[_] => {
+                        e.setText(cb.getSelectedItem().asInstanceOf[String])
+                        e.selectAll()
+                        true
+                    }
+                    case _ => false
                 }
                 case _ => false
             }
-            case _ => false
         }
-    }
 
-    // Use pattern matching to neatly get the ComboBox
-    // If not a dropdown item, check the value in the editor
-    // otherwise it's a good 'un
-    def verify(c: JComponent): Boolean = {
-        c match {
-            case e: JTextField => e.getParent() match {
-                case cb: JComboBox[_] => gateTimeOK(e.getText())
-                case _                => false
+        // Use pattern matching to neatly get the ComboBox
+        // If not a dropdown item, check the value in the editor
+        // otherwise it's a good 'un
+        def verify(c: JComponent): Boolean = {
+            c match {
+                case e: JTextField => e.getParent() match {
+                    case cb: JComboBox[_] => gateTimeOK(e.getText())
+                    case _                => false
+                }
+                case _ => false
             }
-            case _ => false
         }
-    }
 
-    def gateTimeOK(gateTime: String): Boolean = {
-        try {
-            GateTime.toGateTime(gateTime)
-            true
+        def gateTimeOK(gateTime: String): Boolean = {
+            try {
+                toGateTime(gateTime)
+                true
+            }
+            catch {
+                case _: Throwable => false
+            }
         }
-        catch {
-            case _: Throwable => false
-        }
-    }
 
+    }
+}
+
+class GateTimeComboBox(name: String, label: swing.Label) extends RichComboBox[String](GateTime.gateSelection, name, label) {
+    makeEditable()
+    editorPeer.setInputVerifier(GateTime.verifier)
+    selection.index = -1
+    selection.item = "0.115"
 }

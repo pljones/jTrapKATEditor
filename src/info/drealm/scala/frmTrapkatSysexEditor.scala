@@ -7,8 +7,6 @@ import info.drealm.scala.eventX._
 
 object frmTrapkatSysexEditor extends MainFrame {
 
-    def verifyNotesAs(v: verifier.NoteVerifier) = pnKitsPads.verifyNotesAs(v)
-
     iconImage = toolkit.getImage("resources/tk_wild2-sq.png")
     resizable = false
     title = "TrapKAT SysEx Editor"
@@ -136,7 +134,6 @@ object frmTrapkatSysexEditor extends MainFrame {
         }
     }
 
-    verifyNotesAs(verifier.NoteVerifier.numbers)
     layout.Focus.set(tpnMain, "cbxPad1")
 
     centerOnScreen

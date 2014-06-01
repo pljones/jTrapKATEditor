@@ -1,3 +1,25 @@
+/****************************************************************************
+ *                                                                          *
+ *   (C) Copyright 2014 by Peter L Jones                                    *
+ *   pljones@users.sf.net                                                   *
+ *                                                                          *
+ *   This file is part of jTrapKATEditor.                                   *
+ *                                                                          *
+ *   jTrapKATEditor is free software; you can redistribute it and/or modify *
+ *   it under the terms of the GNU General Public License as published by   *
+ *   the Free Software Foundation; either version 3 of the License, or      *
+ *   (at your option) any later version.                                    *
+ *                                                                          *
+ *   jTrapKATEditor is distributed in the hope that it will be useful,      *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          *
+ *   GNU General Public License for more details.                           *
+ *                                                                          *
+ *   You should have received a copy of the GNU General Public License      *
+ *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
+ *                                                                          *
+ ****************************************************************************/
+
 package info.drealm.scala
 
 object GateTime {
@@ -62,28 +84,22 @@ object GateTime {
         }
 
         // Use pattern matching to neatly get the ComboBox
-        // If not a dropdown item, check the value in the editor
-        // otherwise it's a good 'un
+        // Then see if we can convert the content of the editor to a GateTime value
         def verify(c: JComponent): Boolean = {
             c match {
                 case e: JTextField => e.getParent() match {
-                    case cb: JComboBox[_] => gateTimeOK(e.getText())
-                    case _                => false
+                    case cb: JComboBox[_] => try {
+                        toGateTime(e.getText())
+                        true
+                    }
+                    catch {
+                        case _: Throwable => false
+                    }
+                    case _ => false
                 }
                 case _ => false
             }
         }
-
-        def gateTimeOK(gateTime: String): Boolean = {
-            try {
-                toGateTime(gateTime)
-                true
-            }
-            catch {
-                case _: Throwable => false
-            }
-        }
-
     }
 }
 

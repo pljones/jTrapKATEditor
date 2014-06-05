@@ -65,6 +65,18 @@ trait DataItem extends scala.swing.Publisher {
         u
         dataItemChanged
     }
+    // Not every subclass will need this but enough will that it makes
+    // sense to do it here: catch any listened-to DataItemChanged,
+    // mark this as dirty and publish the change.
+    // This is also part of how the C# uses OnDataChanged - it
+    // makes it the handler for the event from subclasses.
+    reactions += {
+        case e: info.drealm.scala.eventX.DataItemChanged => {
+            deafTo(this)
+            dataItemChanged
+            listenTo(this)
+        }
+    }
 
     // The C# has this as public
     final def save(out: FileOutputStream): Unit = save(new DataOutputStream(out))

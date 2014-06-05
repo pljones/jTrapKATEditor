@@ -27,23 +27,24 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-abstract class Pad extends DataItem with mutable.Seq[Byte] {
+abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.Seq[Byte] {
+    // Subclasses fix up _slots and _curve, so leave as protected
+    protected val _slots: Array[Byte] = f
     protected var _curve: Byte = 0
-    protected var _gate: Byte = 22
-    protected var _channel: Byte = 9
-    protected var _minVelocity: Byte = 1
-    protected var _maxVelocity: Byte = 127
-    protected var _flags: Byte = 0 // bit7: HiHat pad; bit6: motif pad
-
-    protected val _slots: Array[Byte]
+    // For the rest, use the API to read and make them nicely private
+    private[this] var _gate: Byte = 22
+    private[this] var _channel: Byte = 9
+    private[this] var _minVelocity: Byte = 1
+    private[this] var _maxVelocity: Byte = 127
+    private[this] var _flags: Byte = 0 // bit7: HiHat pad; bit6: motif pad
 
     protected def from(pad: Pad) = {
-        _curve = pad._curve
-        _gate = pad._gate
-        _channel = pad._channel
-        _minVelocity = pad._minVelocity
-        _maxVelocity = pad._maxVelocity
-        _flags = pad._flags
+        _curve = pad.curve
+        _gate = pad.gate
+        _channel = pad.channel
+        _minVelocity = pad.minVelocity
+        _maxVelocity = pad.maxVelocity
+        _flags = pad.flags
     }
 
     def deserialize(in: DataInputStream): Unit = {
@@ -88,25 +89,25 @@ abstract class Pad extends DataItem with mutable.Seq[Byte] {
     override def canEqual(that: Any): Boolean
     override def equals(that: Any): Boolean = canEqual(that) && {
         val thatPad = that.asInstanceOf[Pad]
-        _curve == thatPad._curve &&
-            _gate == thatPad._gate &&
-            _channel == thatPad._channel &&
-            _minVelocity == thatPad._minVelocity &&
-            _maxVelocity == thatPad._maxVelocity &&
-            _flags == thatPad._flags
+        ((_slots zip thatPad._slots) forall (x => x._1 == x._2)) &&
+            _curve == thatPad.curve &&
+            _gate == thatPad.gate &&
+            _channel == thatPad.channel &&
+            _minVelocity == thatPad.minVelocity &&
+            _maxVelocity == thatPad.maxVelocity &&
+            _flags == thatPad.flags
     }
 }
 
-class PadV3 extends Pad {
+class PadV3 private (f: => Array[Byte]) extends Pad(f) {
+    def this() = this((Seq(42.toByte) ++ Stream.continually(128.toByte).take(5)).take(6).toArray)
     def this(in: DataInputStream) = {
-        this()
+        this(Array[Byte](6))
         deserialize(in)
     }
 
     def this(padV4: PadV4) = {
-        this()
-        from(padV4)
-
+        this(padV4.take(6).toArray)
         /* V4 "extra" notes are (128 upwards)
          *  Off
          *  Sequencer Start
@@ -119,7 +120,8 @@ class PadV3 extends Pad {
          *  Pitchwheel
          * For now, just leave the value alone
          */
-        (0 to 5) zip padV4 foreach (x => _slots.update(x._1, x._2))
+
+        from(padV4)
 
         // Curve needs fixing
         padV4.curve match {
@@ -144,20 +146,18 @@ class PadV3 extends Pad {
         dataItemChanged
     }
 
-    protected val _slots: Array[Byte] = (Seq(42.toByte) ++ Stream.continually(128.toByte).take(5)).toArray
-
     override def canEqual(that: Any): Boolean = that.isInstanceOf[PadV3]
-    override def equals(that: Any): Boolean = canEqual(that) && super.equals(that) && _slots.equals(that.asInstanceOf[PadV3]._slots)
 }
 
-class PadV4(self: Byte) extends Pad {
+class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
+    def this(self: Byte) = this((Seq(42.toByte) ++ Stream.continually(128.toByte).take(16)).take(16).toArray, self)
     def this(in: DataInputStream) = {
-        this(0.toByte) // Next line overwrites linkTo
+        this(Array[Byte](16), 0.toByte) // Don't really care but need to initialise
         deserialize(in)
     }
 
-    def this(self: Byte, padV3: PadV3) = {
-        this(self) // We want to make sure linkTo is set to a good initial value
+    def this(padV3: PadV3, self: Byte) = {
+        this((padV3 ++ Stream.continually(128.toByte).take(16)).take(16).toArray, self)
         from(padV3)
 
         // 128 to 132 (alt reset) are defined with the same meaning
@@ -191,75 +191,63 @@ class PadV4(self: Byte) extends Pad {
         out.writeByte(_linkTo)
     }
 
-    protected val _slots: Array[Byte] = (Seq(42.toByte) ++ Stream.continually(128.toByte).take(15)).toArray
-    private[this] var _linkTo: Byte = self
+    override def canEqual(that: Any): Boolean = that.isInstanceOf[PadV4]
+    override def equals(that: Any): Boolean = super.equals(that) && _linkTo == that.asInstanceOf[PadV4].linkTo
 
+    private[this] var _linkTo: Byte = self
     def linkTo: Byte = _linkTo
     def linkTo_=(value: Byte): Unit = if (_linkTo != value) update(_linkTo = value) else {}
-
-    override def canEqual(that: Any): Boolean = that.isInstanceOf[PadV4]
-    override def equals(that: Any): Boolean = canEqual(that) && super.equals(that) && _slots.equals(that.asInstanceOf[PadV4]._slots)
 }
 
-abstract class PadSeq[T <: Pad] extends DataItem with mutable.Seq[Pad] {
-    protected val _pads: Array[Pad] = new Array[Pad](28)
+abstract class PadSeq protected (f: (Int => Pad)) extends DataItem with mutable.Seq[Pad] {
+    private val _pads: Array[Pad] = new Array[Pad](28)
 
     def iterator = _pads.iterator
     def length = _pads.length
     def update(idx: Int, value: Pad): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Pad must not be null.")
-        if (_pads(idx) != value)
+        if (!this.canEqual(value))
+            throw new IllegalArgumentException("Pad has incorrect type for container.")
+        if (_pads(idx) != value) {
+            deafTo(_pads.apply(idx))
             update(_pads.update(idx, value))
-    }
-    def apply(idx: Int): T = _pads.apply(idx).asInstanceOf[T]
-
-    override def deserialize(in: DataInputStream): Unit = _pads foreach (x => x.deserialize(in))
-    override def serialize(out: DataOutputStream, saving: Boolean): Unit = _pads foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
-
-    reactions += {
-        case e: info.drealm.scala.eventX.DataItemChanged => {
-            deafTo(this)
+            listenTo(_pads.apply(idx))
             dataItemChanged
-            listenTo(this)
         }
     }
+    def apply(idx: Int): Pad = _pads.apply(idx)
+
+    // A significant difference from the C# here.
+    // The C# creates a new, clean pad when deserialize is called on the container.
+    // Here we just deserialize into the existing pad.
+    // Seeing as the C# leaves the existing container, it makes more sense, I think,
+    // to do the same with the pad itself.
+    override def deserialize(in: DataInputStream): Unit = _pads foreach (x => x.deserialize(in))
+    // .. and I could not be asked to optimise the loop to put the "if" outside ...
+    override def serialize(out: DataOutputStream, saving: Boolean): Unit = _pads foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
+
+    // Look, just one loop, not six! :)
+    (0 to 27) foreach (x => {
+        _pads(x) = f(x)
+        listenTo(_pads(x))
+    })
 }
 
-class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3] {
+class PadV3Seq private (f: (Int => PadV3)) extends PadSeq(f) {
     def this() = this(x => new PadV3)
     def this(in: DataInputStream) = this(x => new PadV3(in))
     def this(padV4seq: PadV4Seq) = {
-        this(x => new PadV3(padV4seq(x)))
+        this(x => new PadV3(padV4seq(x).asInstanceOf[PadV4]))
         dataItemChanged
-    }
-    (0 to 27) foreach (x => {
-        _pads(x) = f(x)
-        listenTo(_pads(x))
-    })
-
-    override def update(idx: Int, value: Pad): Unit = {
-        if (!value.isInstanceOf[PadV3])
-            throw new IllegalArgumentException("Pad must be PadV3.")
-        super.update(idx, value)
     }
 }
 
-class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4] {
+class PadV4Seq private (f: (Int => PadV4)) extends PadSeq(f) {
     def this() = this(x => new PadV4((x + 1).toByte))
     def this(in: DataInputStream) = this(x => new PadV4(in))
     def this(padV3seq: PadV3Seq) = {
-        this(x => new PadV4((x + 1).toByte, padV3seq(x)))
+        this(x => new PadV4(padV3seq(x).asInstanceOf[PadV3], (x + 1).toByte))
         dataItemChanged
-    }
-    (0 to 27) foreach (x => {
-        _pads(x) = f(x)
-        listenTo(_pads(x))
-    })
-
-    override def update(idx: Int, value: Pad): Unit = {
-        if (!value.isInstanceOf[PadV4])
-            throw new IllegalArgumentException("Pad must be PadV4.")
-        super.update(idx, value)
     }
 }

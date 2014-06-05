@@ -237,17 +237,19 @@ abstract class PadSeq protected (f: (Int => Pad)) extends DataItem with mutable.
 class PadV3Seq private (f: (Int => PadV3)) extends PadSeq(f) {
     def this() = this(x => new PadV3)
     def this(in: DataInputStream) = this(x => new PadV3(in))
-    def this(padV4seq: PadV4Seq) = {
-        this(x => new PadV3(padV4seq(x).asInstanceOf[PadV4]))
+    def this(padV4seq: Seq[PadV4]) = {
+        this(x => new PadV3(padV4seq(x)))
         dataItemChanged
     }
+    def this(padV4seq: PadV4Seq) = this(padV4seq map (x => x.asInstanceOf[PadV4]))
 }
 
 class PadV4Seq private (f: (Int => PadV4)) extends PadSeq(f) {
     def this() = this(x => new PadV4((x + 1).toByte))
     def this(in: DataInputStream) = this(x => new PadV4(in))
-    def this(padV3seq: PadV3Seq) = {
-        this(x => new PadV4(padV3seq(x).asInstanceOf[PadV3], (x + 1).toByte))
+    def this(padV3seq: Seq[PadV3]) = {
+        this(x => new PadV4(padV3seq(x), (x + 1).toByte))
         dataItemChanged
     }
+    def this(padV3seq: PadV3Seq) = this(padV3seq map (x => x.asInstanceOf[PadV3]))
 }

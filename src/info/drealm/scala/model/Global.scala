@@ -27,6 +27,6 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-abstract class Global extends DataItem {
+abstract class Global extends DataItem with mutable.Seq[PadDynamics] {
 
 }

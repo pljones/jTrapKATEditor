@@ -27,6 +27,6 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-abstract class AllMemory[T <: PadSeq[_ <: Pad]](implicit T: Manifest[T]) extends DataItem with mutable.Seq[Kit[T]] {
+abstract class AllMemory[Kit[T]] extends DataItem with mutable.Seq[Kit[_]] {
 
 }

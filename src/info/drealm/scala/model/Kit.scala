@@ -27,73 +27,42 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-abstract class Kit[T <: PadSeq[_ <: Pad]](n: Int) extends DataItem with mutable.Seq[Pad] {
-    protected class SoundControl extends DataItem {
-        def this(in: DataInputStream) = {
-            this()
-            deserialize(in)
-        }
-
-        var _prgChg: Byte = 0
-        var _prgChgTxnChn: Byte = 0
-        var _volume: Byte = 0
-        var _bankMSB: Byte = 0
-        var _bankLSB: Byte = 0
-
-        override def deserialize(in: DataInputStream): Unit = {
-            _prgChg = in.readByte()
-            _prgChgTxnChn = in.readByte()
-            _volume = in.readByte()
-            _bankMSB = in.readByte()
-            _bankLSB = in.readByte()
-        }
-        override def serialize(out: DataOutputStream, saving: Boolean): Unit = {
-            // because KitV3 abuses SoundControl...
-            if (saving && out == null) {
-                // Simply do nothing
-            }
-            else {
-                out.writeByte(_prgChg)
-                out.writeByte(_prgChgTxnChn)
-                out.writeByte(_volume)
-                out.writeByte(_bankMSB)
-                out.writeByte(_bankLSB)
-            }
-        }
-
-        def prgChg: Byte = _prgChg
-        def prgChg_=(value: Byte): Unit = if (_prgChg != value) update(_prgChg = value) else {}
-        def prgChgTxnChn: Byte = _prgChgTxnChn
-        def prgChgTxnChn_=(value: Byte): Unit = if (_prgChgTxnChn != value) update(_prgChgTxnChn = value) else {}
-        def volume: Byte = _volume
-        def volume_=(value: Byte): Unit = if (_volume != value) update(_volume = value) else {}
-        def bankMSB: Byte = _bankMSB
-        def bankMSB_=(value: Byte): Unit = if (_bankMSB != value) update(_bankMSB = value) else {}
-        def bankLSB: Byte = _bankLSB
-        def bankLSB_=(value: Byte): Unit = if (_bankLSB != value) update(_bankLSB = value) else {}
-    }
-
-    protected var _pads: T
-    protected var _curve: Byte = 0
-    protected var _gate: Byte = 0
-    protected var _channel: Byte = 9
-    protected var _minVelocity: Byte = 1
-    protected var _maxVelocity: Byte = 127
-    protected var _fcFunction: Byte = 3
-    protected var _bcFunction: Byte = 0
+abstract class Kit[T <: PadSeq](f: => T, g: Array[SoundControl]) extends DataItem with mutable.Seq[Pad] {
+    private[this] var _pads: T = f
+    private[this] var _curve: Byte = 0
+    private[this] var _gate: Byte = 0
+    private[this] var _channel: Byte = 9
+    private[this] var _minVelocity: Byte = 1
+    private[this] var _maxVelocity: Byte = 127
+    private[this] var _fcFunction: Byte = 3
+    private[this] var _bcFunction: Byte = 0
     // V3 has prgChg, prgChgTxnChn, volume here
-    protected val _hhPads = new Array[Byte](4)
+    private[this] val _hhPads = new Array[Byte](4)
     // V3 has bank here -> not in SoundControl, assumed deprecated
-    protected var _fcChannel: Byte = 16
-    protected var _fcCurve: Byte = 0
+    private[this] var _fcChannel: Byte = 16
+    private[this] var _fcCurve: Byte = 0
     // V3 has bankMSB, bankLSB, unused here
     // V4 has Sound Control 1 to 4 here
-    protected val _kitName: Array[Char] = "New kit     ".toArray
+    private[this] val _soundControls: Array[SoundControl] = g
+    // Strictly this is an array of bytes; C# just uses String...
+    private[this] val _kitName: Array[Char] = "New kit     ".toArray
 
-    protected val _soundControls: Array[SoundControl] = new Array[SoundControl](n)
+    protected def from(kit: Kit[_]) = {
+        _curve = kit.curve
+        _gate = kit.gate
+        _channel = kit.channel
+        _minVelocity = kit.minVelocity
+        _maxVelocity = kit.maxVelocity
+        _fcFunction = kit.fcFunction
+        _bcFunction = kit.bcFunction
+        (0 to 3) foreach (idx => _hhPads(idx) = kit.hhPads(idx))
+        _fcChannel = kit.fcChannel
+        _fcCurve = kit.fcCurve
+        (0 to (_kitName.length - 1)) zip kit.kitName foreach (x => _kitName(x._1) = x._2)
+    }
 
-    protected def _deserialize(in: DataInputStream, newPadSeq: (DataInputStream => T)): Unit = {
-        _pads = newPadSeq(in)
+    protected def _deserializeKit(in: DataInputStream): Unit
+    protected def _deserialize(in: DataInputStream): Unit = {
         _curve = in.readByte()
         _gate = in.readByte()
         _channel = in.readByte()
@@ -102,6 +71,23 @@ abstract class Kit[T <: PadSeq[_ <: Pad]](n: Int) extends DataItem with mutable.
         _fcFunction = in.readByte()
         _bcFunction = in.readByte()
     }
+    protected def _deserializeHH(in: DataInputStream): Unit = in.read(_hhPads, 0, 4)
+    protected def _deserializeFC(in: DataInputStream): Unit = {
+        _fcChannel = in.readByte()
+        _fcCurve = in.readByte()
+    }
+    override def deserialize(in: DataInputStream): Unit = {
+        deafTo(_pads)
+        _soundControls foreach (x => deafTo(x))
+
+        _pads.deserialize(in)
+        _deserializeKit(in)
+
+        listenTo(_pads)
+        _soundControls foreach (x => listenTo(x))
+    }
+    def deserializeKitName(in: DataInputStream) = (0 to 11) foreach (x => _kitName(x) = in.readByte().toChar)
+
     protected def _serialize(out: DataOutputStream, saving: Boolean): Unit = {
         if (saving) _pads.save(out) else _pads.serialize(out, saving)
         out.writeByte(_curve)
@@ -112,12 +98,12 @@ abstract class Kit[T <: PadSeq[_ <: Pad]](n: Int) extends DataItem with mutable.
         out.writeByte(_fcFunction)
         out.writeByte(_bcFunction)
     }
-    def deserializeKitName(in: DataInputStream) {
-        (0 to 11) foreach (x => _kitName(x) = in.readByte().toChar)
+    protected def _serializeHH(out: DataOutputStream) = out.write(_hhPads, 0, 4)
+    protected def _serializeFC(out: DataOutputStream) = {
+        out.writeByte(_fcChannel)
+        out.writeByte(_fcCurve)
     }
-    def serializeKitName(out: DataOutputStream) {
-        (0 to 11) foreach (x => out.writeByte(_kitName(x).toByte))
-    }
+    def serializeKitName(out: DataOutputStream) = (0 to 11) foreach (x => out.writeByte(_kitName(x).toByte))
 
     def iterator = _pads.iterator
     def length = _pads.length
@@ -151,7 +137,7 @@ abstract class Kit[T <: PadSeq[_ <: Pad]](n: Int) extends DataItem with mutable.
         case tooLong if tooLong.length() > 12 =>
             throw new IllegalArgumentException("KitName must be 12 characters or fewer.")
         case update if update != _kitName => {
-            (0 to 11) zip update map (x => _kitName(x._1) = x._2)
+            (0 to 11) zip update foreach (x => _kitName(x._1) = x._2)
             dataItemChanged
         }
         case _ => {}
@@ -159,72 +145,82 @@ abstract class Kit[T <: PadSeq[_ <: Pad]](n: Int) extends DataItem with mutable.
 
     listenTo(_pads)
     _soundControls foreach (x => listenTo(x))
-
-    reactions += {
-        case e: info.drealm.scala.eventX.DataItemChanged => {
-            deafTo(this)
-            dataItemChanged
-            listenTo(this)
-        }
-    }
 }
 
-class KitV3 extends Kit[PadV3Seq](1) {
+class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV3Seq](f, g) {
+    def this() = this(new PadV3Seq, Seq(new SoundControl).toArray)
     def this(in: DataInputStream) = {
-        this()
-        deserialize(in)
+        this(new PadV3Seq(in), new Array[SoundControl](1))
+        _deserializeKit(in)
     }
 
-    protected var _pads: PadV3Seq = new PadV3Seq
-    protected var _bank: Byte = 0
+    def this(kitV4: KitV4) = {
+        this(new PadV3Seq(kitV4 map (x => x.asInstanceOf[PadV4])), Seq(kitV4.soundControls(0).clone).toArray)
+        from(kitV4)
+
+        _bank = kitV4.soundControls(0).bankLSB
+        // leave _unused at initial value
+
+        // Curve needs fixing
+        kitV4.curve match {
+            case 21 => // Alternating
+                // At kit level, we cannot resolve this.
+                // Set to Curve 1 and let the pads sort themselves out.
+                curve = 0
+            case 22 => // Control + 3 Notes
+                // The pads will sort the note numbers and set to curve Layer 4.
+                curve = 20
+            case _ => {}
+        }
+
+        // set state to dirty if it isn't already
+        dataItemChanged
+    }
+
+    protected var _bank: Byte = 128.toByte
     protected var _unused: Byte = 0
 
-    override def deserialize(in: DataInputStream): Unit = {
-        deafTo(_pads)
-        _soundControls foreach (x => deafTo(x))
+    override def _deserializeKit(in: DataInputStream): Unit = {
+        _deserialize(in)
 
-        _deserialize(in, x => new PadV3Seq(x))
+        val prgChg = in.readByte()
+        val prgChgTxnChn = in.readByte()
+        val volume = in.readByte()
 
-        _soundControls(0)._prgChg = in.readByte()
-        _soundControls(0)._prgChgTxnChn = in.readByte()
-        _soundControls(0)._volume = in.readByte()
-
-        in.read(_hhPads, 0, 4)
+        _deserializeHH(in)
 
         _bank = in.readByte()
 
-        _fcChannel = in.readByte()
-        _fcCurve = in.readByte()
+        _deserializeFC(in)
 
-        _soundControls(0)._bankMSB = in.readByte()
-        _soundControls(0)._bankLSB = in.readByte()
+        val bankMSB = in.readByte()
+        val bankLSB = in.readByte()
 
         _unused = in.readByte()
 
-        listenTo(_pads)
-        _soundControls foreach (x => listenTo(x))
+        soundControls(0) = new SoundControl(prgChg, prgChgTxnChn, volume, bankMSB, bankLSB)
     }
+
     override def serialize(out: DataOutputStream, saving: Boolean): Unit = {
         _serialize(out, saving)
 
-        out.writeByte(_soundControls(0)._prgChg)
-        out.writeByte(_soundControls(0)._prgChgTxnChn)
-        out.writeByte(_soundControls(0)._volume)
+        out.writeByte(soundControls(0).prgChg)
+        out.writeByte(soundControls(0).prgChgTxnChn)
+        out.writeByte(soundControls(0).volume)
 
-        out.write(_hhPads, 0, 4)
+        _serializeHH(out)
 
         out.writeByte(_bank)
 
-        out.writeByte(_fcChannel)
-        out.writeByte(_fcCurve)
+        _serializeFC(out)
 
-        out.writeByte(_soundControls(0)._bankMSB)
-        out.writeByte(_soundControls(0)._bankLSB)
+        out.writeByte(soundControls(0).bankMSB)
+        out.writeByte(soundControls(0).bankLSB)
 
         out.writeByte(_unused)
 
         // I knew there was a reason to allow serialize(out, flag) to be overridden...
-        _soundControls(0).save(null.asInstanceOf[DataOutputStream])
+        if (saving) soundControls(0).save(null.asInstanceOf[DataOutputStream])
     }
 
     def bank: Byte = _bank
@@ -233,39 +229,44 @@ class KitV3 extends Kit[PadV3Seq](1) {
     def unused_=(value: Byte): Unit = if (_unused != value) update(_unused = value) else {}
 }
 
-class KitV4 extends Kit[PadV4Seq](4) {
+class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4Seq](f, g) {
+    def this() = this(new PadV4Seq, Stream.continually(new SoundControl).take(4).toArray)
     def this(in: DataInputStream) = {
-        this()
-        deserialize(in)
+        this(new PadV4Seq(in), new Array[SoundControl](4))
+        _deserializeKit(in)
     }
 
-    protected var _pads: PadV4Seq = null
+    def this(kitV3: KitV3) = {
+        this(new PadV4Seq(kitV3 map (x => x.asInstanceOf[PadV3])), (Seq(kitV3.soundControls(0).clone) ++ Stream.continually(new SoundControl).take(4)).take(4).toArray)
+        from(kitV3)
 
-    _soundControls foreach (x => listenTo(x))
-
-    override def deserialize(in: DataInputStream): Unit = {
-        deafTo(_pads)
-        _soundControls foreach (x => deafTo(x))
-
-        _deserialize(in, x => new PadV4Seq(x))
-
-        in.read(_hhPads, 0, 4)
-        _fcChannel = in.readByte()
-        _fcCurve = in.readByte()
-
-        (0 to 3) foreach (x => _soundControls(x) = new SoundControl(in))
-
-        listenTo(_pads)
-        _soundControls foreach (x => listenTo(x))
+        // Curve needs fixing - pads can sort the details
+        kitV3.curve match {
+            case 21 => {} // Alternate 1,2
+            case 22 => // Alternate 1,2,3
+                curve = 21
+            case 23 => // Alternate 1,2,3,4
+                curve = 21
+            case _ => {}
+        }
+        
+        // set state to dirty if it isn't already
+        dataItemChanged
     }
+
+    override def _deserializeKit(in: DataInputStream): Unit = {
+        _deserialize(in)
+        _deserializeHH(in)
+        _deserializeFC(in)
+
+        (0 to 3) foreach (x => soundControls(x) = new SoundControl(in))
+    }
+
     override def serialize(out: DataOutputStream, saving: Boolean): Unit = {
         _serialize(out, saving)
+        _serializeHH(out)
+        _serializeFC(out)
 
-        out.write(_hhPads, 0, 4)
-
-        out.writeByte(_fcChannel)
-        out.writeByte(_fcCurve)
-
-        _soundControls foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
+        soundControls foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
     }
 }

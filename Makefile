@@ -11,7 +11,7 @@ main.jar: compile
 
 compile:
 	rm -rf bin/info
-	(cd src; scalac -classpath ../lib/miglayout-4.0-swing.jar -d ../bin -optimise info/drealm/scala/*.scala info/drealm/scala/*/*.scala)
+	(cd src; scalac -classpath ../lib/miglayout-4.0-swing.jar -d ../bin -feature -optimise info/drealm/scala/*.scala info/drealm/scala/*/*.scala)
 
 one-jar/boot-manifest.mf: one-jar/META-INF/MANIFEST.MF
 	rm -f one-jar/boot-manifest.mf

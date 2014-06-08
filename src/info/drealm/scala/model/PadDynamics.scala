@@ -27,32 +27,44 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-class PadDynamics(__lowLevel: Byte, __highLevel: Byte, __userMargin: Byte, __internalMargin: Byte, __thresholdManual: Byte, __thresholdActual: Byte) extends DataItem {
-    def this() = this(0, 0, 0, 0, 0, 0)
-    def this(that: PadDynamics) = this(that.lowLevel, that.highLevel, that.userMargin, that.internalMargin, that.thresholdManual, that.thresholdActual)
+class PadDynamics(idx: Int, padDynamicsContainer: PadDynamicsContainer) {
+    def lowLevel: Byte = padDynamicsContainer.lowLevel(idx)
+    def lowLevel_=(value: Byte): Unit = padDynamicsContainer.lowLevel(idx, value)
+    def highLevel: Byte = padDynamicsContainer.highLevel(idx)
+    def highLevel_=(value: Byte): Unit = padDynamicsContainer.highLevel(idx, value)
+    def userMargin: Byte = padDynamicsContainer.userMargin(idx)
+    def userMargin_=(value: Byte): Unit = padDynamicsContainer.userMargin(idx, value)
+    def internalMargin: Byte = padDynamicsContainer.internalMargin(idx)
+    def internalMargin_=(value: Byte): Unit = padDynamicsContainer.internalMargin(idx, value)
+    def thresholdManual: Byte = padDynamicsContainer.thresholdManual(idx)
+    def thresholdManual_=(value: Byte): Unit = padDynamicsContainer.thresholdManual(idx, value)
+    def thresholdActual: Byte = padDynamicsContainer.thresholdActual(idx)
+    def thresholdActual_=(value: Byte): Unit = padDynamicsContainer.thresholdActual(idx, value)
+}
 
-    private[this] var _lowLevel: Byte = __lowLevel // DynLow
-    private[this] var _highLevel: Byte = __highLevel // DynHigh
-    private[this] var _userMargin: Byte = __userMargin
-    private[this] var _internalMargin: Byte = __internalMargin // Idle Level
-    private[this] var _thresholdManual: Byte = __thresholdManual // Threshold
-    private[this] var _thresholdActual: Byte = __thresholdActual
+protected[model] class PadDynamicsContainer(_padLevels: Array[Byte], _userMargin: Array[Byte], _internalMargin: Array[Byte], _thresholdManual: Array[Byte], _thresholdActual: Array[Byte])
+    extends DataItem with Seq[PadDynamics] {
+
+    def lowLevel(idx: Int): Byte = _padLevels.apply(idx * 2)
+    def lowLevel(idx: Int, value: Byte): Unit = if (_padLevels.apply(idx * 2) != value) update(_padLevels.update(idx * 2, value)) else {}
+    def highLevel(idx: Int): Byte = _padLevels.apply(idx * 2 + 1)
+    def highLevel(idx: Int, value: Byte): Unit = if (_padLevels.apply(idx * 2 + 1) != value) update(_padLevels.update(idx * 2 + 1, value)) else {}
+    def userMargin(idx: Int): Byte = _userMargin.apply(idx)
+    def userMargin(idx: Int, value: Byte): Unit = if (_userMargin.apply(idx) != value) update(_userMargin.update(idx, value)) else {}
+    def internalMargin(idx: Int): Byte = _internalMargin.apply(idx)
+    def internalMargin(idx: Int, value: Byte): Unit = if (_internalMargin.apply(idx) != value) update(_internalMargin.update(idx, value)) else {}
+    def thresholdManual(idx: Int): Byte = _thresholdManual.apply(idx)
+    def thresholdManual(idx: Int, value: Byte): Unit = if (_thresholdManual.apply(idx) != value) update(_thresholdManual.update(idx, value)) else {}
+    def thresholdActual(idx: Int): Byte = _thresholdActual.apply(idx)
+    def thresholdActual(idx: Int, value: Byte): Unit = if (_thresholdActual.apply(idx) != value) update(_thresholdActual.update(idx, value)) else {}
+
+    def iterator = _padDynamics.iterator
+    def length = _padDynamics.length
+    def apply(idx: Int): PadDynamics = _padDynamics.apply(idx)
 
     def deserialize(in: DataInputStream): Unit = throw new UnsupportedOperationException("This should never happen")
     def serialize(out: DataOutputStream, saving: Boolean): Unit = throw new UnsupportedOperationException("This should never happen")
 
-    override def clone = new PadDynamics(this)
+    private[this] val _padDynamics: Seq[PadDynamics] = (0 to 24) map (x => new PadDynamics(x, this))
 
-    def lowLevel: Byte = _lowLevel
-    def lowLevel_=(value: Byte): Unit = if (_lowLevel != value) update(_lowLevel = value) else {}
-    def highLevel: Byte = _highLevel
-    def highLevel_=(value: Byte): Unit = if (_highLevel != value) update(_highLevel = value) else {}
-    def userMargin: Byte = _userMargin
-    def userMargin_=(value: Byte): Unit = if (_userMargin != value) update(_userMargin = value) else {}
-    def internalMargin: Byte = _internalMargin
-    def internalMargin_=(value: Byte): Unit = if (_internalMargin != value) update(_internalMargin = value) else {}
-    def thresholdManual: Byte = _thresholdManual
-    def thresholdManual_=(value: Byte): Unit = if (_thresholdManual != value) update(_thresholdManual = value) else {}
-    def thresholdActual: Byte = _thresholdActual
-    def thresholdActual_=(value: Byte): Unit = if (_thresholdActual != value) update(_thresholdActual = value) else {}
 }

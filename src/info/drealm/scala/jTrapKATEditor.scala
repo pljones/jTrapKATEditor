@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala
 
@@ -40,13 +42,37 @@ object jTrapKATEditor extends SimpleSwingApplication {
         true
     }
 
+    //TODO: This should live somewhere else -> frmTrapkatSysexEditor?
+    def load(someDump: java.io.File): Unit = {
+        Console.println("load " + someDump)
+        try {
+            val sysex = info.drealm.scala.model.TrapKATSysexDump.fromFile(someDump)
+        } catch  {
+            case ex:IllegalArgumentException => {
+                Dialog.showMessage(null, f"Oh dear", "Invalid Sysex file", Dialog.Message.Error, null)
+            }
+        }
+    }
+
     listenTo(frmTrapkatSysexEditor)
     reactions += {
         case mie: FileMenuEvent => {
             mie.source.name.stripPrefix("miFile") match {
                 case "NewV3" if (loseUnsavedChanges) => Console.println("File NewV3")
                 case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV4")
-                case "Open" if (loseUnsavedChanges)  => Console.println("File Open")
+                case "Open" if (loseUnsavedChanges) => {
+                    val chooser = new FileChooser {
+                        fileFilter = new javax.swing.filechooser.FileNameExtensionFilter("Sysex files", "syx")
+                        fileSelectionMode = FileChooser.SelectionMode.FilesOnly
+                        multiSelectionEnabled = false
+                        title = "Open Sysex Dump"
+                    }
+                    chooser.showOpenDialog(null) match {
+                        case FileChooser.Result.Approve => load(chooser.selectedFile)
+                        case _                          => {}
+                    }
+
+                }
                 case save if save.startsWith("Save") => {
                     save.stripPrefix("Save") match {
                         case saveAs if saveAs.endsWith("As") => {

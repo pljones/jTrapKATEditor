@@ -27,8 +27,8 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-abstract class Kit[T <: PadSeq](f: => T, g: Array[SoundControl]) extends DataItem with mutable.Seq[Pad] {
-    private[this] var _pads: T = f
+abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(implicit TPad: Manifest[TPad]) extends DataItem with mutable.Seq[TPad] {
+    private[this] var _pads: PadSeq[TPad] = f
     private[this] var _curve: Byte = 0
     private[this] var _gate: Byte = 0
     private[this] var _channel: Byte = 9
@@ -107,8 +107,8 @@ abstract class Kit[T <: PadSeq](f: => T, g: Array[SoundControl]) extends DataIte
 
     def iterator = _pads.iterator
     def length = _pads.length
-    def update(idx: Int, pad: Pad) = _pads.update(idx, pad)
-    def apply(idx: Int): Pad = _pads.apply(idx)
+    def update(idx: Int, pad: TPad) = _pads.update(idx, pad)
+    def apply(idx: Int): TPad = _pads.apply(idx)
 
     def soundControls: Array[SoundControl] = _soundControls
 
@@ -147,7 +147,7 @@ abstract class Kit[T <: PadSeq](f: => T, g: Array[SoundControl]) extends DataIte
     _soundControls foreach (x => listenTo(x))
 }
 
-class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV3Seq](f, g) {
+class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV3](f, g) {
     def this() = this(new PadV3Seq, Seq(new SoundControl).toArray)
     def this(in: DataInputStream) = {
         this(new PadV3Seq(in), new Array[SoundControl](1))
@@ -229,7 +229,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
     def unused_=(value: Byte): Unit = if (_unused != value) update(_unused = value) else {}
 }
 
-class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4Seq](f, g) {
+class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
     def this() = this(new PadV4Seq, Stream.continually(new SoundControl).take(4).toArray)
     def this(in: DataInputStream) = {
         this(new PadV4Seq(in), new Array[SoundControl](4))

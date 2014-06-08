@@ -199,16 +199,14 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
     def linkTo_=(value: Byte): Unit = if (_linkTo != value) update(_linkTo = value) else {}
 }
 
-abstract class PadSeq protected (f: (Int => Pad)) extends DataItem with mutable.Seq[Pad] {
-    private val _pads: Array[Pad] = new Array[Pad](28)
+abstract class PadSeq[TPad <: Pad] protected (f: (Int => TPad))(implicit TPad: Manifest[TPad]) extends DataItem with mutable.Seq[TPad] {
+    private val _pads: Array[TPad] = new Array[TPad](28)
 
     def iterator = _pads.iterator
     def length = _pads.length
-    def update(idx: Int, value: Pad): Unit = {
+    def update(idx: Int, value: TPad): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Pad must not be null.")
-        if (!this.canEqual(value))
-            throw new IllegalArgumentException("Pad has incorrect type for container.")
         if (_pads(idx) != value) {
             deafTo(_pads.apply(idx))
             update(_pads.update(idx, value))
@@ -216,7 +214,7 @@ abstract class PadSeq protected (f: (Int => Pad)) extends DataItem with mutable.
             dataItemChanged
         }
     }
-    def apply(idx: Int): Pad = _pads.apply(idx)
+    def apply(idx: Int): TPad = _pads.apply(idx)
 
     // A significant difference from the C# here.
     // The C# creates a new, clean pad when deserialize is called on the container.
@@ -234,7 +232,7 @@ abstract class PadSeq protected (f: (Int => Pad)) extends DataItem with mutable.
     })
 }
 
-class PadV3Seq private (f: (Int => PadV3)) extends PadSeq(f) {
+class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
     def this() = this(x => new PadV3)
     def this(in: DataInputStream) = this(x => new PadV3(in))
     def this(padV4seq: Seq[PadV4]) = {
@@ -244,7 +242,7 @@ class PadV3Seq private (f: (Int => PadV3)) extends PadSeq(f) {
     def this(padV4seq: PadV4Seq) = this(padV4seq map (x => x.asInstanceOf[PadV4]))
 }
 
-class PadV4Seq private (f: (Int => PadV4)) extends PadSeq(f) {
+class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
     def this() = this(x => new PadV4((x + 1).toByte))
     def this(in: DataInputStream) = this(x => new PadV4(in))
     def this(padV3seq: Seq[PadV3]) = {

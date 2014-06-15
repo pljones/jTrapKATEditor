@@ -78,13 +78,13 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     }
     override def deserialize(in: FileInputStream): Unit = {
         deafTo(_pads)
-        _soundControls foreach (x => deafTo(x))
+        _soundControls foreach (x => if (x != null) deafTo(x))
 
         _pads.deserialize(in)
         _deserializeKit(in)
 
         listenTo(_pads)
-        _soundControls foreach (x => listenTo(x))
+        _soundControls foreach (x => if (x != null) listenTo(x))
     }
     def deserializeKitName(in: FileInputStream) = (0 to 11) foreach (x => _kitName(x) = in.read().toByte.toChar)
 
@@ -144,7 +144,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     }
 
     listenTo(_pads)
-    _soundControls foreach (x => listenTo(x))
+    _soundControls foreach (x => if (x != null) listenTo(x))
 }
 
 class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV3](f, g) {

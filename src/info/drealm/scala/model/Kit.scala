@@ -61,22 +61,22 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         (0 to (_kitName.length - 1)) zip kit.kitName foreach (x => _kitName(x._1) = x._2)
     }
 
-    protected def _deserializeKit(in: DataInputStream): Unit
-    protected def _deserialize(in: DataInputStream): Unit = {
-        _curve = in.readByte()
-        _gate = in.readByte()
-        _channel = in.readByte()
-        _minVelocity = in.readByte()
-        _maxVelocity = in.readByte()
-        _fcFunction = in.readByte()
-        _bcFunction = in.readByte()
+    protected def _deserializeKit(in: FileInputStream): Unit
+    protected def _deserialize(in: FileInputStream): Unit = {
+        _curve = in.read().toByte
+        _gate = in.read().toByte
+        _channel = in.read().toByte
+        _minVelocity = in.read().toByte
+        _maxVelocity = in.read().toByte
+        _fcFunction = in.read().toByte
+        _bcFunction = in.read().toByte
     }
-    protected def _deserializeHH(in: DataInputStream): Unit = in.read(_hhPads, 0, 4)
-    protected def _deserializeFC(in: DataInputStream): Unit = {
-        _fcChannel = in.readByte()
-        _fcCurve = in.readByte()
+    protected def _deserializeHH(in: FileInputStream): Unit = in.read(_hhPads, 0, 4)
+    protected def _deserializeFC(in: FileInputStream): Unit = {
+        _fcChannel = in.read().toByte
+        _fcCurve = in.read().toByte
     }
-    override def deserialize(in: DataInputStream): Unit = {
+    override def deserialize(in: FileInputStream): Unit = {
         deafTo(_pads)
         _soundControls foreach (x => deafTo(x))
 
@@ -86,24 +86,24 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         listenTo(_pads)
         _soundControls foreach (x => listenTo(x))
     }
-    def deserializeKitName(in: DataInputStream) = (0 to 11) foreach (x => _kitName(x) = in.readByte().toChar)
+    def deserializeKitName(in: FileInputStream) = (0 to 11) foreach (x => _kitName(x) = in.read().toByte.toChar)
 
-    protected def _serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    protected def _serialize(out: FileOutputStream, saving: Boolean): Unit = {
         if (saving) _pads.save(out) else _pads.serialize(out, saving)
-        out.writeByte(_curve)
-        out.writeByte(_gate)
-        out.writeByte(_channel)
-        out.writeByte(_minVelocity)
-        out.writeByte(_maxVelocity)
-        out.writeByte(_fcFunction)
-        out.writeByte(_bcFunction)
+        out.write(_curve)
+        out.write(_gate)
+        out.write(_channel)
+        out.write(_minVelocity)
+        out.write(_maxVelocity)
+        out.write(_fcFunction)
+        out.write(_bcFunction)
     }
-    protected def _serializeHH(out: DataOutputStream) = out.write(_hhPads, 0, 4)
-    protected def _serializeFC(out: DataOutputStream) = {
-        out.writeByte(_fcChannel)
-        out.writeByte(_fcCurve)
+    protected def _serializeHH(out: FileOutputStream) = out.write(_hhPads, 0, 4)
+    protected def _serializeFC(out: FileOutputStream) = {
+        out.write(_fcChannel)
+        out.write(_fcCurve)
     }
-    def serializeKitName(out: DataOutputStream) = (0 to 11) foreach (x => out.writeByte(_kitName(x).toByte))
+    def serializeKitName(out: FileOutputStream) = (0 to 11) foreach (x => out.write(_kitName(x).toByte))
 
     def iterator = _pads.iterator
     def length = _pads.length
@@ -149,7 +149,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
 
 class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV3](f, g) {
     def this() = this(new PadV3Seq, Seq(new SoundControl).toArray)
-    def this(in: DataInputStream) = {
+    def this(in: FileInputStream) = {
         this(new PadV3Seq(in), new Array[SoundControl](1))
         _deserializeKit(in)
     }
@@ -180,47 +180,47 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
     protected var _bank: Byte = 128.toByte
     protected var _unused: Byte = 0
 
-    override def _deserializeKit(in: DataInputStream): Unit = {
+    override def _deserializeKit(in: FileInputStream): Unit = {
         _deserialize(in)
 
-        val prgChg = in.readByte()
-        val prgChgTxnChn = in.readByte()
-        val volume = in.readByte()
+        val prgChg = in.read().toByte
+        val prgChgTxnChn = in.read().toByte
+        val volume = in.read().toByte
 
         _deserializeHH(in)
 
-        _bank = in.readByte()
+        _bank = in.read().toByte
 
         _deserializeFC(in)
 
-        val bankMSB = in.readByte()
-        val bankLSB = in.readByte()
+        val bankMSB = in.read().toByte
+        val bankLSB = in.read().toByte
 
-        _unused = in.readByte()
+        _unused = in.read().toByte
 
         soundControls(0) = new SoundControl(prgChg, prgChgTxnChn, volume, bankMSB, bankLSB)
     }
 
-    override def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         _serialize(out, saving)
 
-        out.writeByte(soundControls(0).prgChg)
-        out.writeByte(soundControls(0).prgChgTxnChn)
-        out.writeByte(soundControls(0).volume)
+        out.write(soundControls(0).prgChg)
+        out.write(soundControls(0).prgChgTxnChn)
+        out.write(soundControls(0).volume)
 
         _serializeHH(out)
 
-        out.writeByte(_bank)
+        out.write(_bank)
 
         _serializeFC(out)
 
-        out.writeByte(soundControls(0).bankMSB)
-        out.writeByte(soundControls(0).bankLSB)
+        out.write(soundControls(0).bankMSB)
+        out.write(soundControls(0).bankLSB)
 
-        out.writeByte(_unused)
+        out.write(_unused)
 
         // I knew there was a reason to allow serialize(out, flag) to be overridden...
-        if (saving) soundControls(0).save(null.asInstanceOf[DataOutputStream])
+        if (saving) soundControls(0).save(null.asInstanceOf[FileOutputStream])
     }
 
     def bank: Byte = _bank
@@ -231,7 +231,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 
 class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
     def this() = this(new PadV4Seq, Stream.continually(new SoundControl).take(4).toArray)
-    def this(in: DataInputStream) = {
+    def this(in: FileInputStream) = {
         this(new PadV4Seq(in), new Array[SoundControl](4))
         _deserializeKit(in)
     }
@@ -254,7 +254,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         dataItemChanged
     }
 
-    override def _deserializeKit(in: DataInputStream): Unit = {
+    override def _deserializeKit(in: FileInputStream): Unit = {
         _deserialize(in)
         _deserializeHH(in)
         _deserializeFC(in)
@@ -262,7 +262,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         (0 to 3) foreach (x => soundControls(x) = new SoundControl(in))
     }
 
-    override def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         _serialize(out, saving)
         _serializeHH(out)
         _serializeFC(out)

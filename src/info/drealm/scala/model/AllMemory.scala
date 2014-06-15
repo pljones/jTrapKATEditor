@@ -44,13 +44,13 @@ abstract class AllMemory[TKit <: Kit[_], TGlobal <: Global[_]](k: => Int => TKit
     }
     def apply(idx: Int): TKit = _kits.apply(idx)
 
-    def deserialize(in: DataInputStream): Unit = {
+    def deserialize(in: FileInputStream): Unit = {
         _kits foreach (x => x.deserialize(in))
         _kits foreach (x => x.deserializeKitName(in))
         in.read(_unused)
         _global.deserialize(in)
     }
-    def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         if (saving) _kits foreach (x => x.save(out)) else _kits foreach (x => x.serialize(out, saving))
         _kits foreach (x => x.serializeKitName(out))
         out.write(_unused)
@@ -72,12 +72,12 @@ abstract class AllMemory[TKit <: Kit[_], TGlobal <: Global[_]](k: => Int => TKit
 
 class AllMemoryV3 private (k: Int => KitV3, kn: (Int, KitV3) => Unit, u: => Array[Byte], g: => GlobalV3) extends AllMemory[KitV3, GlobalV3](k, kn, u, g) {
     def this() = this(x => new KitV3, (i, x) => x.kitName = i + " New Kit", new Array(540), new GlobalV3)
-    def this(in: DataInputStream) = this(x => new KitV3(in), (i, x) => x.deserializeKitName(in), Stream.continually(in.readByte).take(540).toArray, new GlobalV3(in))
+    def this(in: FileInputStream) = this(x => new KitV3(in), (i, x) => x.deserializeKitName(in), Stream.continually(in.readByte).take(540).toArray, new GlobalV3(in))
     def this(allMemoryV4: AllMemoryV4) = this(x => new KitV3(allMemoryV4(x)), (i, x) => x.kitName = allMemoryV4(i).kitName, new Array(540), new GlobalV3(allMemoryV4.global))
 }
 
 class AllMemoryV4 private (k: Int => KitV4, kn: (Int, KitV4) => Unit, u: => Array[Byte], g: => GlobalV4) extends AllMemory[KitV4, GlobalV4](k, kn, u, g) {
     def this() = this(x => new KitV4, (i, x) => x.kitName = i + " New Kit", new Array(195), new GlobalV4)
-    def this(in: DataInputStream) = this(x => new KitV4(in), (i, x) => x.deserializeKitName(in), Stream.continually(in.readByte).take(195).toArray, new GlobalV4(in))
+    def this(in: FileInputStream) = this(x => new KitV4(in), (i, x) => x.deserializeKitName(in), Stream.continually(in.readByte).take(195).toArray, new GlobalV4(in))
     def this(allMemoryV3: AllMemoryV3) = this(x => new KitV4(allMemoryV3(x)), (i, x) => x.kitName = allMemoryV3(i).kitName, new Array(195), new GlobalV4(allMemoryV3.global))
 }

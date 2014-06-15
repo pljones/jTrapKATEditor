@@ -52,11 +52,11 @@ class CompanyId private (value: Int) extends DataItem {
     def this(value: Short) = this(0x00000000 & value)
     var _companyId: Int = value
 
-    def deserialize(in: DataInputStream): Unit = {
-        val b: Byte = in.readByte
-        _companyId = if (b == 0) ((0x00000000 & (in.readByte << 8)) & in.readByte) else (0x01000000 & b)
+    def deserialize(in: FileInputStream): Unit = {
+        val b: Byte = in.read().toByte
+        _companyId = if (b == 0) ((0x00000000 & (in.read().toByte << 8)) & in.read().toByte) else (0x01000000 & b)
     }
-    def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         if ((_companyId & 0x01000000) > 0) {
             out.write(0.toByte)
             out.write(((_companyId & 0xff00) >> 8).toByte)
@@ -72,9 +72,9 @@ object SysexDump {
 abstract class SysexDump(companyId: CompanyId) { // extends DataItem - why?
     import SysexDump._
 
-    protected def _deserialize(in: DataInputStream): Unit
-    def deserialize(in: DataInputStream): Unit = {
-        _sysexStart = in.readByte
+    protected def _deserialize(in: FileInputStream): Unit
+    def deserialize(in: FileInputStream): Unit = {
+        _sysexStart = in.read().toByte
         if (_sysexStart != sysexStart)
             throw new IOException(f"Sysex file does not have expected start byte 0x${sysexStart}%02x, read 0x${_sysexStart}%02x.")
 
@@ -88,8 +88,8 @@ abstract class SysexDump(companyId: CompanyId) { // extends DataItem - why?
             throw new IOException(f"Sysex file does not have expected end byte 0x${sysexEnd}%02x, read 0x${_sysexEnd}%02x.")
     }
 
-    protected def _serialize(out: DataOutputStream, saving: Boolean): Unit
-    def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    protected def _serialize(out: FileOutputStream, saving: Boolean): Unit
+    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         out.write(sysexStart)
         if (saving) companyId.save(out) else companyId.serialize(out, saving)
 
@@ -106,27 +106,40 @@ abstract class SysexDump(companyId: CompanyId) { // extends DataItem - why?
 abstract class AlternateModeSysexDump extends SysexDump(new CompanyId(0x0015.toShort)) {
     import DumpType._
 
-    def _deserialize(in: DataInputStream): Unit = {
-        _instrumentType = in.readByte
-        _dumpType = in.readByte
-        _instrumentId = in.readByte
-        _version = in.readByte
-        _auxType = in.readByte
+    def _deserialize(in: FileInputStream): Unit = {
+        _instrumentType = in.read().toByte
+        if (_instrumentType != instrumentType)
+            throw new IOException(f"Sysex file does not have expected instrumentType 0x${instrumentType}%02x, read 0x${_instrumentType}%02x.")
+
+        _dumpType = in.read().toByte
+        // Seriously, this is always zero.  The C# checks for "Enum.IsDefined" .. 0 is ..
+        // However, rather than always write zero, we preserve the value read.
+        // The default is zero, though, not the value passed into the class constructor, which is ignored.
+        //if (_dumpType != dumpType && _dumpType != DumpType.NotSet)
+        //    throw new IOException(f"Sysex file does not have expected dumpType 0x${dumpType}%02x, read 0x${_dumpType}%02x.")
+
+        _instrumentId = in.read().toByte
+
+        _version = in.read().toByte
+        if (_version != version)
+            throw new IOException(f"Sysex file does not have expected version 0x${version}%02x, read 0x${_version}%02x.")
+
+        _auxType = in.read().toByte
 
         readSysexData(new AlternateModeSysexInputStream(in))
     }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit
+    protected def readSysexData(in: FileInputStream): Unit
 
-    def _serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    def _serialize(out: FileOutputStream, saving: Boolean): Unit = {
         out.write(_instrumentType)
         out.write(_dumpType.toByte)
         out.write(_instrumentId)
         out.write(_version)
         out.write(_auxType)
 
-        writeSysexData(out, saving)
+        writeSysexData(new AlternateModeSysexOutputStream(out), saving)
     }
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit
+    protected def writeSysexData(out: FileOutputStream, saving: Boolean): Unit
 
     private[this] var _instrumentType: Byte = 0
     private[this] var _dumpType: DumpType = NotSet
@@ -135,26 +148,27 @@ abstract class AlternateModeSysexDump extends SysexDump(new CompanyId(0x0015.toS
     private[this] var _auxType: Byte = 0
 }
 
-class AlternateModeSysexInputStream(in: DataInputStream) {
-    def readByte: Byte = {
-        val lo: Byte = in.readByte()
-        val hi: Byte = in.readByte()
-        (0x00 | (hi << 4) | lo).toByte
+class AlternateModeSysexInputStream(in: FileInputStream) extends FileInputStream(in.getFD()) {
+    override def read: Int = {
+        val lo = in.read()
+        val hi = in.read()
+        0x00000000 | (hi << 4) | lo
     }
-    def read(value: Array[Byte]): Int = {
+    override def read(value: Array[Byte]): Int = read(value, 0, value.length)
+    override def read(value: Array[Byte], off: Int, len: Int): Int = {
         val buffer: Array[Byte] = new Array[Byte](value.length * 2)
-        val result = in.read(buffer)
-        (0 to value.length - 1) foreach (x => value(x) = (0x00 | (buffer(x * 2 + 1) << 4) | buffer(x * 2)).toByte)
+        val result = in.read(buffer, off * 2, len * 2)
+        (off to (off + len - 1)) foreach (x => value(x) = (0x00 | (buffer(x * 2 + 1) << 4) | buffer(x * 2)).toByte)
         result >> 1
     }
 }
 
-class AlternateModeSysexOutputStream(out: DataOutputStream) {
+class AlternateModeSysexOutputStream(out: FileOutputStream) extends FileOutputStream(out.getFD()) {
     def write(value: Byte): Unit = {
         out.write((0x0f & value).toByte)
         out.write(((0xf0 & value) >> 4).toByte)
     }
-    def write(value: Array[Byte]): Unit = value foreach (x => write(x))
+    override def write(value: Array[Byte], off: Int, len: Int): Unit = (off to (off + len - 1)) foreach (x => write(value(x)))
 }
 
 object TrapKATSysexDump {
@@ -189,53 +203,47 @@ object TrapKATSysexDump {
     }
 }
 abstract class TrapKATSysexDump extends AlternateModeSysexDump {
-    def save(out: FileOutputStream): Unit = serialize(new DataOutputStream(out), true)
+    def save(out: FileOutputStream): Unit = serialize(out, true)
 }
 
 class AllMemoryV3Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(new DataInputStream(in)) }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit = {
+    def this(in: FileInputStream) = { this(); deserialize(in) }
+    protected def readSysexData(in: FileInputStream): Unit = {
         Console.println("AllMemoryV3Dump readSysexData")
     }
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit = {}
 }
 
 class AllMemoryV4Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(new DataInputStream(in)) }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit = {
+    def this(in: FileInputStream) = { this(); deserialize(in) }
+    protected def readSysexData(in: FileInputStream): Unit = {
         Console.println("AllMemoryV4Dump readSysexData")
     }
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit = {}
 }
 
 class GlobalV3Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(new DataInputStream(in)) }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit = {
+    def this(in: FileInputStream) = { this(); deserialize(in) }
+    protected def readSysexData(in: FileInputStream): Unit = {
         Console.println("GlobalV3Dump readSysexData")
     }
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit = {}
 }
 
 class GlobalV4Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(new DataInputStream(in)) }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit = {}
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit = {
+    def this(in: FileInputStream) = { this(); deserialize(in) }
+    protected def readSysexData(in: FileInputStream): Unit = {
         Console.println("GlobalV4Dump readSysexData")
     }
 }
 
 class KitV3Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(new DataInputStream(in)) }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit = {}
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit = {
+    def this(in: FileInputStream) = { this(); deserialize(in) }
+    protected def readSysexData(in: FileInputStream): Unit = {
         Console.println("KitV3Dump readSysexData")
     }
 }
 
 class KitV4Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(new DataInputStream(in)) }
-    protected def readSysexData(in: AlternateModeSysexInputStream): Unit = {
+    def this(in: FileInputStream) = { this(); deserialize(in) }
+    protected def readSysexData(in: FileInputStream): Unit = {
         Console.println("KitV4Dump readSysexData")
     }
-    protected def writeSysexData(out: DataOutputStream, saving: Boolean): Unit = {}
 }

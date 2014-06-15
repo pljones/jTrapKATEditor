@@ -131,47 +131,47 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         (0 to _thresholdActual.length - 1) zip global._thresholdActual foreach (x => _thresholdActual(x._1) = x._2)
     }
 
-    def deserialize(in: DataInputStream): Unit = {
-        _beeperStatus = in.readByte
-        _bcFunction = in.readByte
-        _chokeFunction = in.readByte
-        _fcClosedRegion = in.readByte
-        _fcPolarity = in.readByte
-        _bcPolarity = in.readByte
-        _bcLowLevel = in.readByte
-        _bcHighLevel = in.readByte
-        _fcLowLevel = in.readByte
-        _fcHighLevel = in.readByte
-        _fcVelocityLevel = in.readByte
-        _fcWaitModeLevel = in.readByte
-        _instrumentID = in.readByte
-        _kitNumber = in.readByte
-        _kitNumberUser = in.readByte
-        _kitNumberDemo = in.readByte
-        _motifNumber = in.readByte
-        _motifNumberPerc = in.readByte
-        _motifNumberMel = in.readByte
-        _midiMergeStatus = in.readByte
-        _fcOpenRegion = in.readByte
+    def deserialize(in: FileInputStream): Unit = {
+        _beeperStatus = in.read().toByte
+        _bcFunction = in.read().toByte
+        _chokeFunction = in.read().toByte
+        _fcClosedRegion = in.read().toByte
+        _fcPolarity = in.read().toByte
+        _bcPolarity = in.read().toByte
+        _bcLowLevel = in.read().toByte
+        _bcHighLevel = in.read().toByte
+        _fcLowLevel = in.read().toByte
+        _fcHighLevel = in.read().toByte
+        _fcVelocityLevel = in.read().toByte
+        _fcWaitModeLevel = in.read().toByte
+        _instrumentID = in.read().toByte
+        _kitNumber = in.read().toByte
+        _kitNumberUser = in.read().toByte
+        _kitNumberDemo = in.read().toByte
+        _motifNumber = in.read().toByte
+        _motifNumberPerc = in.read().toByte
+        _motifNumberMel = in.read().toByte
+        _midiMergeStatus = in.read().toByte
+        _fcOpenRegion = in.read().toByte
 
         in.read(_padLevels)
 
-        _trigGain = in.readByte
-        _prgChgRcvChn = in.readByte
-        _displayAngle = in.readByte
-        _playMode = in.readByte
-        _grooveVol = in.readByte
-        _grooveStatus = in.readByte
-        _fcSplashEase = in.readByte
-        _noteNamesStatus = in.readByte
+        _trigGain = in.read().toByte
+        _prgChgRcvChn = in.read().toByte
+        _displayAngle = in.read().toByte
+        _playMode = in.read().toByte
+        _grooveVol = in.read().toByte
+        _grooveStatus = in.read().toByte
+        _fcSplashEase = in.read().toByte
+        _noteNamesStatus = in.read().toByte
 
         _ttPadData.deserialize(in)
 
-        _hatNoteGate = in.readByte
-        _grooveAutoOff = in.readByte
-        _kitNumberKAT = in.readByte
-        _ttMeter = in.readByte
-        _hearSoundStatus = in.readByte
+        _hatNoteGate = in.read().toByte
+        _grooveAutoOff = in.read().toByte
+        _kitNumberKAT = in.read().toByte
+        _ttMeter = in.read().toByte
+        _hearSoundStatus = in.read().toByte
 
         in.read(_unused1)
         in.read(_thresholdManual)
@@ -182,7 +182,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         in.read(_unused4)
         in.read(_internalMargin)
     }
-    def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         out.write(_beeperStatus)
         out.write(_bcFunction)
         out.write(_chokeFunction)
@@ -311,7 +311,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 
 class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
     def this() = this(new PadV3)
-    def this(in: DataInputStream) = {
+    def this(in: FileInputStream) = {
         this()
         deserialize(in)
     }
@@ -321,12 +321,12 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
         //_unused1, _currentDefaults and _userDefaults left as default
     }
 
-    override def deserialize(in: DataInputStream): Unit = {
+    override def deserialize(in: FileInputStream): Unit = {
         in.read(_currentDefaults)
         in.read(_userDefaults)
         super.deserialize(in)
     }
-    override def serialize(out: DataOutputStream, saving: Boolean): Unit = {
+    override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         out.write(_currentDefaults)
         out.write(_userDefaults)
         super.serialize(out, saving)
@@ -339,7 +339,7 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
 
 class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
     def this() = this(new PadV4(0.toByte))
-    def this(in: DataInputStream) = {
+    def this(in: FileInputStream) = {
         this()
         deserialize(in)
     }

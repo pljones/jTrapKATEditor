@@ -29,19 +29,15 @@ import scala.io._
 
 trait DataItem extends scala.swing.Publisher {
     // The C# has this as protected
-    final def deserialize(in: FileInputStream): Unit = deserialize(new DataInputStream(in))
-    def deserialize(in: DataInputStream): Unit
+    def deserialize(in: FileInputStream): Unit
 
     // The C# has this as public
     final def serialize(out: FileOutputStream): Unit = serialize(out, false)
-    final def serialize(out: DataOutputStream): Unit = serialize(out, false)
 
-    // The C# has this as protected
-    final def serialize(out: FileOutputStream, saving: Boolean): Unit = serialize(new DataOutputStream(out), saving)
     // And this is the one you MUST define
     // ALWAYS ALWAYS! ALWAYS!!! call save(out) if saving is true when
     // implementing this!!!!!
-    def serialize(out: DataOutputStream, saving: Boolean): Unit
+    def serialize(out: FileOutputStream, saving: Boolean): Unit
 
     // The C# has "internalchg" as protected but not used, so not implemented!
 
@@ -78,10 +74,8 @@ trait DataItem extends scala.swing.Publisher {
         }
     }
 
-    // The C# has this as public
-    final def save(out: FileOutputStream): Unit = save(new DataOutputStream(out))
     // In strange circumstances you may want to override this
-    def save(out: DataOutputStream): Unit = {
+    def save(out: FileOutputStream): Unit = {
         serialize(out, true)
         _changed = false
     }

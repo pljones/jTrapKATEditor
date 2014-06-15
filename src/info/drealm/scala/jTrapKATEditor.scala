@@ -43,13 +43,14 @@ object jTrapKATEditor extends SimpleSwingApplication {
     }
 
     //TODO: This should live somewhere else -> frmTrapkatSysexEditor?
-    def load(someDump: java.io.File): Unit = {
-        Console.println("load " + someDump)
+    def load(someDump: java.io.File): Option[model.DataItem] = {
         try {
-            val sysex = info.drealm.scala.model.TrapKATSysexDump.fromFile(someDump)
-        } catch  {
-            case ex:IllegalArgumentException => {
-                Dialog.showMessage(null, f"Oh dear", "Invalid Sysex file", Dialog.Message.Error, null)
+            Some(model.TrapKATSysexDump.fromFile(someDump))
+        }
+        catch {
+            case ex: IllegalArgumentException => {
+                Dialog.showMessage(null, ex.getLocalizedMessage(), "Invalid Sysex file", Dialog.Message.Error, null)
+                None
             }
         }
     }
@@ -61,17 +62,9 @@ object jTrapKATEditor extends SimpleSwingApplication {
                 case "NewV3" if (loseUnsavedChanges) => Console.println("File NewV3")
                 case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV4")
                 case "Open" if (loseUnsavedChanges) => {
-                    val chooser = new FileChooser {
-                        fileFilter = new javax.swing.filechooser.FileNameExtensionFilter("Sysex files", "syx")
-                        fileSelectionMode = FileChooser.SelectionMode.FilesOnly
-                        multiSelectionEnabled = false
-                        title = "Open Sysex Dump"
-                    }
-                    chooser.showOpenDialog(null) match {
-                        case FileChooser.Result.Approve => load(chooser.selectedFile)
-                        case _                          => {}
-                    }
-
+                    Console.println("File Open")
+                    val result = FileOpen.load(load)
+                    Console.println(f"-> ${result}")
                 }
                 case save if save.startsWith("Save") => {
                     save.stripPrefix("Save") match {

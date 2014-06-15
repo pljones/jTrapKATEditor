@@ -70,7 +70,7 @@ object SysexDump {
     val sysexStart: Byte = 0xF0.toByte
     val sysexEnd: Byte = 0xF7.toByte
 }
-abstract class SysexDump(companyId: CompanyId) { // extends DataItem - why?
+abstract class SysexDump(companyId: CompanyId) {
     import SysexDump._
 
     protected def _deserialize(in: FileInputStream): Unit
@@ -104,49 +104,46 @@ abstract class SysexDump(companyId: CompanyId) { // extends DataItem - why?
     private[this] var _sysexEnd: Byte = sysexEnd
 }
 
-abstract class AlternateModeSysexDump extends SysexDump(new CompanyId(0x0015.toShort)) {
+abstract class AlternateModeSysexDump(instrumentType: Byte, _dumpType: DumpType.DumpType, version: Byte) extends SysexDump(new CompanyId(0x0015.toShort)) {
     import DumpType._
+    var dumpType: DumpType.DumpType = 0.toByte
+    var instrumentId: Byte = 0
+    var auxType: Byte = 0
 
     def _deserialize(in: FileInputStream): Unit = {
-        _instrumentType = in.read().toByte
+        val _instrumentType = in.read().toByte
         if (_instrumentType != instrumentType)
             throw new IOException(f"Sysex file does not have expected instrumentType 0x${instrumentType}%02x, read 0x${_instrumentType}%02x.")
 
-        _dumpType = in.read().toByte
+        dumpType = in.read().toByte
         // Seriously, this is always zero.  The C# checks for "Enum.IsDefined" .. 0 is ..
         // However, rather than always write zero, we preserve the value read.
         // The default is zero, though, not the value passed into the class constructor, which is ignored.
         //if (_dumpType != dumpType && _dumpType != DumpType.NotSet)
         //    throw new IOException(f"Sysex file does not have expected dumpType 0x${dumpType}%02x, read 0x${_dumpType}%02x.")
 
-        _instrumentId = in.read().toByte
+        instrumentId = in.read().toByte
 
-        _version = in.read().toByte
+        val _version = in.read().toByte
         if (_version != version)
             throw new IOException(f"Sysex file does not have expected version 0x${version}%02x, read 0x${_version}%02x.")
 
-        _auxType = in.read().toByte
+        auxType = in.read().toByte
 
         readSysexData(new AlternateModeSysexInputStream(in))
     }
     protected def readSysexData(in: FileInputStream): Unit
 
     def _serialize(out: FileOutputStream, saving: Boolean): Unit = {
-        out.write(_instrumentType)
-        out.write(_dumpType.toByte)
-        out.write(_instrumentId)
-        out.write(_version)
-        out.write(_auxType)
+        out.write(instrumentType)
+        out.write(dumpType.toByte)
+        out.write(instrumentId)
+        out.write(version)
+        out.write(auxType)
 
         writeSysexData(new AlternateModeSysexOutputStream(out), saving)
     }
     protected def writeSysexData(out: FileOutputStream, saving: Boolean): Unit
-
-    private[this] var _instrumentType: Byte = 0
-    private[this] var _dumpType: DumpType = NotSet
-    private[this] var _instrumentId: Byte = 0
-    private[this] var _version: Byte = 0
-    private[this] var _auxType: Byte = 0
 }
 
 class AlternateModeSysexInputStream(in: FileInputStream) extends FileInputStream(in.getFD()) {
@@ -173,19 +170,22 @@ class AlternateModeSysexOutputStream(out: FileOutputStream) extends FileOutputSt
 }
 
 object TrapKATSysexDump {
-    def fromFile(file: File): TrapKATSysexDump = {
+    val trapKATID: Byte = 0x63 // instrumentType
+    val supportedVersion: Byte = 0x40 // version
+
+    def fromFile(file: File): DataItem = {
+        Console.println("fromFile " + file)
         val in = new FileInputStream(file)
         try {
             in.available() match {
-                case 2620  => new GlobalV3Dump(in)
-                case 21364 => new AllMemoryV3Dump(in)
-                case 746   => new KitV3Dump(in)
-                case 2108  => new GlobalV4Dump(in)
-                case 35570 => new AllMemoryV4Dump(in)
-                case 1388  => new KitV4Dump(in)
+                case 21364   => new AllMemoryV3Dump(in).self
+                case 35570   => new AllMemoryV4Dump(in).self
+                case 2620    => new GlobalV3Dump(in).self
+                case 2108    => new GlobalV4Dump(in).self
+                case 746     => new KitV3Dump(in).self
+                case 1388    => new KitV4Dump(in).self
                 // Unknown!
-                case unknown =>
-                    throw new IllegalArgumentException(f"${file.getAbsolutePath()} has unknown length of ${in.available()}.")
+                case unknown => throw new IllegalArgumentException(f"${file.getAbsolutePath()} has unknown length of ${in.available()}.")
             }
         }
         finally {
@@ -193,58 +193,54 @@ object TrapKATSysexDump {
         }
     }
 
-    def toFile(fileName: String, dump: TrapKATSysexDump): Unit = {
-        val out = new FileOutputStream(fileName)
+    def toFile(file: File, data: DataItem): Unit = {
+        val trapKATSysexDump: TrapKATSysexDump[_] = data match {
+            case allMemoryV3: AllMemoryV3 => new AllMemoryV3Dump(allMemoryV3)
+            case allMemoryV4: AllMemoryV4 => new AllMemoryV4Dump(allMemoryV4)
+            case globalV3: GlobalV3       => new GlobalV3Dump(globalV3)
+            case globalV4: GlobalV4       => new GlobalV4Dump(globalV4)
+            case kitV3: KitV3             => new KitV3Dump(kitV3)
+            case kitV4: KitV4             => new KitV4Dump(kitV4)
+            case unknown                  => throw new IllegalArgumentException(f"data has unknown type of ${data.getClass().getSimpleName()}.")
+        }
+        val out = new FileOutputStream(file)
         try {
-            dump.save(out)
+            trapKATSysexDump.save(out)
         }
         finally {
             out.close()
         }
     }
 }
-abstract class TrapKATSysexDump extends AlternateModeSysexDump {
+
+abstract class TrapKATSysexDump[T <: DataItem](newT: => T, readT: FileInputStream => T, dumpType: DumpType.DumpType)(implicit T: Manifest[T])
+    extends AlternateModeSysexDump(TrapKATSysexDump.trapKATID, dumpType, TrapKATSysexDump.supportedVersion) {
+    var self: T = newT
     def save(out: FileOutputStream): Unit = serialize(out, true)
+    protected def readSysexData(in: FileInputStream): Unit = self = readT(in)
+    protected def writeSysexData(out: FileOutputStream, saving: Boolean): Unit = if (saving) self.save(out) else self.serialize(out, saving)
 }
 
-class AllMemoryV3Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(in) }
-    protected def readSysexData(in: FileInputStream): Unit = {
-        Console.println("AllMemoryV3Dump readSysexData")
-    }
+class AllMemoryV3Dump(allMemoryV3: AllMemoryV3) extends TrapKATSysexDump[AllMemoryV3](allMemoryV3, in => new AllMemoryV3(in), DumpType.AllMemory) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[AllMemoryV3]); deserialize(in) }
 }
 
-class AllMemoryV4Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(in) }
-    protected def readSysexData(in: FileInputStream): Unit = {
-        Console.println("AllMemoryV4Dump readSysexData")
-    }
+class AllMemoryV4Dump(allMemoryV4: AllMemoryV4) extends TrapKATSysexDump[AllMemoryV4](allMemoryV4, in => new AllMemoryV4(in), DumpType.AllMemory) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[AllMemoryV4]); deserialize(in) }
 }
 
-class GlobalV3Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(in) }
-    protected def readSysexData(in: FileInputStream): Unit = {
-        Console.println("GlobalV3Dump readSysexData")
-    }
+class GlobalV3Dump(globalV3: GlobalV3) extends TrapKATSysexDump[GlobalV3](globalV3, in => new GlobalV3(in), DumpType.Global) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[GlobalV3]); deserialize(in) }
 }
 
-class GlobalV4Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(in) }
-    protected def readSysexData(in: FileInputStream): Unit = {
-        Console.println("GlobalV4Dump readSysexData")
-    }
+class GlobalV4Dump(globalV4: GlobalV4) extends TrapKATSysexDump[GlobalV4](globalV4, in => new GlobalV4(in), DumpType.Global) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[GlobalV4]); deserialize(in) }
 }
 
-class KitV3Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(in) }
-    protected def readSysexData(in: FileInputStream): Unit = {
-        Console.println("KitV3Dump readSysexData")
-    }
+class KitV3Dump(kitV3: KitV3) extends TrapKATSysexDump[KitV3](kitV3, in => new KitV3(in), DumpType.Kit) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[KitV3]); deserialize(in) }
 }
 
-class KitV4Dump extends TrapKATSysexDump {
-    def this(in: FileInputStream) = { this(); deserialize(in) }
-    protected def readSysexData(in: FileInputStream): Unit = {
-        Console.println("KitV4Dump readSysexData")
-    }
+class KitV4Dump(kitV4: KitV4) extends TrapKATSysexDump[KitV4](kitV4, in => new KitV4(in), DumpType.Kit) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[KitV4]); deserialize(in) }
 }

@@ -27,6 +27,7 @@ package info.drealm.scala.model
 import java.io.{ Console => _, _ }
 import scala._
 import collection.mutable
+import scala.language.implicitConversions
 
 object DumpType extends Enumeration {
     type DumpType = Value

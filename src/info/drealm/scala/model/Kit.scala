@@ -24,13 +24,13 @@
 
 package info.drealm.scala.model
 
-import java.io._
+import java.io.{ Console => _, _ }
 import collection.mutable
 
 abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(implicit TPad: Manifest[TPad]) extends DataItem with mutable.Seq[TPad] {
     private[this] var _pads: PadSeq[TPad] = f
     private[this] var _curve: Byte = 0
-    private[this] var _gate: Byte = 0
+    private[this] var _gate: Byte = 22
     private[this] var _channel: Byte = 9
     private[this] var _minVelocity: Byte = 1
     private[this] var _maxVelocity: Byte = 127
@@ -133,9 +133,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def fcCurve: Byte = _fcCurve
     def fcCurve_=(value: Byte): Unit = if (_fcCurve != value) update(_fcCurve = value) else {}
     def kitName: String = "" + (_kitName.toSeq)
-    def kitName_=(value: String): Unit = f"${value.trim()}%12s" match {
-        case tooLong if tooLong.length() > 12 =>
-            throw new IllegalArgumentException("KitName must be 12 characters or fewer.")
+    def kitName_=(value: String): Unit = (value.trim() + "            ").take(12) match {
         case update if update != _kitName => {
             (0 to 11) zip update foreach (x => _kitName(x._1) = x._2)
             dataItemChanged
@@ -249,7 +247,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
                 curve = 21
             case _ => {}
         }
-        
+
         // set state to dirty if it isn't already
         dataItemChanged
     }

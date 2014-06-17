@@ -81,4 +81,7 @@ trait DataItem extends scala.swing.Publisher {
     }
     // The C# has this as public
     def changed = _changed
+    
+    // Hm, need a public way to make the data item appear dirty without needing to update it
+    def makeChanged = _changed = true
 }

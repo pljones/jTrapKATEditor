@@ -488,7 +488,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] val pnKitDetails = new MigPanel("insets 5, gapx 2, gapy 0", "[][][][16px:n,grow][][16px:n,grow][][][][4px:n][][][]", "[][][][][][][]") {
             name = "pnKitDetails"
 
-            var order = List[String]()
+            private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
             private[this] val lblKitCurve = new Label("Curve:") { peer.setDisplayedMnemonic('C') }
             private[this] val cbxKitCurve = new RichComboBox(padCurves, "cbxKitCurve", lblKitCurve)
@@ -524,9 +524,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             listenTo(spnKitChannel)
             listenTo(ckbVarChannel)
 
-            order = order ++ Seq(cbxKitCurve.name, ckbVarCurve.name)
-            order = order ++ Seq(cbxKitGate.name, ckbVarGate.name)
-            order = order ++ Seq(spnKitChannel.name, ckbVarChannel.name)
+            order += cbxKitCurve.name
+            order += ckbVarCurve.name
+
+            order += cbxKitGate.name
+            order += ckbVarGate.name
+
+            order += spnKitChannel.name
+            order += ckbVarChannel.name
 
             contents += (new Label("Foot Controller"), "cell 0 3 2 1, alignx center, aligny bottom")
 
@@ -549,7 +554,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             listenTo(spnFCChannel)
             listenTo(ckbAsChick)
 
-            order = order ++ Seq("cbxFCFunction", "spnFCChannel", "ckbAsChick", "cbxFCCurve")
+            order += "cbxFCFunction"
+            order += "spnFCChannel"
+            order += "ckbAsChick"
+            order += "cbxFCCurve"
 
             val pnKitVelocity = new MigPanel("insets 3, gap 0", "[][]", "[][][][]") {
                 name = "pnKitVelocity"
@@ -572,7 +580,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     listenTo(spn)
                     listenTo(ckb)
 
-                    order = order ++ Seq(spn.name, ckb.name)
+                    order += spn.name
+                    order += ckb.name
                 }
 
                 reactions += {
@@ -603,7 +612,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 listenTo(cbxSoundControl.selection)
 
-                order = order ++ Seq(cbxSoundControl.name)
+                order += cbxSoundControl.name
 
                 reactions += {
                     case e: SelectionChanged => {
@@ -634,13 +643,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     contents += (t._1._1, "cell " + (6 + 3 * t._2._2) + " " + (1 + t._2._1) + ",alignx right")
                     contents += (t._1._2, "cell " + (7 + 3 * t._2._2) + " " + (1 + t._2._1) + ",growx")
                     listenTo(t._1._2)
-                    order = order ++ Seq(t._1._2.name)
+                    order += t._1._2.name
 
                     t._1._3 match {
                         case Some(ckb) => {
                             contents += (ckb, "cell " + (8 + 3 * t._2._2) + " " + (1 + t._2._1))
                             listenTo(ckb)
-                            order = order ++ Seq(ckb.name)
+                            order += ckb.name
                         }
                         case None => {}
                     }

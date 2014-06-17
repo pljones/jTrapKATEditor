@@ -41,24 +41,24 @@ object DumpType extends Enumeration {
     implicit def dumpTypeToByte(value: DumpType): Byte = value.id.toByte
 }
 
-object CompanyId {
+protected object CompanyId {
     implicit def companyIdToString(companyId: CompanyId): String = if ((companyId._companyId & 0x01000000) > 0) f"${companyId._companyId & 0xff}%02x" else f"${companyId._companyId & 0xffff}%04x"
     implicit def companyIdToInt(companyId: CompanyId): Int = companyId._companyId
     implicit def intToCompanyId(value: Int): CompanyId = if ((value & 0x01000000) > 0) new CompanyId((value & 0xff).toByte) else new CompanyId((value & 0xffff).toShort)
     implicit def byteToCompanyId(value: Byte): CompanyId = new CompanyId(value)
     implicit def shortToCompanyId(value: Short): CompanyId = new CompanyId(value)
 }
-class CompanyId private (value: Int) extends DataItem {
-    def this(value: Byte) = this(0x01000000 & value)
-    def this(value: Short) = this(0x00000000 & value)
+protected class CompanyId private[CompanyId] (value: Int) extends DataItem {
+    def this(value: Byte) = this(0x01000000 | value)
+    def this(value: Short) = this(0x00000000 | value)
     var _companyId: Int = value
 
     def deserialize(in: FileInputStream): Unit = {
         val b: Byte = in.read().toByte
-        _companyId = if (b == 0) ((0x00000000 & (in.read().toByte << 8)) & in.read().toByte) else (0x01000000 & b)
+        _companyId = if (b == 0) ((0x00000000 | (in.read().toByte << 8)) | in.read().toByte) else (0x01000000 | b)
     }
     def serialize(out: FileOutputStream, saving: Boolean): Unit = {
-        if ((_companyId & 0x01000000) > 0) {
+        if ((_companyId & 0x01000000) == 0) {
             out.write(0.toByte)
             out.write(((_companyId & 0xff00) >> 8).toByte)
         }
@@ -66,12 +66,13 @@ class CompanyId private (value: Int) extends DataItem {
     }
 }
 
-object SysexDump {
+protected object SysexDump {
     val sysexStart: Byte = 0xF0.toByte
     val sysexEnd: Byte = 0xF7.toByte
 }
-abstract class SysexDump(companyId: CompanyId) {
+protected abstract class SysexDump(companyId: CompanyId) {
     import SysexDump._
+    import CompanyId._
 
     protected def _deserialize(in: FileInputStream): Unit
     def deserialize(in: FileInputStream): Unit = {
@@ -92,7 +93,8 @@ abstract class SysexDump(companyId: CompanyId) {
     protected def _serialize(out: FileOutputStream, saving: Boolean): Unit
     def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         out.write(sysexStart)
-        if (saving) companyId.save(out) else companyId.serialize(out, saving)
+
+        if (saving) _companyId.save(out) else _companyId.serialize(out, saving)
 
         _serialize(out, saving)
 
@@ -104,23 +106,22 @@ abstract class SysexDump(companyId: CompanyId) {
     private[this] var _sysexEnd: Byte = sysexEnd
 }
 
-abstract class AlternateModeSysexDump(instrumentType: Byte, _dumpType: DumpType.DumpType, version: Byte) extends SysexDump(new CompanyId(0x0015.toShort)) {
+object AlternateModeSysexDump {
+    val companyId: CompanyId = new CompanyId(0x0015.toShort)
+}
+protected abstract class AlternateModeSysexDump(instrumentType: Byte, dumpType: DumpType.DumpType, version: Byte, var auxType: Byte) extends SysexDump(AlternateModeSysexDump.companyId) {
     import DumpType._
-    var dumpType: DumpType.DumpType = 0.toByte
     var instrumentId: Byte = 0
-    var auxType: Byte = 0
 
     def _deserialize(in: FileInputStream): Unit = {
         val _instrumentType = in.read().toByte
         if (_instrumentType != instrumentType)
             throw new IOException(f"Sysex file does not have expected instrumentType 0x${instrumentType}%02x, read 0x${_instrumentType}%02x.")
 
-        dumpType = in.read().toByte
-        // Seriously, this is always zero.  The C# checks for "Enum.IsDefined" .. 0 is ..
-        // However, rather than always write zero, we preserve the value read.
-        // The default is zero, though, not the value passed into the class constructor, which is ignored.
-        //if (_dumpType != dumpType && _dumpType != DumpType.NotSet)
-        //    throw new IOException(f"Sysex file does not have expected dumpType 0x${dumpType}%02x, read 0x${_dumpType}%02x.")
+        // The C# checks for "Enum.IsDefined" .. 0 is ..
+        val _dumpType = in.read().toByte
+        if (_dumpType != dumpType.toByte)
+            throw new IOException(f"Sysex file does not have expected dumpType 0x${dumpType}%02x, read 0x${_dumpType}%02x.")
 
         instrumentId = in.read().toByte
 
@@ -146,7 +147,7 @@ abstract class AlternateModeSysexDump(instrumentType: Byte, _dumpType: DumpType.
     protected def writeSysexData(out: FileOutputStream, saving: Boolean): Unit
 }
 
-class AlternateModeSysexInputStream(in: FileInputStream) extends FileInputStream(in.getFD()) {
+protected class AlternateModeSysexInputStream(in: FileInputStream) extends FileInputStream(in.getFD()) {
     override def read: Int = {
         val lo = in.read()
         val hi = in.read()
@@ -160,12 +161,12 @@ class AlternateModeSysexInputStream(in: FileInputStream) extends FileInputStream
         result >> 1
     }
 }
-
-class AlternateModeSysexOutputStream(out: FileOutputStream) extends FileOutputStream(out.getFD()) {
-    def write(value: Byte): Unit = {
-        out.write((0x0f & value).toByte)
-        out.write(((0xf0 & value) >> 4).toByte)
+protected class AlternateModeSysexOutputStream(out: FileOutputStream) extends FileOutputStream(out.getFD()) {
+    override def write(value: Int): Unit = {
+        out.write(0x0f & value)
+        out.write(0x0f & (value >> 4))
     }
+    override def write(value: Array[Byte]): Unit = write(value, 0, value.length)
     override def write(value: Array[Byte], off: Int, len: Int): Unit = (off to (off + len - 1)) foreach (x => write(value(x)))
 }
 
@@ -173,17 +174,16 @@ object TrapKATSysexDump {
     val trapKATID: Byte = 0x63 // instrumentType
     val supportedVersion: Byte = 0x40 // version
 
-    def fromFile(file: File): DataItem = {
-        Console.println("fromFile " + file)
+    def fromFile(file: File): TrapKATSysexDump[_] = {
         val in = new FileInputStream(file)
         try {
             in.available() match {
-                case 21364   => new AllMemoryV3Dump(in).self
-                case 35570   => new AllMemoryV4Dump(in).self
-                case 2620    => new GlobalV3Dump(in).self
-                case 2108    => new GlobalV4Dump(in).self
-                case 746     => new KitV3Dump(in).self
-                case 1388    => new KitV4Dump(in).self
+                case 21364   => new AllMemoryV3Dump(in)
+                case 35570   => new AllMemoryV4Dump(in)
+                case 2620    => new GlobalV3Dump(in)
+                case 2108    => new GlobalV4Dump(in)
+                case 746     => new KitV3Dump(in)
+                case 1388    => new KitV4Dump(in)
                 // Unknown!
                 case unknown => throw new IllegalArgumentException(f"${file.getAbsolutePath()} has unknown length of ${in.available()}.")
             }
@@ -199,9 +199,24 @@ object TrapKATSysexDump {
             case allMemoryV4: AllMemoryV4 => new AllMemoryV4Dump(allMemoryV4)
             case globalV3: GlobalV3       => new GlobalV3Dump(globalV3)
             case globalV4: GlobalV4       => new GlobalV4Dump(globalV4)
-            case kitV3: KitV3             => new KitV3Dump(kitV3)
-            case kitV4: KitV4             => new KitV4Dump(kitV4)
+            // Unknown!
             case unknown                  => throw new IllegalArgumentException(f"data has unknown type of ${data.getClass().getSimpleName()}.")
+        }
+        val out = new FileOutputStream(file)
+        try {
+            trapKATSysexDump.save(out)
+        }
+        finally {
+            out.close()
+        }
+    }
+
+    def toFile(file: File, data: DataItem, kitNumber: Int): Unit = {
+        val trapKATSysexDump: TrapKATSysexDump[_] = data match {
+            case kitV3: KitV3 => new KitV3Dump(kitV3, kitNumber.toByte)
+            case kitV4: KitV4 => new KitV4Dump(kitV4, kitNumber.toByte)
+            // Unknown!
+            case unknown      => throw new IllegalArgumentException(f"data has unknown type of ${data.getClass().getSimpleName()}.")
         }
         val out = new FileOutputStream(file)
         try {
@@ -213,34 +228,35 @@ object TrapKATSysexDump {
     }
 }
 
-abstract class TrapKATSysexDump[T <: DataItem](newT: => T, readT: FileInputStream => T, dumpType: DumpType.DumpType)(implicit T: Manifest[T])
-    extends AlternateModeSysexDump(TrapKATSysexDump.trapKATID, dumpType, TrapKATSysexDump.supportedVersion) {
-    var self: T = newT
+protected abstract class TrapKATSysexDump[T <: DataItem](newT: => T, readT: FileInputStream => T, dumpType: DumpType.DumpType, auxType: Byte)(implicit T: Manifest[T])
+    extends AlternateModeSysexDump(TrapKATSysexDump.trapKATID, dumpType, TrapKATSysexDump.supportedVersion, auxType) {
+    var _self: T = newT
     def save(out: FileOutputStream): Unit = serialize(out, true)
-    protected def readSysexData(in: FileInputStream): Unit = self = readT(in)
-    protected def writeSysexData(out: FileOutputStream, saving: Boolean): Unit = if (saving) self.save(out) else self.serialize(out, saving)
+    protected def readSysexData(in: FileInputStream): Unit = _self = readT(in)
+    protected def writeSysexData(out: FileOutputStream, saving: Boolean): Unit = if (saving) _self.save(out) else _self.serialize(out, saving)
+
+    def self: T = _self
 }
 
-class AllMemoryV3Dump(allMemoryV3: AllMemoryV3) extends TrapKATSysexDump[AllMemoryV3](allMemoryV3, in => new AllMemoryV3(in), DumpType.AllMemory) {
+class AllMemoryV3Dump(allMemoryV3: AllMemoryV3) extends TrapKATSysexDump[AllMemoryV3](allMemoryV3, in => new AllMemoryV3(in), DumpType.AllMemory, 0) {
     def this(in: FileInputStream) = { this(null.asInstanceOf[AllMemoryV3]); deserialize(in) }
 }
-
-class AllMemoryV4Dump(allMemoryV4: AllMemoryV4) extends TrapKATSysexDump[AllMemoryV4](allMemoryV4, in => new AllMemoryV4(in), DumpType.AllMemory) {
+class AllMemoryV4Dump(allMemoryV4: AllMemoryV4) extends TrapKATSysexDump[AllMemoryV4](allMemoryV4, in => new AllMemoryV4(in), DumpType.AllMemory, 0) {
     def this(in: FileInputStream) = { this(null.asInstanceOf[AllMemoryV4]); deserialize(in) }
 }
 
-class GlobalV3Dump(globalV3: GlobalV3) extends TrapKATSysexDump[GlobalV3](globalV3, in => new GlobalV3(in), DumpType.Global) {
+class GlobalV3Dump(globalV3: GlobalV3) extends TrapKATSysexDump[GlobalV3](globalV3, in => new GlobalV3(in), DumpType.Global, 0) {
     def this(in: FileInputStream) = { this(null.asInstanceOf[GlobalV3]); deserialize(in) }
 }
 
-class GlobalV4Dump(globalV4: GlobalV4) extends TrapKATSysexDump[GlobalV4](globalV4, in => new GlobalV4(in), DumpType.Global) {
+class GlobalV4Dump(globalV4: GlobalV4) extends TrapKATSysexDump[GlobalV4](globalV4, in => new GlobalV4(in), DumpType.Global, 0) {
     def this(in: FileInputStream) = { this(null.asInstanceOf[GlobalV4]); deserialize(in) }
 }
 
-class KitV3Dump(kitV3: KitV3) extends TrapKATSysexDump[KitV3](kitV3, in => new KitV3(in), DumpType.Kit) {
-    def this(in: FileInputStream) = { this(null.asInstanceOf[KitV3]); deserialize(in) }
+class KitV3Dump(kitV3: KitV3, auxType: Byte) extends TrapKATSysexDump[KitV3](kitV3, in => new KitV3(in), DumpType.Kit, auxType) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[KitV3], 0); deserialize(in) }
 }
 
-class KitV4Dump(kitV4: KitV4) extends TrapKATSysexDump[KitV4](kitV4, in => new KitV4(in), DumpType.Kit) {
-    def this(in: FileInputStream) = { this(null.asInstanceOf[KitV4]); deserialize(in) }
+class KitV4Dump(kitV4: KitV4, auxType: Byte) extends TrapKATSysexDump[KitV4](kitV4, in => new KitV4(in), DumpType.Kit, auxType) {
+    def this(in: FileInputStream) = { this(null.asInstanceOf[KitV4], 0); deserialize(in) }
 }

@@ -28,6 +28,7 @@ import java.io._
 import collection.mutable
 
 abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
+//abstract class Global protected (p: Pad) extends DataItem {
     // 21 bytes
     private[this] var _beeperStatus: Byte = 0
     private[this] var _bcFunction: Byte = 0
@@ -64,6 +65,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] var _noteNamesStatus: Byte = 0
 
     private[this] val _ttPadData: TPad = p
+    //private[this] val _ttPadData: Pad = p
 
     // 5 bytes
     private[this] var _hatNoteGate: Byte = 0 // HAT NOTE gate time index
@@ -85,6 +87,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] val _padDynamics: PadDynamicsContainer = new PadDynamicsContainer(_padLevels, _userMargin, _internalMargin, _thresholdManual, _thresholdActual)
 
     protected def from(global: Global[_]): Unit = {
+    //protected def from(global: Global): Unit = {
         _beeperStatus = global.beeperStatus
         _bcFunction = global.bcFunction
         _chokeFunction = global.chokeFunction
@@ -122,13 +125,13 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _ttMeter = global.ttMeter
         _hearSoundStatus = global.hearSoundStatus
         //_unused1 is left to the concrete class
-        (0 to _userMargin.length - 1) zip global._userMargin foreach (x => _userMargin(x._1) = x._2)
-        (0 to _unused2.length - 1) zip global._unused2 foreach (x => _unused2(x._1) = x._2)
-        (0 to _internalMargin.length - 1) zip global._internalMargin foreach (x => _internalMargin(x._1) = x._2)
-        (0 to _unused3.length - 1) zip global._unused3 foreach (x => _unused3(x._1) = x._2)
         (0 to _thresholdManual.length - 1) zip global._thresholdManual foreach (x => _thresholdManual(x._1) = x._2)
-        (0 to _unused4.length - 1) zip global._unused4 foreach (x => _unused4(x._1) = x._2)
+        (0 to _unused2.length - 1) zip global._unused2 foreach (x => _unused2(x._1) = x._2)
         (0 to _thresholdActual.length - 1) zip global._thresholdActual foreach (x => _thresholdActual(x._1) = x._2)
+        (0 to _unused3.length - 1) zip global._unused3 foreach (x => _unused3(x._1) = x._2)
+        (0 to _userMargin.length - 1) zip global._userMargin foreach (x => _userMargin(x._1) = x._2)
+        (0 to _unused4.length - 1) zip global._unused4 foreach (x => _unused4(x._1) = x._2)
+        (0 to _internalMargin.length - 1) zip global._internalMargin foreach (x => _internalMargin(x._1) = x._2)
     }
 
     def deserialize(in: FileInputStream): Unit = {
@@ -174,13 +177,13 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _hearSoundStatus = in.read().toByte
 
         in.read(_unused1)
-        in.read(_thresholdManual)
-        in.read(_unused2)
-        in.read(_thresholdActual)
-        in.read(_unused3)
         in.read(_userMargin)
-        in.read(_unused4)
+        in.read(_unused2)
         in.read(_internalMargin)
+        in.read(_unused3)
+        in.read(_thresholdManual)
+        in.read(_unused4)
+        in.read(_thresholdActual)
     }
     def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         out.write(_beeperStatus)
@@ -204,6 +207,8 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         out.write(_motifNumberMel)
         out.write(_midiMergeStatus)
         out.write(_fcOpenRegion)
+        
+        out.write(_padLevels)
 
         out.write(_trigGain)
         out.write(_prgChgRcvChn)
@@ -223,13 +228,13 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         out.write(_hearSoundStatus)
 
         out.write(_unused1)
-        out.write(_thresholdManual)
-        out.write(_unused2)
-        out.write(_thresholdActual)
-        out.write(_unused3)
         out.write(_userMargin)
-        out.write(_unused4)
+        out.write(_unused2)
         out.write(_internalMargin)
+        out.write(_unused3)
+        out.write(_thresholdManual)
+        out.write(_unused4)
+        out.write(_thresholdActual)
     }
 
     def beeperStatus: Byte = _beeperStatus
@@ -302,6 +307,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     def hearSoundStatus_=(value: Byte): Unit = if (_hearSoundStatus != value) update(_hearSoundStatus = value) else {}
 
     def ttPadData: TPad = _ttPadData
+    //def ttPadData: Pad = _ttPadData
 
     def padDynamics: Seq[PadDynamics] = _padDynamics
 
@@ -310,6 +316,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 }
 
 class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
+//class GlobalV3 private(p: PadV3) extends Global(p) {
     def this() = this(new PadV3)
     def this(in: FileInputStream) = {
         this()
@@ -317,6 +324,7 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
     }
     def this(globalV4: GlobalV4) = {
         this(new PadV3(globalV4.ttPadData))
+        //this(new PadV3(globalV4.ttPadData.asInstanceOf[PadV4]))
         from(globalV4)
         //_unused1, _currentDefaults and _userDefaults left as default
     }
@@ -338,6 +346,7 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
 }
 
 class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
+//class GlobalV4 private(p: PadV4) extends Global(p) {
     def this() = this(new PadV4(0.toByte))
     def this(in: FileInputStream) = {
         this()
@@ -345,6 +354,7 @@ class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
     }
     def this(globalV3: GlobalV3) = {
         this(new PadV4(globalV3.ttPadData, 0))
+        //this(new PadV4(globalV3.ttPadData.asInstanceOf[PadV3], 0))
         from(globalV3)
         //_unused1 left as default
     }

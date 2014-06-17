@@ -27,12 +27,15 @@ package info.drealm.scala.model
 import java.io.{ Console => _, _ }
 import collection.mutable
 
-abstract class AllMemory[TKit <: Kit[_], TGlobal <: Global[_]](k: => Int => TKit, kn: (Int, TKit) => Unit, u: () => Array[Byte], g: => () => TGlobal)(implicit TKit: Manifest[TKit], TGlobal: Manifest[TGlobal])
-    extends DataItem with mutable.Seq[TKit] {
+//abstract class AllMemory[TKit <% Kit[_], TGlobal <% Global[_]](k: => Int => TKit, kn: (Int, TKit) => Unit, u: () => Array[Byte], g: => () => TGlobal)(implicit TKit: Manifest[TKit], TGlobal: Manifest[TGlobal])
+//    extends DataItem with mutable.Seq[TKit] {
+abstract class AllMemory(k: => Int => Kit[_], kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: => () => Global[_])
+    extends DataItem with mutable.Seq[Kit[_]] {
 
     def iterator = _kits.iterator
     def length = _kits.length
-    def update(idx: Int, value: TKit): Unit = {
+//    def update(idx: Int, value: TKit): Unit = {
+    def update(idx: Int, value: Kit[_]): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Kit must not be null.")
         if (_kits(idx) != value) {
@@ -42,7 +45,8 @@ abstract class AllMemory[TKit <: Kit[_], TGlobal <: Global[_]](k: => Int => TKit
             dataItemChanged
         }
     }
-    def apply(idx: Int): TKit = _kits.apply(idx)
+//    def apply(idx: Int): TKit = _kits.apply(idx)
+    def apply(idx: Int): Kit[_] = _kits.apply(idx)
 
     def deserialize(in: FileInputStream): Unit = {
         _kits foreach (x => x.deserialize(in))
@@ -57,34 +61,39 @@ abstract class AllMemory[TKit <: Kit[_], TGlobal <: Global[_]](k: => Int => TKit
         if (saving) _global.save(out) else _global.serialize(out, saving)
     }
 
-    private[this] val _kits: Array[TKit] = ((0 to 23) map (x => k(x))).toArray
+//    private[this] val _kits: Array[TKit] = ((0 to 23) map (x => k(x))).toArray
+    private[this] val _kits: Array[Kit[_]] = ((0 to 23) map (x => k(x))).toArray
     (0 to 23) foreach (x => kn(x, _kits(x)))
 
     private[this] val _unused: Array[Byte] = u()
-    private[this] val _global: TGlobal = g()
+//    private[this] var _global: TGlobal = g()
+    private[this] var _global: Global[_] = g()
 
-    def global: TGlobal = _global
+//    def global: TGlobal = _global
+//    def global_=(value: TGlobal) = update(_global = value)
+    def global: Global[_] = _global
+    def global_=(value: Global[_]) = if (_global != value) update(_global = value)
 
     (0 to 23) foreach (x => listenTo(_kits(x)))
     listenTo(_global)
 }
 
-class AllMemoryV3 private (k: Int => KitV3, kn: (Int, KitV3) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory[KitV3, GlobalV3](k, kn, u, g) {
-    def this() = this(x => new KitV3, (i, x) => x.kitName = i + " New Kit", () => new Array(540), () => new GlobalV3)
+class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory(k, kn, u, g) {
+    def this() = this(x => new KitV3, (i, x) => x.kitName = "New kit", () => new Array(540), () => new GlobalV3)
     def this(in: FileInputStream) = this(
         x => new KitV3(in),
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(540).toArray,
         () => new GlobalV3(in))
-    def this(allMemoryV4: AllMemoryV4) = this(x => new KitV3(allMemoryV4(x)), (i, x) => x.kitName = allMemoryV4(i).kitName, () => new Array(540), () => new GlobalV3(allMemoryV4.global))
+    def this(allMemoryV4: AllMemoryV4) = this(x => new KitV3(allMemoryV4(x).asInstanceOf[KitV4]), (i, x) => x.kitName = allMemoryV4(i).kitName, () => new Array(540), () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4]))
 }
 
-class AllMemoryV4 private (k: Int => KitV4, kn: (Int, KitV4) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory[KitV4, GlobalV4](k, kn, u, g) {
-    def this() = this(x => new KitV4, (i, x) => x.kitName = i + " New Kit", () => new Array(195), () => new GlobalV4)
+class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory(k, kn, u, g) {
+    def this() = this(x => new KitV4, (i, x) => x.kitName = "New kit", () => new Array(195), () => new GlobalV4)
     def this(in: FileInputStream) = this(
         x => new KitV4(in),
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(195).toArray,
         () => new GlobalV4(in))
-    def this(allMemoryV3: AllMemoryV3) = this(x => new KitV4(allMemoryV3(x)), (i, x) => x.kitName = allMemoryV3(i).kitName, () => new Array(195), () => new GlobalV4(allMemoryV3.global))
+    def this(allMemoryV3: AllMemoryV3) = this(x => new KitV4(allMemoryV3(x).asInstanceOf[KitV3]), (i, x) => x.kitName = allMemoryV3(i).kitName, () => new Array(195), () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3]))
 }

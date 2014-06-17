@@ -133,9 +133,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def fcCurve: Byte = _fcCurve
     def fcCurve_=(value: Byte): Unit = if (_fcCurve != value) update(_fcCurve = value) else {}
     def kitName: String = "" + (_kitName.toSeq)
-    def kitName_=(value: String): Unit = f"${value.trim()}%12s" match {
-        case tooLong if tooLong.length() > 12 =>
-            throw new IllegalArgumentException("KitName must be 12 characters or fewer.")
+    def kitName_=(value: String): Unit = (value.trim() + "            ").take(12) match {
         case update if update != _kitName => {
             (0 to 11) zip update foreach (x => _kitName(x._1) = x._2)
             dataItemChanged

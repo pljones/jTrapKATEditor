@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala
 
@@ -28,6 +30,9 @@ import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
 
 object frmTrapkatSysexEditor extends MainFrame {
+
+    peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
+    override def closeOperation = jTrapKATEditor.exitClose
 
     iconImage = toolkit.getImage("resources/tk_wild2-sq.png")
     resizable = false
@@ -39,11 +44,6 @@ object frmTrapkatSysexEditor extends MainFrame {
     private[this] object tpnMain extends TabbedPane {
 
         name = "tpnMain"
-
-        val pnGlobal = new MigPanel("insets 5", "[]", "[]") {
-            name = "pnGlobal"
-            contents += (new Label("Being reworked"), "cell 0 0")
-        }
 
         pages += new TabbedPane.Page("Kits & Pads", pnKitsPads) { name = "tpKitsPads" }
         pages += new TabbedPane.Page("Global", pnGlobal) { name = "tpGlobal" }
@@ -107,52 +107,161 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     listenTo(menuBar)
     listenTo(tpnMain)
+    //listenTo(this)
+    listenTo(jTrapKATEditor)
+
+    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
+        Console.println(f"${to} - changed? ${dataItem.changed}")
+        !dataItem.changed || (Dialog.showConfirmation(null,
+            f"You have unsaved changes to ${to} that will be lost.\n\nDo you want to continue?\n",
+            "jTrapKATEditor",
+            Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
+    }
+
+    def okayToConvert(thing: String, from: String, to: String) = Dialog.showConfirmation(null,
+        f"You are editing a ${to} All Memory dump.\n\nDo you want to convert this ${from} ${thing} to ${to}?\n",
+        f"Import ${thing}",
+        Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
+
+    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String) = Dialog.showConfirmation(null,
+        f"You are editing kit #${into} (${intoName}).\nThe kit being imported was #${from} (${fromName}).\n\nDo you want to overwrite the current kit?\n",
+        f"Import Kit",
+        Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
+
+    def jTrapKATEditor_AllMemoryChanged = {
+
+    }
 
     reactions += {
-        case miE: MenuItemEvent => {
-            deafTo(this)
-            publish(miE)
-            listenTo(this)
+        case wo: WindowOpened                     => Console.println(wo)
+        case amc: jTrapKATEditor.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
+        case mie: FileMenuEvent => {
+            mie.source.name.stripPrefix("miFile") match {
+                case "NewV3" => jTrapKATEditor.reinitV3
+                case "NewV4" => jTrapKATEditor.reinitV4
+                case "Open" => try {
+                    OpenFileChooser.file match {
+                        case Some(file) => jTrapKATEditor.openFile(file)
+                        case None       => {}
+                    }
+                }
+                catch {
+                    case ex: IllegalArgumentException => {
+                        Dialog.showMessage(null, ex.getLocalizedMessage(), "Invalid Sysex file", Dialog.Message.Error, null)
+                    }
+                }
+                case save if save.startsWith("Save") => {
+                    save.stripPrefix("Save") match {
+                        case saveAs if saveAs.endsWith("As") => {
+                            val dumpType = saveAs.stripSuffix("As") match {
+                                case "AllMemory"    => model.DumpType.AllMemory
+                                case "GlobalMemory" => model.DumpType.Global
+                                case "CurrentKit"   => model.DumpType.Kit
+                                case _              => model.DumpType.NotSet
+                            }
+                            SaveFileChooser.selectedFile = if (dumpType == jTrapKATEditor.currentType)
+                                jTrapKATEditor.currentFile
+                            else
+                                new java.io.File(
+                                    (if (dumpType != model.DumpType.Kit)
+                                        dumpType.toString
+                                    else if (jTrapKATEditor.currentKit != null)
+                                        jTrapKATEditor.currentKit.kitName
+                                    else "CurrentKit" // should never happen
+                                    ) + ".syx")
+                            SaveFileChooser.file(dumpType.toString) match {
+                                case Some(file) => jTrapKATEditor.saveFileAs(dumpType, file)
+                                case _          => {}
+                            }
+                        }
+                        case otherwise => jTrapKATEditor.saveFileAs(jTrapKATEditor.currentType, jTrapKATEditor.currentFile)
+                    }
+                }
+                case "Close" => jTrapKATEditor.exitClose
+                case "Exit"  => jTrapKATEditor.exitClose
+                case otherwise => {
+                    Console.println("File event " + mie.source.name)
+                }
+            }
         }
-        case mnE: MenuEvent => {
-            deafTo(this)
-            publish(mnE)
-            listenTo(this)
+        case mie: EditMenuEvent => {
+            mie.source.name.stripPrefix("miEdit") match {
+                case "Undo"     => Console.println("Edit Undo")
+                case "Redo"     => Console.println("Edit Redo")
+                case "CopyKit"  => Console.println("Edit CopyKit")
+                case "SwapKits" => Console.println("Edit SwapKits")
+                case "CopyPad"  => Console.println("Edit CopyPad")
+                case "PastePad" => Console.println("Edit PastePad")
+                case "SwapPads" => Console.println("Edit SwapPads")
+                case otherwise => {
+                    Console.println("Edit event " + mie.source.name)
+                }
+            }
         }
-        case e: TabChangeEvent => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+        case mie: ToolsMenuEvent => {
+            mie.source.name.stripPrefix("miTools") match {
+                case "OptionsDMNAsNumbers" => PadSlot.displayMode = PadSlot.DisplayMode.AsNumber
+                case "OptionsDMNAsNamesC3" => PadSlot.displayMode = PadSlot.DisplayMode.AsNamesC3
+                case "OptionsDMNAsNamesC4" => PadSlot.displayMode = PadSlot.DisplayMode.AsNamesC4
+                case "Convert"             => Console.println("Tools Convert")
+                case otherwise => {
+                    Console.println("Tools event " + mie.source.name)
+                }
+            }
+        }
+        case mie: HelpMenuEvent => {
+            mie.source.name.stripPrefix("miHelp") match {
+                case "Contents"           => Console.println("Help Contents")
+                case "CheckForUpdate"     => Console.println("Help CheckForUpdate")
+                case "CheckAutomatically" => Console.println("Help CheckAutomatically")
+                case "About"              => Console.println("Help About")
+                case otherwise => {
+                    Console.println("Help event " + mie.source.name)
+                }
+            }
+        }
+        case mne: MenuEvent => {
+            mne.source.name.stripPrefix("mn") match {
+                case "File"            => Console.println("File menu " + mne.action)
+                case "Edit"            => Console.println("Edit menu " + mne.action)
+                case "Tools"           => Console.println("Tools menu " + mne.action)
+                case "ToolsOptions"    => Console.println("Tools Options menu " + mne.action)
+                case "ToolsOptionsDMN" => Console.println("Tools Options DMN menu " + mne.action)
+                case "Help"            => Console.println("Help menu " + mne.action)
+                case otherwise => {
+                    Console.println("MenuEvent" + mne.source.name + " action " + mne.action)
+                }
+            }
+        }
+        case tpe: TabChangeEvent => {
+            tpe.source.content.name.stripPrefix("pn") match {
+                case "KitsPads"   => Console.println("Main KitsPads")
+                case "Global"     => Console.println("Main Global")
+                case "PadDetails" => Console.println("KitPadsDetails PadDetails")
+                case "MoreSlots"  => Console.println("KitPadsDetails MoreSlots")
+                case "KitDetails" => Console.println("KitPadsDetails KitDetails")
+                case otherwise => {
+                    Console.println("TabChangeEvent " + otherwise)
+                }
+            }
         }
         case e: KitChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+            Console.println("Kit change" + (if (e.oldKit >= 0) " from " + e.oldKit else "") + " to " + e.newKit)
         }
         case e: PadChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+            Console.println("Pad change" + (if (e.oldPad >= 0) " from " + e.oldPad else "") + " to " + e.newPad)
         }
-        case e: SelectionChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+        case cbxE: SelectionChanged => {
+            Console.println("SelectionChanged " + cbxE.source.name)
         }
-        case e: CbxEditorFocused => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+        case cbxE: CbxEditorFocused => {
+            Console.println("CbxEditorFocused " + cbxE.source.name)
         }
-        case e: ValueChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+        case cpnE: ValueChanged => {
+            Console.println("ValueChanged " + cpnE.source.name)
         }
-        case e: ButtonClicked => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+        case cbxE: ButtonClicked => {
+            Console.println("ButtonClicked " + cbxE.source.name)
         }
     }
 

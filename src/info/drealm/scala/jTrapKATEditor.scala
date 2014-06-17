@@ -29,148 +29,147 @@ import swing._
 import swing.event._
 import info.drealm.scala.eventX._
 
-object jTrapKATEditor extends SimpleSwingApplication {
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+object jTrapKATEditor extends SimpleSwingApplication with Publisher {
+    val ui = UIManager.getSystemLookAndFeelClassName()
     UIManager.put("swing.boldMetal", false);
+    UIManager.setLookAndFeel(ui);
 
-    //override def shutdown() = {}
+    private var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
+    def currentType = _currentType
+
+    private var _currentFile: java.io.File = new java.io.File("AllMemory.syx")
+    def currentFile = _currentFile
+
+    private var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
+    class AllMemoryChanged extends Event
+    def currentAllMemory = _currentAllMemory
+    listenTo(_currentAllMemory)
+
+    class GlobalChanged extends Event
+
+    private var _currentKit: Int = -1
+    def currentKit: model.Kit[_] = if (_currentKit < 0 || _currentKit > _currentAllMemory.length) null else _currentAllMemory(_currentKit)
+    class KitChanged extends Event
 
     def top = frmTrapkatSysexEditor
 
-    //TODO: This should say what is unsaved and ask for confirmation to lose it.
-    def loseUnsavedChanges = {
-        true
+    def setCurrentDump(dumpType: model.DumpType.DumpType, file: java.io.File, force: Boolean = false) = {
+        if (force || _currentType == model.DumpType.NotSet || _currentType != model.DumpType.AllMemory) {
+            _currentFile = file
+            _currentType = model.DumpType.AllMemory
+        }
     }
 
-    //TODO: This should live somewhere else -> frmTrapkatSysexEditor?
-    def load(someDump: java.io.File): Option[model.DataItem] = {
-        try {
-            Some(model.TrapKATSysexDump.fromFile(someDump))
-        }
-        catch {
-            case ex: IllegalArgumentException => {
-                Dialog.showMessage(null, ex.getLocalizedMessage(), "Invalid Sysex file", Dialog.Message.Error, null)
-                None
+    private[this] def _save(makeChanged: Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: Event) = {
+        model.TrapKATSysexDump.toFile(file, thing)
+        if (makeChanged) thing.makeChanged
+        setCurrentDump(thingType, file, true)
+        publish(thingChanged)
+    }
+
+    def reinitV3: Unit = {
+        _currentFile = new java.io.File("AllMemory.syx")
+        _currentType = model.DumpType.AllMemory
+        _currentAllMemory = new model.AllMemoryV3
+        publish(new AllMemoryChanged)
+    }
+
+    def reinitV4: Unit = {
+        _currentFile = new java.io.File("AllMemory.syx")
+        _currentType = model.DumpType.AllMemory
+        _currentAllMemory = new model.AllMemoryV4
+        publish(new AllMemoryChanged)
+    }
+
+    def openFile(file: java.io.File): Unit = {
+        val dump = model.TrapKATSysexDump.fromFile(file)
+
+        dump match {
+            case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory") => {
+                _currentAllMemory = allMemoryV3Dump.self
+                setCurrentDump(model.DumpType.AllMemory, file)
+                publish(new AllMemoryChanged)
             }
-        }
-    }
-
-    listenTo(frmTrapkatSysexEditor)
-    reactions += {
-        case mie: FileMenuEvent => {
-            mie.source.name.stripPrefix("miFile") match {
-                case "NewV3" if (loseUnsavedChanges) => Console.println("File NewV3")
-                case "NewV4" if (loseUnsavedChanges) => Console.println("File NewV4")
-                case "Open" if (loseUnsavedChanges) => {
-                    Console.println("File Open")
-                    val result = FileOpen.load(load)
-                    Console.println(f"-> ${result}")
+            case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory") => {
+                _currentAllMemory = allMemoryV4Dump.self
+                setCurrentDump(model.DumpType.AllMemory, file)
+                publish(new AllMemoryChanged)
+            }
+            case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, "Global memory") => {
+                if (_currentAllMemory.isInstanceOf[model.AllMemoryV3]) {
+                    _currentAllMemory.global = globalV3Dump.self
+                    setCurrentDump(model.DumpType.Global, file)
+                    publish(new GlobalChanged)
                 }
-                case save if save.startsWith("Save") => {
-                    save.stripPrefix("Save") match {
-                        case saveAs if saveAs.endsWith("As") => {
-                            saveAs.stripSuffix("As") match {
-                                case "AllMemory"    => Console.println("FileSave AllMemory As")
-                                case "GlobalMemory" => Console.println("FileSave GlobalMemory As")
-                                case "CurrentKit"   => Console.println("FileSave CurrentKit As")
-                                case otherwise      => {}
-                            }
-                        }
-                        case otherwise => {
-                            otherwise match {
-                                case "AllMemory"    => Console.println("FileSave AllMemory")
-                                case "GlobalMemory" => Console.println("FileSave GlobalMemory")
-                                case "CurrentKit"   => Console.println("FileSave CurrentKit")
-                                case otherwise      => {}
-                            }
-                        }
+                else if (frmTrapkatSysexEditor.okayToConvert("Global dump", "V3", "V4")) {
+                    _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
+                    setCurrentDump(model.DumpType.Global, file)
+                    publish(new GlobalChanged)
+                }
+            }
+            case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, "Global memory") => {
+                if (_currentAllMemory.isInstanceOf[model.AllMemoryV4]) {
+                    _currentAllMemory.global = globalV4Dump.self
+                    setCurrentDump(model.DumpType.Global, file)
+                    publish(new GlobalChanged)
+                }
+                else if (frmTrapkatSysexEditor.okayToConvert("Global dump", "V4", "V3")) {
+                    _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
+                    setCurrentDump(model.DumpType.Global, file)
+                    publish(new GlobalChanged)
+                }
+            }
+            case kitV3Dump: model.KitV3Dump if _currentKit >= 0 && _currentKit < _currentAllMemory.length &&
+                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKit), f"Kit ${_currentKit} (${_currentAllMemory(_currentKit).kitName})") => {
+
+                if (_currentAllMemory.isInstanceOf[model.AllMemoryV3]) {
+                    if (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV3Dump.auxType, kitV3Dump.self.kitName)) {
+                        _currentAllMemory(_currentKit) = kitV3Dump.self
+                        setCurrentDump(model.DumpType.Kit, file)
+                        publish(new KitChanged)
                     }
                 }
-                case "Close" if (loseUnsavedChanges) => Console.println("File Close")
-                case "Exit" if (loseUnsavedChanges)  => quit
-                case otherwise => {
-                    Console.println("File event " + mie.source.name)
+                else if (frmTrapkatSysexEditor.okayToConvert("Kit dump", "V3", "V4")) {
+                    if (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV3Dump.auxType, kitV3Dump.self.kitName)) {
+                        _currentAllMemory(_currentKit) = new model.KitV4(kitV3Dump.self)
+                        setCurrentDump(model.DumpType.Kit, file)
+                        publish(new KitChanged)
+                    }
                 }
+
             }
-        }
-        case mie: EditMenuEvent => {
-            mie.source.name.stripPrefix("miEdit") match {
-                case "Undo"     => Console.println("Edit Undo")
-                case "Redo"     => Console.println("Edit Redo")
-                case "CopyKit"  => Console.println("Edit CopyKit")
-                case "SwapKits" => Console.println("Edit SwapKits")
-                case "CopyPad"  => Console.println("Edit CopyPad")
-                case "PastePad" => Console.println("Edit PastePad")
-                case "SwapPads" => Console.println("Edit SwapPads")
-                case otherwise => {
-                    Console.println("Edit event " + mie.source.name)
+            case kitV4Dump: model.KitV4Dump if _currentKit >= 0 && _currentKit < _currentAllMemory.length &&
+                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKit), f"Kit ${_currentKit} (${_currentAllMemory(_currentKit).kitName})") => {
+
+                if (_currentAllMemory.isInstanceOf[model.AllMemoryV4] &&
+                    (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
+                    _currentAllMemory(_currentKit) = kitV4Dump.self
+                    setCurrentDump(model.DumpType.Kit, file)
+                    publish(new KitChanged)
                 }
-            }
-        }
-        case mie: ToolsMenuEvent => {
-            mie.source.name.stripPrefix("miTools") match {
-                case "OptionsDMNAsNumbers" => PadSlot.displayMode = PadSlot.DisplayMode.AsNumber
-                case "OptionsDMNAsNamesC3" => PadSlot.displayMode = PadSlot.DisplayMode.AsNamesC3
-                case "OptionsDMNAsNamesC4" => PadSlot.displayMode = PadSlot.DisplayMode.AsNamesC4
-                case "Convert"             => Console.println("Tools Convert")
-                case otherwise => {
-                    Console.println("Tools event " + mie.source.name)
+                else if (frmTrapkatSysexEditor.okayToConvert("Kit dump", "V4", "V3") &&
+                    (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
+                    _currentAllMemory(_currentKit) = new model.KitV3(kitV4Dump.self)
+                    setCurrentDump(model.DumpType.Kit, file)
+                    publish(new KitChanged)
                 }
+
             }
-        }
-        case mie: HelpMenuEvent => {
-            mie.source.name.stripPrefix("miHelp") match {
-                case "Contents"           => Console.println("Help Contents")
-                case "CheckForUpdate"     => Console.println("Help CheckForUpdate")
-                case "CheckAutomatically" => Console.println("Help CheckAutomatically")
-                case "About"              => Console.println("Help About")
-                case otherwise => {
-                    Console.println("Help event " + mie.source.name)
-                }
+            case otherwise => {
+                // Do nothing - should never happen if the form manages things correctly
             }
-        }
-        case mne: MenuEvent => {
-            mne.source.name.stripPrefix("mn") match {
-                case "File"            => Console.println("File menu " + mne.action)
-                case "Edit"            => Console.println("Edit menu " + mne.action)
-                case "Tools"           => Console.println("Tools menu " + mne.action)
-                case "ToolsOptions"    => Console.println("Tools Options menu " + mne.action)
-                case "ToolsOptionsDMN" => Console.println("Tools Options DMN menu " + mne.action)
-                case "Help"            => Console.println("Help menu " + mne.action)
-                case otherwise => {
-                    Console.println("MenuEvent" + mne.source.name + " action " + mne.action)
-                }
-            }
-        }
-        case tpe: TabChangeEvent => {
-            tpe.source.content.name.stripPrefix("pn") match {
-                case "KitsPads"   => Console.println("Main KitsPads")
-                case "Global"     => Console.println("Main Global")
-                case "PadDetails" => Console.println("KitPadsDetails PadDetails")
-                case "MoreSlots"  => Console.println("KitPadsDetails MoreSlots")
-                case "KitDetails" => Console.println("KitPadsDetails KitDetails")
-                case otherwise => {
-                    Console.println("TabChangeEvent " + otherwise)
-                }
-            }
-        }
-        case e: KitChanged => {
-            Console.println("Kit change" + (if (e.oldKit >= 0) " from " + e.oldKit else "") + " to " + e.newKit)
-        }
-        case e: PadChanged => {
-            Console.println("Pad change" + (if (e.oldPad >= 0) " from " + e.oldPad else "") + " to " + e.newPad)
-        }
-        case cbxE: SelectionChanged => {
-            Console.println("SelectionChanged " + cbxE.source.name)
-        }
-        case cbxE: CbxEditorFocused => {
-            Console.println("CbxEditorFocused " + cbxE.source.name)
-        }
-        case cpnE: ValueChanged => {
-            Console.println("ValueChanged " + cpnE.source.name)
-        }
-        case cbxE: ButtonClicked => {
-            Console.println("ButtonClicked " + cbxE.source.name)
         }
     }
+
+    def saveFileAs(thing: model.DumpType.DumpType, file: java.io.File) = {
+        thing match {
+            case model.DumpType.AllMemory => _save(false, file, _currentAllMemory, thing, new AllMemoryChanged)
+            case model.DumpType.Global    => _save(_currentType != thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new GlobalChanged)
+            case model.DumpType.Kit       => _save(_currentType != thing && _currentAllMemory(_currentKit).changed, file, _currentAllMemory(_currentKit), thing, new KitChanged)
+            case unknown =>
+                throw new IllegalArgumentException(f"Do not ask to save ${unknown} as it is unknown.")
+        }
+    }
+
+    def exitClose() = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory")) quit
 }

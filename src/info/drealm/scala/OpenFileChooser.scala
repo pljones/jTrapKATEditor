@@ -3,15 +3,15 @@ package info.drealm.scala
 import java.io.File
 import swing._
 
-object FileOpen extends FileChooser {
+object OpenFileChooser extends FileChooser {
     fileFilter = new javax.swing.filechooser.FileNameExtensionFilter("Sysex files", "syx")
     fileSelectionMode = FileChooser.SelectionMode.FilesOnly
     multiSelectionEnabled = false
 
-    def load(_load: File => Option[model.DataItem]): Option[model.DataItem] = {
+    def file: Option[java.io.File] = {
         title = "Open Sysex Dump"
         (showOpenDialog(null) match {
-            case FileChooser.Result.Approve => _load(selectedFile)
+            case FileChooser.Result.Approve => Some(selectedFile)
             case _                          => None
         })
     }

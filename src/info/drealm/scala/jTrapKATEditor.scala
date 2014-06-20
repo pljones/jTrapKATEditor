@@ -41,31 +41,17 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentFile = _currentFile
 
     private var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
-    class AllMemoryChanged extends Event
     def currentAllMemory = _currentAllMemory
     listenTo(_currentAllMemory)
 
-    class GlobalChanged extends Event
-
     private var _currentKit: Int = -1
     def currentKit: model.Kit[_] = if (_currentKit < 0 || _currentKit > _currentAllMemory.length) null else _currentAllMemory(_currentKit)
+
+    class AllMemoryChanged extends Event
+    class GlobalChanged extends Event
     class KitChanged extends Event
 
     def top = frmTrapkatSysexEditor
-
-    def setCurrentDump(dumpType: model.DumpType.DumpType, file: java.io.File, force: Boolean = false) = {
-        if (force || _currentType == model.DumpType.NotSet || _currentType != model.DumpType.AllMemory) {
-            _currentFile = file
-            _currentType = model.DumpType.AllMemory
-        }
-    }
-
-    private[this] def _save(makeChanged: Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: Event) = {
-        model.TrapKATSysexDump.toFile(file, thing)
-        if (makeChanged) thing.makeChanged
-        setCurrentDump(thingType, file, true)
-        publish(thingChanged)
-    }
 
     def reinitV3: Unit = {
         _currentFile = new java.io.File("AllMemory.syx")
@@ -172,4 +158,18 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
 
     def exitClose() = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory")) quit
+
+    private[this] def setCurrentDump(dumpType: model.DumpType.DumpType, file: java.io.File, force: Boolean = false) = {
+        if (force || _currentType == model.DumpType.NotSet || _currentType != model.DumpType.AllMemory) {
+            _currentFile = file
+            _currentType = model.DumpType.AllMemory
+        }
+    }
+
+    private[this] def _save(makeChanged: Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: Event) = {
+        model.TrapKATSysexDump.toFile(file, thing)
+        if (makeChanged) thing.makeChanged
+        setCurrentDump(thingType, file, true)
+        publish(thingChanged)
+    }
 }

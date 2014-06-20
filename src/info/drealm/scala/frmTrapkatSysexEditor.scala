@@ -105,32 +105,14 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     }
 
+    layout.Focus.set(tpnMain, "cbxPad1")
+
+    centerOnScreen
+
     listenTo(menuBar)
     listenTo(tpnMain)
     //listenTo(this)
     listenTo(jTrapKATEditor)
-
-    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
-        Console.println(f"${to} - changed? ${dataItem.changed}")
-        !dataItem.changed || (Dialog.showConfirmation(null,
-            f"You have unsaved changes to ${to} that will be lost.\n\nDo you want to continue?\n",
-            "jTrapKATEditor",
-            Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
-    }
-
-    def okayToConvert(thing: String, from: String, to: String) = Dialog.showConfirmation(null,
-        f"You are editing a ${to} All Memory dump.\n\nDo you want to convert this ${from} ${thing} to ${to}?\n",
-        f"Import ${thing}",
-        Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
-
-    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String) = Dialog.showConfirmation(null,
-        f"You are editing kit #${into} (${intoName}).\nThe kit being imported was #${from} (${fromName}).\n\nDo you want to overwrite the current kit?\n",
-        f"Import Kit",
-        Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
-
-    def jTrapKATEditor_AllMemoryChanged = {
-
-    }
 
     reactions += {
         case wo: WindowOpened                     => Console.println(wo)
@@ -265,7 +247,36 @@ object frmTrapkatSysexEditor extends MainFrame {
         }
     }
 
-    layout.Focus.set(tpnMain, "cbxPad1")
+    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
+        Console.println(f"${to} - changed? ${dataItem.changed}")
+        !dataItem.changed || (Dialog.showConfirmation(null,
+            f"You have unsaved changes to ${to} that will be lost.\n\nDo you want to continue?\n",
+            "jTrapKATEditor",
+            Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
+    }
 
-    centerOnScreen
+    def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(null,
+        f"You are editing a ${to} All Memory dump.\n\nDo you want to convert this ${from} ${thing} to ${to}?\n",
+        f"Import ${thing}",
+        Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
+
+    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(null,
+        f"You are editing kit #${into} (${intoName}).\nThe kit being imported was #${from} (${fromName}).\n\nDo you want to overwrite the current kit?\n",
+        f"Import Kit",
+        Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
+
+    private[this] def windowOpened = {
+        if (prefs.updateAutomatically) {
+            // call the update checker
+        }
+        PadSlot.displayMode = prefs.notesAs
+    }
+
+    private[this] def notesAs(displayMode: PadSlot.DisplayMode.DisplayMode) = {
+        prefs.notesAs = displayMode
+        PadSlot.displayMode = prefs.notesAs
+    }
+
+    private[this] def jTrapKATEditor_AllMemoryChanged = {
+    }
 }

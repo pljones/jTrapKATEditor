@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala
 
@@ -152,26 +154,24 @@ object jTrapKATEditorMenuBar extends MenuBar {
             contents += new RichMenu("Display MIDI Notes") {
                 name = "mnToolsOptionsDMN"
 
-                private[this] val bgTODMN = new ButtonGroup();
-                
-                def dmnAs = if (bgTODMN.selected.isDefined) bgTODMN.selected.get.name.stripPrefix("miToolsOptionsDMNAs") else "" 
+                import PadSlot.DisplayMode._
 
-                contents += new RadioMenuItem("As Numbers") {
-                    name = "miToolsOptionsDMNAsNumbers"
-                    selected = true
+                private[this] val bgTODMN = new ButtonGroup();
+
+                class DisplayModeMenuItem(displayMode: DisplayMode, val nameSuffix: String, text: String)
+                    extends RadioMenuItem(text) {
+                    name = "miToolsOptionsDMN" + nameSuffix
+                    listenTo(PadSlot)
                     bgTODMN.buttons.add(this)
-                    reactions += { case ButtonClicked(_) => menuItemEventCallback(this) }
+                    reactions += {
+                        case e: eventX.DisplayNotesAs if e.newMode == displayMode => selected = true
+                        case ButtonClicked(_)                                     => menuItemEventCallback(this)
+                    }
                 }
-                contents += new RadioMenuItem("As Names (60=C3)") {
-                    name = "miToolsOptionsDMNAsNamesC3"
-                    bgTODMN.buttons.add(this)
-                    reactions += { case ButtonClicked(_) => menuItemEventCallback(this) }
-                }
-                contents += new RadioMenuItem("As Names (60=C4)") {
-                    name = "miToolsOptionsDMNAsNamesC4"
-                    bgTODMN.buttons.add(this)
-                    reactions += { case ButtonClicked(_) => menuItemEventCallback(this) }
-                }
+
+                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers", "As Numbers")
+                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3", "As Names (60=C3)")
+                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4", "As Names (60=C4)")
             }
         }
 

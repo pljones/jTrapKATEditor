@@ -28,6 +28,7 @@ import javax.swing.UIManager
 import swing._
 import swing.event._
 import info.drealm.scala.eventX._
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
 
 object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     val ui = UIManager.getSystemLookAndFeelClassName()
@@ -37,7 +38,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     private var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType
 
-    private var _currentFile: java.io.File = new java.io.File("AllMemory.syx")
+    private var _currentFile: java.io.File = new java.io.File(prefs.currentWorkingDirectory + "/")
     def currentFile = _currentFile
 
     private var _currentAllMemory: model.AllMemory = new model.AllMemoryV4

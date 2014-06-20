@@ -28,11 +28,15 @@ import swing._
 import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
 
 object frmTrapkatSysexEditor extends MainFrame {
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
-    override def closeOperation = jTrapKATEditor.exitClose
+    override def closeOperation = {
+        prefs.currentWorkingDirectory = if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile() else jTrapKATEditor.currentFile.getCanonicalFile()
+        jTrapKATEditor.exitClose
+    }
 
     iconImage = toolkit.getImage("resources/tk_wild2-sq.png")
     resizable = false
@@ -115,13 +119,14 @@ object frmTrapkatSysexEditor extends MainFrame {
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case wo: WindowOpened                     => Console.println(wo)
+        case wo: WindowOpened                     => windowOpened
         case amc: jTrapKATEditor.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
         case mie: FileMenuEvent => {
             mie.source.name.stripPrefix("miFile") match {
                 case "NewV3" => jTrapKATEditor.reinitV3
                 case "NewV4" => jTrapKATEditor.reinitV4
                 case "Open" => try {
+                    OpenFileChooser.selectedFile = new java.io.File((if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParent() else jTrapKATEditor.currentFile.getCanonicalPath()) + "/.")
                     OpenFileChooser.file match {
                         case Some(file) => jTrapKATEditor.openFile(file)
                         case None       => {}
@@ -182,9 +187,9 @@ object frmTrapkatSysexEditor extends MainFrame {
         }
         case mie: ToolsMenuEvent => {
             mie.source.name.stripPrefix("miTools") match {
-                case "OptionsDMNAsNumbers" => PadSlot.displayMode = PadSlot.DisplayMode.AsNumber
-                case "OptionsDMNAsNamesC3" => PadSlot.displayMode = PadSlot.DisplayMode.AsNamesC3
-                case "OptionsDMNAsNamesC4" => PadSlot.displayMode = PadSlot.DisplayMode.AsNamesC4
+                case "OptionsDMNAsNumbers" => notesAs(PadSlot.DisplayMode.AsNumber)
+                case "OptionsDMNAsNamesC3" => notesAs(PadSlot.DisplayMode.AsNamesC3)
+                case "OptionsDMNAsNamesC4" => notesAs(PadSlot.DisplayMode.AsNamesC4)
                 case "Convert"             => Console.println("Tools Convert")
                 case otherwise => {
                     Console.println("Tools event " + mie.source.name)

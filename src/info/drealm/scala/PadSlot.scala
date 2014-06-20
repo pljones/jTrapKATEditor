@@ -33,13 +33,15 @@ object PadSlot extends Publisher {
     object DisplayMode extends Enumeration {
         type DisplayMode = Value
         val AsNumber, AsNamesC3, AsNamesC4 = Value
+        val NotSet = Value(-1)
     }
     import DisplayMode._
 
-    private[this] var _displayMode = AsNumber
+    private[this] var _displayMode = NotSet
     def displayMode: DisplayMode = _displayMode
     def displayMode_=(value: DisplayMode): Unit = {
         val oldMode = _displayMode
+        Console.println("PadSlot displayMode -> " + value)
         _displayMode = value
         publish(new eventX.DisplayNotesAs(oldMode, _displayMode))
     }

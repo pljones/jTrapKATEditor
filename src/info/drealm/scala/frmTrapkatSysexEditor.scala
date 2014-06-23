@@ -117,11 +117,6 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     centerOnScreen
 
-    listenTo(menuBar)
-    listenTo(tpnMain)
-    //listenTo(this)
-    listenTo(jTrapKATEditor)
-
     reactions += {
         case wo: WindowOpened                     => windowOpened
         case amc: jTrapKATEditor.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
@@ -157,7 +152,7 @@ object frmTrapkatSysexEditor extends MainFrame {
                                     (if (dumpType != model.DumpType.Kit)
                                         dumpType.toString
                                     else if (jTrapKATEditor.currentKit != null)
-                                        jTrapKATEditor.currentKit.kitName
+                                        jTrapKATEditor.currentKit.kitName.trim()
                                     else "CurrentKit" // should never happen
                                     ) + ".syx")
                             SaveFileChooser.file(dumpType.toString) match {
@@ -259,25 +254,31 @@ object frmTrapkatSysexEditor extends MainFrame {
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
         Console.println(f"${to} - changed? ${dataItem.changed}")
         !dataItem.changed || (Dialog.showConfirmation(null,
-            f"You have unsaved changes to ${to} that will be lost.\n\nDo you want to continue?\n",
-            "jTrapKATEditor",
+            L.G("OKToSplat", to),
+            L.G("ApplicationProductName"),
             Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
     }
 
     def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(null,
-        f"You are editing a ${to} All Memory dump.\n\nDo you want to convert this ${from} ${thing} to ${to}?\n",
-        f"Import ${thing}",
+        L.G("ImportThing", to, from, thing),
+        L.G("ImportThingCaption", thing),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
     def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(null,
-        f"You are editing kit #${into} (${intoName}).\nThe kit being imported was #${from} (${fromName}).\n\nDo you want to overwrite the current kit?\n",
-        f"Import Kit",
+        L.G("RenumberKit", "" + into, intoName, "" + from, fromName),
+        L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
     private[this] def windowOpened = {
         Checker.autoUpdateMode = prefs.updateAutomatically
         Checker.dailyCheck
         PadSlot.displayMode = prefs.notesAs
+
+        listenTo(menuBar)
+        listenTo(tpnMain)
+        //listenTo(this)
+        listenTo(jTrapKATEditor)
+        jTrapKATEditor_AllMemoryChanged
     }
 
     private[this] def notesAs(displayMode: PadSlot.DisplayMode.DisplayMode) = {

@@ -109,7 +109,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _motifNumberMel = global.motifNumberMel
         _midiMergeStatus = global.midiMergeStatus
         _fcOpenRegion = global.fcOpenRegion
-        (1 to _padLevels.length) zip global._padLevels foreach (x => _padLevels(x._1) = x._2)
+        global._padLevels.copyToArray(_padLevels)
         _trigGain = global.trigGain
         _prgChgRcvChn = global.prgChgRcvChn
         _displayAngle = global.displayAngle
@@ -125,13 +125,13 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _ttMeter = global.ttMeter
         _hearSoundStatus = global.hearSoundStatus
         //_unused1 is left to the concrete class
-        (0 to _thresholdManual.length - 1) zip global._thresholdManual foreach (x => _thresholdManual(x._1) = x._2)
-        (0 to _unused2.length - 1) zip global._unused2 foreach (x => _unused2(x._1) = x._2)
-        (0 to _thresholdActual.length - 1) zip global._thresholdActual foreach (x => _thresholdActual(x._1) = x._2)
-        (0 to _unused3.length - 1) zip global._unused3 foreach (x => _unused3(x._1) = x._2)
-        (0 to _userMargin.length - 1) zip global._userMargin foreach (x => _userMargin(x._1) = x._2)
-        (0 to _unused4.length - 1) zip global._unused4 foreach (x => _unused4(x._1) = x._2)
-        (0 to _internalMargin.length - 1) zip global._internalMargin foreach (x => _internalMargin(x._1) = x._2)
+        global._userMargin.copyToArray(_userMargin)
+        global._unused2.copyToArray(_unused2)
+        global._internalMargin.copyToArray(_internalMargin)
+        global._unused3.copyToArray(_unused3)
+        global._thresholdManual.copyToArray(_thresholdManual)
+        global._unused4.copyToArray(_unused4)
+        global._thresholdActual.copyToArray(_thresholdActual)
     }
 
     def deserialize(in: FileInputStream): Unit = {

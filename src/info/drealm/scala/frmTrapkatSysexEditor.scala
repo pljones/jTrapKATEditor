@@ -29,12 +29,16 @@ import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
 import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
+import info.drealm.scala.updateTool._
 
 object frmTrapkatSysexEditor extends MainFrame {
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
-        prefs.currentWorkingDirectory = if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile() else jTrapKATEditor.currentFile.getCanonicalFile()
+        prefs.currentWorkingDirectory =
+            if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
+            else if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile.getCanonicalFile()
+            else windowsHacks.getHome
         jTrapKATEditor.exitClose
     }
 
@@ -126,7 +130,7 @@ object frmTrapkatSysexEditor extends MainFrame {
                 case "NewV3" => jTrapKATEditor.reinitV3
                 case "NewV4" => jTrapKATEditor.reinitV4
                 case "Open" => try {
-                    OpenFileChooser.selectedFile = new java.io.File((if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParent() else jTrapKATEditor.currentFile.getCanonicalPath()) + "/.")
+                    OpenFileChooser.selectedFile = if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile() else jTrapKATEditor.currentFile
                     OpenFileChooser.file match {
                         case Some(file) => jTrapKATEditor.openFile(file)
                         case None       => {}

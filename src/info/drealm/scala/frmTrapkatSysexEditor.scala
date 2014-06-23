@@ -28,7 +28,7 @@ import swing._
 import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 import info.drealm.scala.updateTool._
 
 object frmTrapkatSysexEditor extends MainFrame {
@@ -44,7 +44,7 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     iconImage = toolkit.getImage("resources/tk_wild2-sq.png")
     resizable = false
-    title = "TrapKAT SysEx Editor"
+    title = L.G("ApplicationProductName")
     bounds = new Rectangle(100, 100, 880, 516)
 
     menuBar = jTrapKATEditorMenuBar
@@ -53,8 +53,8 @@ object frmTrapkatSysexEditor extends MainFrame {
 
         name = "tpnMain"
 
-        pages += new TabbedPane.Page("Kits & Pads", pnKitsPads) { name = "tpKitsPads" }
-        pages += new TabbedPane.Page("Global", pnGlobal) { name = "tpGlobal" }
+        pages += new TabbedPane.Page(L.G("tpKitsPads"), pnKitsPads) { name = "tpKitsPads" }
+        pages += new TabbedPane.Page(L.G("tpGlobal"), pnGlobal) { name = "tpGlobal" }
 
         listenTo(selection)
         listenTo(pnKitsPads)
@@ -109,7 +109,7 @@ object frmTrapkatSysexEditor extends MainFrame {
 
         contents += (tpnMain, "cell 0 0,grow")
 
-        contents += (new Label("MIDI OX SysEx Transmit: 512 bytes, 8 buffers, 160ms between buffers, 320ms after F7"), "cell 0 1,alignx center")
+        contents += (new Label(L.G("lbMIDIOX")), "cell 0 1,alignx center")
 
     }
 
@@ -133,7 +133,7 @@ object frmTrapkatSysexEditor extends MainFrame {
                 }
                 catch {
                     case ex: IllegalArgumentException => {
-                        Dialog.showMessage(null, ex.getLocalizedMessage(), "Invalid Sysex file", Dialog.Message.Error, null)
+                        Dialog.showMessage(null, ex.getLocalizedMessage(), L.G("InvalidSysexFile"), Dialog.Message.Error, null)
                     }
                 }
                 case save if save.startsWith("Save") => {
@@ -287,5 +287,11 @@ object frmTrapkatSysexEditor extends MainFrame {
     }
 
     private[this] def jTrapKATEditor_AllMemoryChanged = {
+        title = L.G("MainProgramTitle",
+            L.G("ApplicationProductName"),
+            if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
+            if (jTrapKATEditor.currentAllMemory.isInstanceOf[model.AllMemoryV3]) L.G("V3") else L.G("V4"),
+            if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
+        )
     }
 }

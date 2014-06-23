@@ -21,9 +21,10 @@
  ****************************************************************************/
 
 package info.drealm.scala
+import info.drealm.scala.{ Localization => L }
 
 object GateTime {
-    val gateSelection = Seq("Latch mode", "Infinite", "Roll mode")
+    val gateSelection = L.G("GateTime").split("\n").toSeq
 
     /*
      * Minor rant time.
@@ -107,5 +108,5 @@ class GateTimeComboBox(name: String, label: swing.Label) extends RichComboBox[St
     makeEditable()
     editorPeer.setInputVerifier(GateTime.verifier)
     selection.index = -1
-    selection.item = "0.115"
+    selection.item = 0.115f.toString()
 }

@@ -7,27 +7,25 @@ import info.drealm.scala.migPanel._
 import info.drealm.scala.spinner._
 import info.drealm.scala.eventX._
 import info.drealm.scala.layout._
+import info.drealm.scala.{ Localization => L }
 
 object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     name = "pnKitsPads"
 
     private[this] val allPads = (1 to 28) map (x => x match {
-        case 25 => "Bass"
-        case 26 => "Chick"
-        case 27 => "Splash"
-        case 28 => "B/C"
+        case 25 => L.G("lbBass")
+        case 26 => L.G("lbChick")
+        case 27 => L.G("lbSplash")
+        case 28 => L.G("lbBC")
         case _  => x
     })
     private[this] val padNames = allPads map (x => "cbxPad" + x)
     private[this] val slotNames = (2 to 16) map (x => "cbxSlot" + x)
     private[this] val padSlotNames = padNames ++ slotNames
 
-    private[this] val padCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7", "Curve 8",
-        "2nd Note @ Hardest", "2nd Note @ Hard", "2nd Note @ Medium", "2nd Note @ Soft", "2 Note Layer",
-        "Xfade @ Middle", "Xswitch @ Middle", "1@Medium;3@Hardest", "2@Medium;3@Hard", "2Double 1;3Medium",
-        "3 Note Layer", "4 Note VelShift", "4 Note Layer", "Alternating", "Control + 3 Notes")
-    private[this] val fcFunctions = Seq("Off", "CC#01 (Mod Wheel)", "CC#04 (F/C 0..64)", "CC#04 (F/C 0..127)", "Hat Note")
-    private[this] val fcCurves = Seq("Curve 1", "Curve 2", "Curve 3", "Curve 4", "Curve 5", "Curve 6", "Curve 7")
+    private[this] val padCurves = CurveV4.curveSelection //TODO: move all curve stuff
+    private[this] val fcFunctions = L.G("fcFunctions").split("\n").toSeq
+    private[this] val fcCurves = L.G("fcCurves").split("\n").toSeq
 
     private[this] object pnKitsPadsTop extends MigPanel("insets 0", "[grow]", "[][][grow]") {
         name = "pnKitsPadsTop"
@@ -35,8 +33,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill][][][]", "[]") {
             name = "pnSelector"
 
-            private[this] val lblSelectKit = new Label("Select Kit:") { peer.setDisplayedMnemonic('K') }
-            private[this] val cbxSelectKit = new RichComboBox((1 to 24) map (x => x + ". New Kit"), "cbxSelectKit", lblSelectKit) {
+            private[this] val lblSelectKit = new Label(L.G("lblSelectKit")) { peer.setDisplayedMnemonic(L.G("mneSelectKit").charAt(0)) }
+            private[this] val cbxSelectKit = new RichComboBox((1 to 24) map (x => x + ": New kit"), "cbxSelectKit", lblSelectKit) {
                 peer.setMaximumRowCount(24)
                 prototypeDisplayValue = Some("WWWWWWWWWWWW")
                 var currentKit = -1
@@ -50,14 +48,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
             }
-            private[this] val lblKitEdited = new Label("Edited")
-            private[this] val lblKitName = new Label("Name:")
+            private[this] val lblKitEdited = new Label(L.G("lbbXEdited"))
+            private[this] val lblKitName = new Label(L.G("lblKitName"))
             private[this] val txtKitName = new TextField {
                 name = "txtKitName"
                 columns = 16
                 lblKitName.peer.setLabelFor(peer)
             }
-            private[this] val lblSelectPad = new Label("Select Pad:") { peer.setDisplayedMnemonic('P') }
+            private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic('P') }
             private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox(allPads, "cbxSelectPad", lblSelectPad) {
                 prototypeDisplayValue = Some("88 mmmm")
                 peer.setMaximumRowCount(allPads.length)
@@ -72,7 +70,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
             }
-            private[this] val lblPadEdited = new Label("Edited")
+            private[this] val lblPadEdited = new Label(L.G("lbbXEdited"))
 
             contents += (lblSelectKit, "cell 0 0,alignx right")
             contents += (cbxSelectKit, "cell 1 0")

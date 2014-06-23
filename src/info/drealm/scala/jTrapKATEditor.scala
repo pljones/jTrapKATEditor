@@ -28,7 +28,7 @@ import javax.swing.UIManager
 import swing._
 import swing.event._
 import info.drealm.scala.eventX._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 
 object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     val ui = UIManager.getSystemLookAndFeelClassName()
@@ -77,30 +77,30 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         }
 
         dump match {
-            case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory") => {
+            case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
                 _currentAllMemory = allMemoryV3Dump.self
                 publish(new AllMemoryChanged)
             }
-            case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory") => {
+            case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
                 _currentAllMemory = allMemoryV4Dump.self
                 publish(new AllMemoryChanged)
             }
-            case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, "Global memory") => {
+            case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 if (_currentAllMemory.isInstanceOf[model.AllMemoryV3]) {
                     _currentAllMemory.global = globalV3Dump.self
                     publish(new GlobalChanged)
                 }
-                else if (frmTrapkatSysexEditor.okayToConvert("Global dump", "V3", "V4")) {
+                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
                     _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
                     publish(new GlobalChanged)
                 }
             }
-            case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, "Global memory") => {
+            case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 if (_currentAllMemory.isInstanceOf[model.AllMemoryV4]) {
                     _currentAllMemory.global = globalV4Dump.self
                     publish(new GlobalChanged)
                 }
-                else if (frmTrapkatSysexEditor.okayToConvert("Global dump", "V4", "V3")) {
+                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
                     _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
                     publish(new GlobalChanged)
                 }
@@ -114,7 +114,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                         publish(new KitChanged)
                     }
                 }
-                else if (frmTrapkatSysexEditor.okayToConvert("Kit dump", "V3", "V4")) {
+                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) {
                     if (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV3Dump.auxType, kitV3Dump.self.kitName)) {
                         _currentAllMemory(_currentKit) = new model.KitV4(kitV3Dump.self)
                         publish(new KitChanged)
@@ -130,7 +130,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                     _currentAllMemory(_currentKit) = kitV4Dump.self
                     publish(new KitChanged)
                 }
-                else if (frmTrapkatSysexEditor.okayToConvert("Kit dump", "V4", "V3") &&
+                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")) &&
                     (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
                     _currentAllMemory(_currentKit) = new model.KitV3(kitV4Dump.self)
                     publish(new KitChanged)
@@ -149,11 +149,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             case model.DumpType.Global    => _save(_currentType != thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new GlobalChanged)
             case model.DumpType.Kit       => _save(_currentType != thing && _currentAllMemory(_currentKit).changed, file, _currentAllMemory(_currentKit), thing, new KitChanged)
             case unknown =>
-                throw new IllegalArgumentException(f"Do not ask to save ${unknown} as it is unknown.")
+                throw new IllegalArgumentException(s"Do not ask to save ${unknown} as it is unknown.")
         }
     }
 
-    def exitClose() = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, "AllMemory")) quit
+    def exitClose() = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) quit
 
     private[this] def _save(makeChanged: Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: Event) = {
         model.TrapKATSysexDump.toFile(file, thing)

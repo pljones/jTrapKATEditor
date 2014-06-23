@@ -26,9 +26,10 @@ import javax.swing.{ JComponent, JComboBox, JTextField, InputVerifier }
 import scala.swing._
 import swing.event._
 import info.drealm.scala.migPanel._
+import info.drealm.scala.{ Localization => L }
 
 object PadSlot extends Publisher {
-    val padFunction = Seq("Off", "Seq start", "Seq stop", "Seq cont", "Alt reset", "Next kit", "Prev kit")
+    val padFunction = L.G("PadSlot").split("\n").toSeq
 
     object DisplayMode extends Enumeration {
         type DisplayMode = Value
@@ -41,7 +42,6 @@ object PadSlot extends Publisher {
     def displayMode: DisplayMode = _displayMode
     def displayMode_=(value: DisplayMode): Unit = {
         val oldMode = _displayMode
-        Console.println("PadSlot displayMode -> " + value)
         _displayMode = value
         publish(new eventX.DisplayNotesAs(oldMode, _displayMode))
     }
@@ -192,7 +192,6 @@ class PadSlotComboBox(name: String, label: swing.Label) extends RichComboBox[Str
                 case PadSlot.DisplayMode.AsNamesC3 => PadSlot.toNameC3(oldVal)
                 case PadSlot.DisplayMode.AsNamesC4 => PadSlot.toNameC4(oldVal)
             }
-            Console.println(f"PadSlotComboBox $name  eventX.DisplayNotesAs ${e.oldMode} -> ${e.newMode} (edit: ${editorPeer.getText()}). oldVal=$oldVal -> newVal=$newVal")
             editorPeer.setText(newVal)
             selection.item = newVal
         }

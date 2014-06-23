@@ -199,8 +199,8 @@ object frmTrapkatSysexEditor extends MainFrame {
         case mie: HelpMenuEvent => {
             mie.source.name.stripPrefix("miHelp") match {
                 case "Contents"           => Console.println("Help Contents")
-                case "CheckForUpdate"     => Console.println("Help CheckForUpdate")
-                case "CheckAutomatically" => Console.println("Help CheckAutomatically")
+                case "CheckForUpdate"     => Checker.getUpdate()
+                case "CheckAutomatically" => prefs.updateAutomatically = if (mie.source.selected) Checker.AutoUpdateMode.Automatically else Checker.AutoUpdateMode.Off
                 case "About"              => Console.println("Help About")
                 case otherwise => {
                     Console.println("Help event " + mie.source.name)
@@ -271,9 +271,8 @@ object frmTrapkatSysexEditor extends MainFrame {
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
     private[this] def windowOpened = {
-        if (prefs.updateAutomatically) {
-            // call the update checker
-        }
+        Checker.autoUpdateMode = prefs.updateAutomatically
+        Checker.dailyCheck
         PadSlot.displayMode = prefs.notesAs
     }
 

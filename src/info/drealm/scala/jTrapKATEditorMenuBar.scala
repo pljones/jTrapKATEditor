@@ -26,7 +26,6 @@ package info.drealm.scala
 
 import java.awt.event.{ InputEvent, KeyEvent }
 import javax.swing.KeyStroke
-
 import swing._
 import swing.event._
 
@@ -191,7 +190,11 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new CheckMenuItem("Check Automatically") {
             name = "miHelpCheckAutomatically"
-            reactions += { case ButtonClicked(_) => menuItemEventCallback(this) }
+            listenTo(updateTool.Checker)
+            reactions += {
+                case e: updateTool.Checker.AutoUpdateModeChanged => selected = e.newMode == updateTool.Checker.AutoUpdateMode.Automatically
+                case ButtonClicked(_)                            => menuItemEventCallback(this)
+            }
         }
 
         contents += new Separator()

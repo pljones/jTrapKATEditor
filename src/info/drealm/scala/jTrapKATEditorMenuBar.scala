@@ -28,6 +28,7 @@ import java.awt.event.{ InputEvent, KeyEvent }
 import javax.swing.KeyStroke
 import swing._
 import swing.event._
+import info.drealm.scala.{ Localization => L }
 
 object jTrapKATEditorMenuBar extends MenuBar {
     def menuEventCallback(source: Menu, action: eventX.MenuEvent.Action) = {
@@ -35,7 +36,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         publish(new eventX.MenuEvent(source, action))
         listenTo(this)
     }
-    class RichMenu(title: String) extends Menu(title) {
+    class RichMenu(override val name: String) extends Menu(L.G(name)) {
 
         reactions += {
             case e: eventX.MenuCanceled   => menuEventCallback(e.source, eventX.MenuEvent.Canceled)
@@ -66,24 +67,21 @@ object jTrapKATEditorMenuBar extends MenuBar {
             case otherwise                              => {}
         }
     }
-    class RichMenuItem(private val _title: String,
-                       private val _name: String,
+    class RichMenuItem(override val name: String,
                        private val _accelerator: Option[KeyStroke],
                        private val _mnemonic: Option[event.Key.Value])
-        extends MenuItem(_title) {
+        extends MenuItem(L.G(name)) {
 
-        def this(title: String, name: String) = this(title, name, None, None)
-        def this(title: String, name: String, mnemonic: event.Key.Value) = this(title, name, None, Some(mnemonic))
-        def this(title: String, name: String, accelerator: KeyStroke) = this(title, name, Some(accelerator), None)
-        def this(title: String, name: String, mnemonic: event.Key.Value, accelerator: KeyStroke) = this(title, name, Some(accelerator), Some(mnemonic))
-        def this(title: String, name: String, accelerator: KeyStroke, mnemonic: event.Key.Value) = this(title, name, Some(accelerator), Some(mnemonic))
+        def this(name: String) = this(name, None, None)
+        def this(name: String, mnemonic: event.Key.Value) = this(name, None, Some(mnemonic))
+        def this(name: String, accelerator: KeyStroke) = this(name, Some(accelerator), None)
+        def this(name: String, mnemonic: event.Key.Value, accelerator: KeyStroke) = this(name, Some(accelerator), Some(mnemonic))
+        def this(name: String, accelerator: KeyStroke, mnemonic: event.Key.Value) = this(name, Some(accelerator), Some(mnemonic))
 
         reactions += { case e: ButtonClicked => menuItemEventCallback(e.source.asInstanceOf[MenuItem]) }
 
-        name = _name
-
         _accelerator match {
-            case Some(a) => action = new Action(_title) {
+            case Some(a) => action = new Action(L.G(name)) {
                 accelerator = Some(a)
                 override def apply = {}
             }
@@ -96,70 +94,64 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
     }
 
-    object mnFile extends RichMenu("File") {
-        name = "mnFile"
+    object mnFile extends RichMenu("mnFile") {
         mnemonic = Key.F
 
-        contents += new RichMenuItem("New (V3)", "miFileNewV3", Key.Key3, KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_MASK))
-        contents += new RichMenuItem("New (V4)", "miFileNewV4", Key.Key4, KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.CTRL_MASK))
-        contents += new RichMenuItem("Open...", "miFileOpen", Key.O, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miFileNewV3", Key.Key3, KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miFileNewV4", Key.Key4, KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miFileOpen", Key.O, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK))
 
         contents += new Separator()
 
-        contents += new RichMenuItem("Save All Memory", "miFileSaveAllMemory", Key.S, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK))
-        contents += new RichMenuItem("Save All Memory As...", "miFileSaveAllMemoryAs")
-        contents += new RichMenuItem("Save Global Memory", "miFileSaveGlobalMemory")
-        contents += new RichMenuItem("Save Global Memory As...", "miFileSaveGlobalMemoryAs")
-        contents += new RichMenuItem("Save Current Kit", "miFileSaveCurrentKit")
-        contents += new RichMenuItem("Save Current Kit As...", "miFileSaveCurrentKitAs")
+        contents += new RichMenuItem("miFileSaveAllMemory", Key.S, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miFileSaveAllMemoryAs")
+        contents += new RichMenuItem("miFileSaveGlobalMemory")
+        contents += new RichMenuItem("miFileSaveGlobalMemoryAs")
+        contents += new RichMenuItem("miFileSaveCurrentKit")
+        contents += new RichMenuItem("miFileSaveCurrentKitAs")
 
         contents += new Separator()
 
-        contents += new RichMenuItem("Close", "miFileClose", Key.C, KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miFileClose", Key.C, KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK))
 
         contents += new Separator()
 
-        contents += new RichMenuItem("Exit", "miFileExit", Key.X, KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miFileExit", Key.X, KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK))
     }
 
-    object mnEdit extends RichMenu("Edit") {
-        name = "mnEdit"
+    object mnEdit extends RichMenu("mnEdit") {
         mnemonic = Key.E
 
-        contents += new RichMenuItem("Undo", "miEditUndo", KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK)) { visible = false }
-        contents += new RichMenuItem("Redo", "miEditRedo", KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_MASK)) { visible = false }
+        contents += new RichMenuItem("miEditUndo", KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK)) { visible = false }
+        contents += new RichMenuItem("miEditRedo", KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_MASK)) { visible = false }
 
         contents += new Separator() { visible = false }
 
-        contents += new RichMenuItem("Copy Kit...", "miEditCopyKit")
-        contents += new RichMenuItem("Swap Kits...", "miEditSwapKits")
+        contents += new RichMenuItem("miEditCopyKit")
+        contents += new RichMenuItem("miEditSwapKits")
 
         contents += new Separator()
 
-        contents += new RichMenuItem("Copy Pad", "miEditCopyPad", Key.C, KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK))
-        contents += new RichMenuItem("Paste Pad", "miEditPastePad", Key.P, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK))
-        contents += new RichMenuItem("Swap Pads", "miEditSwapPads", KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miEditCopyPad", Key.C, KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miEditPastePad", Key.P, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK))
+        contents += new RichMenuItem("miEditSwapPads", KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_MASK))
 
     }
 
-    object mnTools extends RichMenu("Tools") {
-        name = "mnTools"
+    object mnTools extends RichMenu("mnTools") {
         mnemonic = Key.T
 
-        contents += new RichMenu("Options") {
-            name = "mnToolsOptions"
+        contents += new RichMenu("mnToolsOptions") {
             mnemonic = Key.O
 
-            contents += new RichMenu("Display MIDI Notes") {
-                name = "mnToolsOptionsDMN"
+            contents += new RichMenu("mnToolsOptionsDMN") {
 
                 import PadSlot.DisplayMode._
 
                 private[this] val bgTODMN = new ButtonGroup();
 
-                class DisplayModeMenuItem(displayMode: DisplayMode, val nameSuffix: String, text: String)
-                    extends RadioMenuItem(text) {
-                    name = "miToolsOptionsDMN" + nameSuffix
+                class DisplayModeMenuItem(displayMode: DisplayMode, val nameSuffix: String)
+                    extends RadioMenuItem(L.G("miToolsOptionsDMN" + nameSuffix)) {
                     listenTo(PadSlot)
                     bgTODMN.buttons.add(this)
                     reactions += {
@@ -168,27 +160,25 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     }
                 }
 
-                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers", "As Numbers")
-                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3", "As Names (60=C3)")
-                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4", "As Names (60=C4)")
+                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers")
+                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3")
+                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4")
             }
         }
 
-        contents += new RichMenuItem("Convert...", "miToolsConvert", Key.C)
+        contents += new RichMenuItem("miToolsConvert", Key.C)
     }
 
-    object mnHelp extends RichMenu("Help") {
-
-        name = "mnHelp"
+    object mnHelp extends RichMenu("mnHelp") {
         mnemonic = Key.H
 
-        contents += new RichMenuItem("Contents...", "miHelpContents", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))
+        contents += new RichMenuItem("miHelpContents", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))
 
         contents += new Separator()
 
-        contents += new RichMenuItem("Check For Update...", "miHelpCheckForUpdate", Key.C)
+        contents += new RichMenuItem("miHelpCheckForUpdate", Key.C)
 
-        contents += new CheckMenuItem("Check Automatically") {
+        contents += new CheckMenuItem(L.G("miHelpCheckAutomatically")) {
             name = "miHelpCheckAutomatically"
             listenTo(updateTool.Checker)
             reactions += {
@@ -199,7 +189,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        contents += new RichMenuItem("About...", "miHelpAbout", Key.A)
+        contents += new RichMenuItem("miHelpAbout", Key.A)
     }
 
     contents += mnFile

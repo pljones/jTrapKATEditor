@@ -19,8 +19,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         case 28 => L.G("lbBC")
         case _  => x
     })
-    private[this] val padNames = allPads map (x => "cbxPad" + x)
-    private[this] val slotNames = (2 to 16) map (x => "cbxSlot" + x)
+    private[this] val padNames = allPads map (x => s"cbxPad${x}")
+    private[this] val slotNames = (2 to 16) map (x => s"cbxSlot${x}")
     private[this] val padSlotNames = padNames ++ slotNames
 
     private[this] val padCurves = CurveV4.curveSelection //TODO: move all curve stuff
@@ -55,7 +55,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 columns = 16
                 lblKitName.peer.setLabelFor(peer)
             }
-            private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic('P') }
+            private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
             private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox(allPads, "cbxSelectPad", lblSelectPad) {
                 prototypeDisplayValue = Some("88 mmmm")
                 peer.setMaximumRowCount(allPads.length)
@@ -116,8 +116,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 );
                 col <- (0 to 7) zip row._2;
                 if col._2 != 0
-            } yield ("cell " + col._1 + " " + row._1, col._2)) foreach { pad =>
-                val pn = new Pad("" + pad._2) { background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250) }
+            } yield (s"cell ${col._1} ${row._1}", col._2)) foreach { pad =>
+                val pn = new Pad(s"${pad._2}") { background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250) }
                 contents += (pn, pad._1 + ",grow")
                 listenTo(pn)
                 pn
@@ -136,14 +136,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, 1 to 24 map { n => "cbxPad" + n }))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, 1 to 24 map { n => s"cbxPad${n}" }))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
         private[this] object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][grow,fill][][][grow,trailing]", "[]") {
             name = "pnPedals"
 
-            Seq(("cell 1 0", "Bass"), ("cell 2 0", "Chick"), ("cell 6 0", "Splash"), ("cell 7 0", "B/C")) foreach (pad => {
+            Seq(("cell 1 0", L.G("lbBass")), ("cell 2 0", L.G("lbChick")), ("cell 6 0", L.G("lbSplash")), ("cell 7 0", L.G("lbBC"))) foreach (pad => {
                 val pn = new Pad(pad._2) { background = new Color(228, 228, 228) }
                 contents += (pn, pad._1 + ",gapx 1, pad 0 -1 0 1,grow")
                 listenTo(pn)
@@ -154,11 +154,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnHH"
                 border = new LineBorder(java.awt.Color.BLACK)
 
-                private[this] val lblHH = new Label("Hihat Pads:") { peer.setDisplayedMnemonic('d') }
+                private[this] val lblHH = new Label(L.G("lblHH")) { peer.setDisplayedMnemonic(L.G("mneHH").charAt(0)) }
                 contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
                 (1 to 4) foreach { x =>
-                    val cbxHH = new RichComboBox(Seq("Off") ++ (1 to 24), "cbxHH" + x, if (x == 1) lblHH else null) { peer.setMaximumRowCount(25) }
-                    contents += (cbxHH, "cell " + x + " 0, grow")
+                    val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ (1 to 24), s"cbxHH${x}", if (x == 1) lblHH else null) { peer.setMaximumRowCount(25) }
+                    contents += (cbxHH, s"cell ${x} 0, grow")
                     listenTo(cbxHH.selection)
                 }
 
@@ -221,9 +221,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             case e: CbxEditorFocused => {
                 // This is a bit gruesome, too.
                 // I guess I could publish and subscribe... bah...
-                if (padNames.indexOf(e.source.name) >= 0)
-                    pnSelector.cbxSelectPad.selection.index = padNames.indexOf(e.source.name)
-                else {}
+                padNames.indexOf(e.source.name) match {
+                    case i if i >= 0 => pnSelector.cbxSelectPad.selection.index = i
+                    case _           => {}
+                }
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -242,12 +243,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] object pnPadDetails extends MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]") {
             name = "pnPadDetails"
 
-            contents += (new Label("Slots:"), "cell 0 0")
+            contents += (new Label(L.G("lblSlots")), "cell 0 0")
 
             (2 to 6) map { slot => new Slot(slot) } foreach { s =>
                 {
-                    contents += (s._2, "cell 1 " + (s._1 - 2) + ",alignx right")
-                    contents += (s._3, "cell 2 " + (s._1 - 2) + ",gapy 2,grow")
+                    contents += (s._2, s"cell 1 ${s._1 - 2},alignx right")
+                    contents += (s._3, s"cell 2 ${s._1 - 2},gapy 2,grow")
                     listenTo(s._3.selection)
                     listenTo(s._3)
                     s._3
@@ -258,7 +259,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnLinkTo"
 
                 private[this] object CbxLinkTo {
-                    private[this] val model = Seq("Off") ++ allPads
+                    private[this] val model = Seq(L.G("cbxLinkToOff")) ++ allPads
                     def items(pad: Int) = if (pad < 0 || pad >= model.length) Seq() else model.take(pad + 1) ++ model.drop(pad + 2)
                 }
                 private[this] class CbxLinkTo(private[this] val pad: Int) extends RichComboBox(CbxLinkTo.items(pad), "cbxLinkTo", lblLinkTo) {
@@ -276,7 +277,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
                 private[pnPadDetails] class ReplaceCbxLinkTo(val pad: Int) extends Event
 
-                private[this] val lblLinkTo = new Label("Link To:") { peer.setDisplayedMnemonic('L') }
+                private[this] val lblLinkTo = new Label(L.G("lblLinkTo")) { peer.setDisplayedMnemonic(L.G("mneLinkTo").charAt(0)) }
                 private[this] val cbxLinkTo = new CbxLinkTo(-1)
 
                 contents += (lblLinkTo, "cell 0 0")
@@ -312,18 +313,21 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center")
             listenTo(pnLinkTo)
 
-            Seq((0, "Curve", padCurves, false), (1, "Gate", GateTime.gateSelection, true)) foreach { x =>
-                val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._2.head) }
-                val cbx = if (x._4) new GateTimeComboBox("cbxPad" + x._2, lbl) else new RichComboBox(x._3, "cbxPad" + x._2, lbl)
+            val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
+            val cbxPadCurve = new RichComboBox(padCurves, "cbxPadCurve", lblPadCurve)
+            contents += (lblPadCurve, "cell 4 0,alignx right")
+            contents += (cbxPadCurve, "cell 5 0")
+            listenTo(cbxPadCurve.selection)
+            listenTo(cbxPadCurve)
 
-                contents += (lbl, "cell 4 " + x._1 + ",alignx right")
-                contents += (cbx, "cell 5 " + x._1)
+            val lblPadGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mnePadGate").charAt(0)) }
+            val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate)
+            contents += (lblPadGate, "cell 4 1,alignx right")
+            contents += (cbxPadGate, "cell 5 1")
+            listenTo(cbxPadGate.selection)
+            listenTo(cbxPadGate)
 
-                listenTo(cbx.selection)
-                listenTo(cbx)
-            }
-
-            private[this] val lblPadChannel = new Label("Channel:") { peer.setDisplayedMnemonic('n') }
+            private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
             private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel)
             contents += (lblPadChannel, "cell 4 2,alignx right")
             contents += (spnPadChannel, "cell 5 2")
@@ -333,13 +337,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnPadVelocity"
                 background = new Color(228, 228, 228)
 
-                contents += (new Label("Velocity"), "cell 0 0 2 1,alignx center")
+                contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
                 Seq((0, "Min"), (1, "Max")) foreach { x =>
-                    val lbl = new Label(x._2)
-                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), "spnPadVel" + x._2, lbl)
-                    contents += (lbl, "cell " + x._1 + " 1,alignx center")
-                    contents += (spn, "cell " + x._1 + " 2")
+                    val lbl = new Label(L.G(s"lbl${x._2}"))
+                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnPadVel${x._2}", lbl)
+                    contents += (lbl, s"cell ${x._1} 1,alignx center")
+                    contents += (spn, s"cell ${x._1} 2")
                     listenTo(spn)
                 }
 
@@ -357,16 +361,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val pnFlags: MigPanel = new MigPanel("insets 0, gap 0", "[][][][][][][][]", "[][][]") {
                 name = "pnFlags"
 
-                contents += (new Label("Flags"), "cell 0 0 9 1,alignx center")
+                contents += (new Label(L.G("lblFlags")), "cell 0 0 9 1,alignx center")
 
                 (7 to 0 by -1) foreach { flag =>
-                    val ckbFlag = new CheckBox("" + flag) {
-                        name = "ckbFlag" + flag
+                    val ckbFlag = new CheckBox(s"${flag}") {
+                        name = s"ckbFlag${flag}"
                         margin = new Insets(0, 0, 0, 0)
                         horizontalTextPosition = Alignment.Center
                         verticalTextPosition = Alignment.Top
                     }
-                    contents += (ckbFlag, "cell " + (8 - flag) + " 1 1 2,alignx center")
+                    contents += (ckbFlag, s"cell ${8 - flag} 1 1 2,alignx center")
                     listenTo(ckbFlag)
                 }
 
@@ -384,15 +388,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val pnGlobalPadDynamics = new MigPanel("insets 0,gapx 2, gapy 0", "[4px:n][][][4px:n][][][4px:n][][][4px:n]", "[4px:n][][][4px:n]") {
                 name = "pnGlobalPadDynamics"
-                border = new TitledBorder("Global Pad Dynamics")
+                border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
-                Seq((0, 0, "lowLevel", "Low Dyn"), (1, 0, "thresholdManual", "Threshold"), (2, 0, "thresholdActual", "thresholdActual"),
-                    (0, 1, "highLevel", "High Dyn"), (1, 1, "internalMargin", "Pad Idle"), (2, 1, "userMargin", "userMargin")) foreach (tuple => {
-                        val lbl = new Label(tuple._4 + ":")
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, null, 255, 1), "spn" + tuple._3.capitalize, lbl)
+                Seq((0, 0, "lowLevel"), (1, 0, "thresholdManual"), (2, 0, "thresholdActual"),
+                    (0, 1, "highLevel"), (1, 1, "internalMargin"), (2, 1, "userMargin")) foreach (tuple => {
+                        val lbl = new Label(L.G(tuple._3))
+                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, null, 255, 1), s"spn${tuple._3.capitalize}", lbl)
 
-                        contents += (lbl, "cell " + (1 + 3 * tuple._1) + " " + (1 + tuple._2) + ",alignx right")
-                        contents += (spn, "cell " + (2 + 3 * tuple._1) + " " + (1 + tuple._2))
+                        contents += (lbl, s"cell ${1 + 3 * tuple._1} ${1 + tuple._2},alignx right")
+                        contents += (spn, s"cell ${2 + 3 * tuple._1} ${1 + tuple._2}")
 
                         listenTo(spn)
                     })
@@ -409,11 +413,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnGlobalPadDynamics, "cell 4 3 6 4,aligny center")
             listenTo(pnGlobalPadDynamics)
 
-            private[this] val tabOrder = (2 to 6 map { slot => "cbxSlot" + slot }) ++
+            private[this] val tabOrder = (2 to 6 map { slot => s"cbxSlot${slot}" }) ++
                 Seq("cbxLinkTo") ++
                 Seq("cbxPadCurve", "cbxPadGate", "spnPadChannel") ++
                 Seq("spnPadVelMin", "spnPadVelMax") ++
-                (7 to 0 by -1 map { flag => "ckbFlag" + flag }) ++
+                (7 to 0 by -1 map { flag => s"ckbFlag${flag}" }) ++
                 Seq("spnLowLevel", "spnHighLevel", "spnThresholdManual", "spnInternalMargin", "spnThresholdActual", "spnUserMargin")
 
             reactions += {
@@ -446,12 +450,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] val pnMoreSlots = new MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
             name = "pnMoreSlots"
 
-            contents += (new Label("Slots:"), "cell 0 0")
+            contents += (new Label(L.G("lblSlots")), "cell 0 0")
 
             (7 to 11) map { slot => new Slot(slot) } foreach { s =>
                 {
-                    contents += (s._2, "cell 1 " + (s._1 - 7) + ",alignx right")
-                    contents += (s._3, "cell 2 " + (s._1 - 7) + ",gapy 2,grow")
+                    contents += (s._2, s"cell 1 ${s._1 - 7},alignx right")
+                    contents += (s._3, s"cell 2 ${s._1 - 7},gapy 2,grow")
                     listenTo(s._3.selection)
                     listenTo(s._3)
                 }
@@ -459,8 +463,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             (12 to 16) map { slot => new Slot(slot) } foreach { s =>
                 {
-                    contents += (s._2, "cell 4 " + (s._1 - 12) + ",alignx right")
-                    contents += (s._3, "cell 5 " + (s._1 - 12) + ",gapy 2,grow")
+                    contents += (s._2, s"cell 4 ${s._1 - 12},alignx right")
+                    contents += (s._3, s"cell 5 ${s._1 - 12},gapy 2,grow")
                     listenTo(s._3.selection)
                     listenTo(s._3)
                 }
@@ -479,7 +483,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, (7 to 16) map { slot => "cbxSlot" + slot }))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, (7 to 16) map { slot => s"cbxSlot${slot}" }))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
@@ -488,17 +492,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
-            private[this] val lblKitCurve = new Label("Curve:") { peer.setDisplayedMnemonic('C') }
+            private[this] val lblKitCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mneKitCurve").charAt(0)) }
             private[this] val cbxKitCurve = new RichComboBox(padCurves, "cbxKitCurve", lblKitCurve)
-            private[this] val ckbVarCurve = new CheckBox("Various") { name = "ckbVarCurve" }
+            private[this] val ckbVarCurve = new CheckBox(L.G("lblXVarious")) { name = "ckbVarCurve" }
 
-            private[this] val lblKitGate = new Label("Gate:") { peer.setDisplayedMnemonic('G') }
+            private[this] val lblKitGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mneKitGate").charAt(0)) }
             private[this] val cbxKitGate = new GateTimeComboBox("cbxKitGate", lblKitGate)
-            private[this] val ckbVarGate = new CheckBox("Various") { name = "ckbVarGate" }
+            private[this] val ckbVarGate = new CheckBox(L.G("lblXVarious")) { name = "ckbVarGate" }
 
-            private[this] val lblKitChannel = new Label("Channel:") { peer.setDisplayedMnemonic('n') }
+            private[this] val lblKitChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mneKitChannel").charAt(0)) }
             private[this] val spnKitChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", lblKitChannel)
-            private[this] val ckbVarChannel = new CheckBox("Various") { name = "ckbVarChannel" }
+            private[this] val ckbVarChannel = new CheckBox(L.G("lblXVarious")) { name = "ckbVarChannel" }
 
             contents += (lblKitCurve, "cell 0 0,alignx right")
             contents += (cbxKitCurve, "cell 1 0")
@@ -531,19 +535,23 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             order += spnKitChannel.name
             order += ckbVarChannel.name
 
-            contents += (new Label("Foot Controller"), "cell 0 3 2 1, alignx center, aligny bottom")
+            contents += (new Label(L.G("lblFootController")), "cell 0 3 2 1, alignx center, aligny bottom")
 
-            Seq((4, "Function", fcFunctions, 'o', ""), (6, "Curve", fcCurves, 'v', ",growx")) foreach { x =>
-                val lbl = new Label(x._2 + ":") { peer.setDisplayedMnemonic(x._4) }
-                val cbx = new RichComboBox(x._3, "cbxFC" + x._2, lbl)
-                contents += (lbl, "cell 0 " + x._1 + ",alignx right")
-                contents += (cbx, "cell 1 " + x._1 + x._5)
-                listenTo(cbx.selection)
-            }
+            val lblFCFunction = new Label(L.G("lblFCFunction")) { peer.setDisplayedMnemonic(L.G("mneFCFunction").charAt(0)) }
+            val cbxFCFunction = new RichComboBox(fcFunctions, "cbxFCFunction", lblFCFunction)
+            contents += (lblFCFunction, "cell 0 4,alignx right")
+            contents += (cbxFCFunction, "cell 1 4")
+            listenTo(cbxFCFunction.selection)
 
-            private[this] val lblFCChannel = new Label("Channel:") { peer.setDisplayedMnemonic('l') }
+            val lblFCCurve = new Label(L.G("lblFCCurve")) { peer.setDisplayedMnemonic(L.G("mneFCCurve").charAt(0)) }
+            val cbxFCCurve = new RichComboBox(fcCurves, "cbxFCCurve", lblFCCurve)
+            contents += (lblFCCurve, "cell 0 6,alignx right")
+            contents += (cbxFCCurve, "cell 1 6,growx")
+            listenTo(cbxFCCurve.selection)
+
+            private[this] val lblFCChannel = new Label(L.G("lblFCChannel")) { peer.setDisplayedMnemonic(L.G("mneFCChannel").charAt(0)) }
             private[this] val spnFCChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", lblFCChannel)
-            private[this] val ckbAsChick = new CheckBox("Same as Chick") { name = "ckbAsChick" }
+            private[this] val ckbAsChick = new CheckBox(L.G("ckbAsChick")) { name = "ckbAsChick" }
 
             contents += (lblFCChannel, "cell 0 5,alignx right")
             contents += (spnFCChannel, "cell 1 5,spanx 2")
@@ -561,19 +569,19 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnKitVelocity"
                 background = new Color(228, 228, 228)
 
-                contents += (new Label("Velocity"), "cell 0 0 2 1,alignx center")
+                contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
                 Seq((0, "Min"), (1, "Max")) foreach { x =>
-                    val lbl = new Label(x._2)
-                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), "spnKitVel" + x._2, lbl)
-                    val ckb = new CheckBox("Var.") {
-                        name = "ckbVarVel" + x._2
+                    val lbl = new Label(L.G(s"lbl${x._2}"))
+                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnKitVel${x._2}", lbl)
+                    val ckb = new CheckBox(L.G("ckbVarVel")) {
+                        name = s"ckbVarVel${x._2}"
                         background = new Color(228, 228, 228)
                     }
 
-                    contents += (lbl, "cell " + x._1 + " 1,alignx center")
-                    contents += (spn, "cell " + x._1 + " 2")
-                    contents += (ckb, "cell " + x._1 + " 3")
+                    contents += (lbl, s"cell ${x._1} 1,alignx center")
+                    contents += (spn, s"cell ${x._1} 2")
+                    contents += (ckb, s"cell ${x._1} 3")
 
                     listenTo(spn)
                     listenTo(ckb)
@@ -602,7 +610,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val pnSoundControl = new MigPanel("insets 0,gapx 2, gapy 0", "[][]", "[]") {
                 name = "pnSoundControl"
 
-                private[this] val lblSoundControl = new Label("Sound Control:")
+                private[this] val lblSoundControl = new Label(L.G("lblSoundControl"))
                 private[this] val cbxSoundControl = new RichComboBox((1 to 4), "cbxSoundControl", lblSoundControl)
 
                 contents += (lblSoundControl, "cell 0 0,alignx right")
@@ -624,28 +632,33 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnSoundControl, "cell 6 0 7 1,center")
             listenTo(pnSoundControl)
 
-            Seq(("Volume", Some('m'), 127, 0, 127, true),
-                ("PrgChg", Some('r'), 1, 1, 128, true),
-                ("TxmChn", None, 10, 1, 16, false),
-                ("MSB", None, 0, 0, 127, true),
-                ("LSB", None, 0, 0, 127, true),
-                ("Bank", Some('B'), 0, 0, 127, true)) map { t =>
-                    val lbl = new Label(t._1) { if (t._2.isDefined) peer.setDisplayedMnemonic(t._2.get) }
-                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(t._3, t._4, t._5, 1), "spn" + t._1, lbl)
-                    val ckb = t._6 match {
+            Seq(("Volume", 127, 0, 127, true),
+                ("PrgChg", 1, 1, 128, true),
+                ("TxmChn", 10, 1, 16, false),
+                ("MSB", 0, 0, 127, true),
+                ("LSB", 0, 0, 127, true),
+                ("Bank", 0, 0, 127, true)) map { t =>
+                    val lbl = new Label(L.G(s"lbl${t._1}")) {
+                        L.G(s"mne${t._1}") match {
+                            case x if x.length != 0 => peer.setDisplayedMnemonic(x.charAt(0))
+                            case _                  => {}
+                        }
+                    }
+                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(t._2, t._3, t._4, 1), s"spn${t._1}", lbl)
+                    val ckb = t._5 match {
                         case false => None
-                        case true  => Some(new CheckBox("Off") { name = "ckb" + t._1 })
+                        case true  => Some(new CheckBox(L.G("ckbSCOff")) { name = s"ckb${t._1}" })
                     }
                     (lbl, spn, ckb)
                 } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) foreach { t =>
-                    contents += (t._1._1, "cell " + (6 + 3 * t._2._2) + " " + (1 + t._2._1) + ",alignx right")
-                    contents += (t._1._2, "cell " + (7 + 3 * t._2._2) + " " + (1 + t._2._1) + ",growx")
+                    contents += (t._1._1, s"cell ${6 + 3 * t._2._2} ${1 + t._2._1},alignx right")
+                    contents += (t._1._2, s"cell ${7 + 3 * t._2._2} ${1 + t._2._1},growx")
                     listenTo(t._1._2)
                     order += t._1._2.name
 
                     t._1._3 match {
                         case Some(ckb) => {
-                            contents += (ckb, "cell " + (8 + 3 * t._2._2) + " " + (1 + t._2._1))
+                            contents += (ckb, s"cell ${8 + 3 * t._2._2} ${1 + t._2._1}")
                             listenTo(ckb)
                             order += ckb.name
                         }

@@ -152,6 +152,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
                 class DisplayModeMenuItem(displayMode: DisplayMode, val nameSuffix: String)
                     extends RadioMenuItem(L.G("miToolsOptionsDMN" + nameSuffix)) {
+                    name = "miToolsOptionsDMN" + nameSuffix
                     listenTo(PadSlot)
                     bgTODMN.buttons.add(this)
                     reactions += {

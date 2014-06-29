@@ -100,12 +100,57 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        contents += new RichMenuItem("FileSaveAllMemory")
+        private[this] val saveAction = new Action("File Save") {
+            accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_MASK))
+            override def apply = {}
+        }
+
+        contents += new RichMenuItem("FileSaveAllMemory") {
+            listenTo(jTrapKATEditor)
+            reactions += {
+                case e: jTrapKATEditor.AllMemoryChanged => {
+                    enabled = jTrapKATEditor.currentType == model.DumpType.AllMemory &&
+                        jTrapKATEditor.currentFile.isFile() &&
+                        jTrapKATEditor.currentAllMemory.changed
+                    action = if (enabled) saveAction else Action.NoAction
+                }
+            }
+            //action = saveAction
+            enabled = false
+        }
         contents += new RichMenuItem("FileSaveAllMemoryAs")
-        contents += new RichMenuItem("FileSaveGlobalMemory")
+        contents += new RichMenuItem("FileSaveGlobalMemory") {
+            listenTo(jTrapKATEditor)
+            reactions += {
+                case e: jTrapKATEditor.GlobalChanged => {
+                    enabled = jTrapKATEditor.currentType == model.DumpType.Global &&
+                        jTrapKATEditor.currentFile.isFile() &&
+                        jTrapKATEditor.currentAllMemory.global.changed
+                    action = if (enabled) saveAction else Action.NoAction
+                }
+            }
+            enabled = false
+        }
         contents += new RichMenuItem("FileSaveGlobalMemoryAs")
-        contents += new RichMenuItem("FileSaveCurrentKit")
-        contents += new RichMenuItem("FileSaveCurrentKitAs")
+        contents += new RichMenuItem("FileSaveCurrentKit") {
+            listenTo(jTrapKATEditor)
+            reactions += {
+                case e: jTrapKATEditor.KitChanged => {
+                    enabled = jTrapKATEditor.currentType == model.DumpType.Kit &&
+                        jTrapKATEditor.currentFile.isFile() &&
+                        jTrapKATEditor.currentKit.changed
+                    action = if (enabled) saveAction else Action.NoAction
+                }
+            }
+            enabled = false
+        }
+        contents += new RichMenuItem("FileSaveCurrentKitAs") {
+            listenTo(jTrapKATEditor)
+            reactions += {
+                case e: jTrapKATEditor.KitChanged => enabled = jTrapKATEditor.currentKit != null
+            }
+            enabled = false
+        }
 
         contents += new Separator()
 

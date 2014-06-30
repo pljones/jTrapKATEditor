@@ -62,8 +62,9 @@ object frmTrapkatSysexEditor extends MainFrame {
     centerOnScreen
 
     reactions += {
-        case wo: WindowOpened                     => windowOpened
+        case wo: WindowOpened => windowOpened
         case amc: jTrapKATEditor.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
+        case amdc: eventX.DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
         case mie: FileMenuEvent => {
             mie.source.name.stripPrefix("miFile") match {
                 case "NewV3" => jTrapKATEditor.reinitV3
@@ -242,6 +243,13 @@ object frmTrapkatSysexEditor extends MainFrame {
     }
 
     private[this] def jTrapKATEditor_AllMemoryChanged = {
+        deafTo(jTrapKATEditor.currentAllMemory)
+        //...
+        listenTo(jTrapKATEditor.currentAllMemory)
+        currentAllMemory_DataChanged
+    }
+
+    private[this] def currentAllMemory_DataChanged = {
         title = L.G("MainProgramTitle",
             L.G("ApplicationProductName"),
             if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),

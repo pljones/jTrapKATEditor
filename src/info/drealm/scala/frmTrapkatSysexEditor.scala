@@ -133,7 +133,18 @@ object frmTrapkatSysexEditor extends MainFrame {
                 case "OptionsDMNAsNumbers" => notesAs(PadSlot.DisplayMode.AsNumber)
                 case "OptionsDMNAsNamesC3" => notesAs(PadSlot.DisplayMode.AsNamesC3)
                 case "OptionsDMNAsNamesC4" => notesAs(PadSlot.DisplayMode.AsNamesC4)
-                case "Convert"             => Console.println("Tools Convert")
+                case "Convert" => {
+                    def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(null,
+                        L.G("ConvertVersions", L.G(from), L.G(to)), L.G("ConvertCaption"),
+                        Dialog.Options.YesNo, Dialog.Message.Question, null) match {
+                            case Dialog.Result.Yes => converter
+                            case _                 => {}
+                        }
+                    jTrapKATEditor.currentAllMemory match {
+                        case v3: model.AllMemoryV3 => f("V3", "V4", jTrapKATEditor.convertToV4)
+                        case _                     => f("V4", "V3", jTrapKATEditor.convertToV3)
+                    }
+                }
                 case otherwise => {
                     Console.println("Tools event " + mie.source.name)
                 }

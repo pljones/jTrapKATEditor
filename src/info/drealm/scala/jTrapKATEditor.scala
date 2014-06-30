@@ -68,6 +68,22 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new AllMemoryChanged)
     }
 
+    def convertToV3: Unit = {
+        _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
+        _currentType = model.DumpType.NotSet
+        _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
+        _currentAllMemory.makeChanged
+        publish(new AllMemoryChanged)
+    }
+
+    def convertToV4: Unit = {
+        _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
+        _currentType = model.DumpType.NotSet
+        _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
+        _currentAllMemory.makeChanged
+        publish(new AllMemoryChanged)
+    }
+    
     def openFile(file: java.io.File): Unit = {
         val dump = model.TrapKATSysexDump.fromFile(file)
 

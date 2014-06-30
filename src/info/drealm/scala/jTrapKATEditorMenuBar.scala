@@ -106,9 +106,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
 
         contents += new RichMenuItem("FileSaveAllMemory") {
-            listenTo(jTrapKATEditor)
+            listenTo(jTrapKATEditor.currentAllMemory)
             reactions += {
-                case e: jTrapKATEditor.AllMemoryChanged => {
+                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory => {
                     enabled = jTrapKATEditor.currentType == model.DumpType.AllMemory &&
                         jTrapKATEditor.currentFile.isFile() &&
                         jTrapKATEditor.currentAllMemory.changed
@@ -120,9 +120,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
         contents += new RichMenuItem("FileSaveAllMemoryAs")
         contents += new RichMenuItem("FileSaveGlobalMemory") {
-            listenTo(jTrapKATEditor)
+            listenTo(jTrapKATEditor.currentAllMemory.global)
             reactions += {
-                case e: jTrapKATEditor.GlobalChanged => {
+                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory.global => {
                     enabled = jTrapKATEditor.currentType == model.DumpType.Global &&
                         jTrapKATEditor.currentFile.isFile() &&
                         jTrapKATEditor.currentAllMemory.global.changed
@@ -135,7 +135,13 @@ object jTrapKATEditorMenuBar extends MenuBar {
         contents += new RichMenuItem("FileSaveCurrentKit") {
             listenTo(jTrapKATEditor)
             reactions += {
-                case e: jTrapKATEditor.KitChanged => {
+                case kc: jTrapKATEditor.KitChanged => {
+                    jTrapKATEditor.currentKit match {
+                        case null => {}
+                        case _    => listenTo(jTrapKATEditor.currentKit)
+                    }
+                }
+                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => {
                     enabled = jTrapKATEditor.currentType == model.DumpType.Kit &&
                         jTrapKATEditor.currentFile.isFile() &&
                         jTrapKATEditor.currentKit.changed

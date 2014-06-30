@@ -45,7 +45,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     // V4 has Sound Control 1 to 4 here
     private[this] val _soundControls: Array[SoundControl] = g
     // Strictly this is an array of bytes; C# just uses String...
-    private[this] val _kitName: Array[Char] = "New kit     ".toArray
+    private[this] val _kitName: Array[Char] = "New kit     ".toCharArray()
 
     protected def from(kit: Kit[_]) = {
         _curve = kit.curve
@@ -58,7 +58,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         (0 to 3) foreach (idx => _hhPads(idx) = kit.hhPads(idx))
         _fcChannel = kit.fcChannel
         _fcCurve = kit.fcCurve
-        (0 to (_kitName.length - 1)) zip kit.kitName foreach (x => _kitName(x._1) = x._2)
+        Array.copy((kit.kitName ++ Stream.continually(' ')).take(_kitName.length).toCharArray(), 0, _kitName, 0, _kitName.length)
     }
 
     protected def _deserializeKit(in: FileInputStream): Unit

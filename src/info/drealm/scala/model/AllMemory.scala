@@ -79,7 +79,7 @@ abstract class AllMemory(k: => Int => Kit[_], kn: (Int, Kit[_]) => Unit, u: () =
 }
 
 class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory(k, kn, u, g) {
-    def this() = this(x => new KitV3, (i, x) => x.kitName = "New kit", () => new Array(540), () => new GlobalV3)
+    def this() = this(x => new KitV3, (i, x) => {}, () => new Array(540), () => new GlobalV3)
     def this(in: FileInputStream) = this(
         x => new KitV3(in),
         (i, x) => x.deserializeKitName(in),
@@ -89,7 +89,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
 }
 
 class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory(k, kn, u, g) {
-    def this() = this(x => new KitV4, (i, x) => x.kitName = "New kit", () => new Array(195), () => new GlobalV4)
+    def this() = this(x => new KitV4, (i, x) => {}, () => new Array(195), () => new GlobalV4)
     def this(in: FileInputStream) = this(
         x => new KitV4(in),
         (i, x) => x.deserializeKitName(in),

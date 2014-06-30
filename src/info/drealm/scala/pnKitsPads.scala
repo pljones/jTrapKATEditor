@@ -48,7 +48,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
             }
-            private[this] val lblKitEdited = new Label(L.G("lbbXEdited"))
+            private[this] val lblKitEdited = new Label(L.G("lbbXEdited")){
+                visible = if (jTrapKATEditor.currentKit != null) jTrapKATEditor.currentKit.changed else false
+                listenTo(cbxSelectKit)
+                reactions += {
+                    case e: KitChanged => {
+                        Console.println(s"lblKitEdited got KitChanged ${e.oldKit} -> ${e.newKit}; was visible ${visible}; will be visible ${jTrapKATEditor.currentAllMemory(e.newKit).changed}")
+                        visible = if (e.newKit >= 0) jTrapKATEditor.currentAllMemory(e.newKit).changed else false
+                    }
+                }
+            }
             private[this] val lblKitName = new Label(L.G("lblKitName"))
             private[this] val txtKitName = new TextField {
                 name = "txtKitName"

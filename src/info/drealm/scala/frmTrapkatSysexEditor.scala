@@ -49,62 +49,6 @@ object frmTrapkatSysexEditor extends MainFrame {
 
     menuBar = jTrapKATEditorMenuBar
 
-    private[this] object tpnMain extends TabbedPane {
-
-        name = "tpnMain"
-
-        pages += new TabbedPane.Page(L.G("tpKitsPads"), pnKitsPads) { name = "tpKitsPads" }
-        pages += new TabbedPane.Page(L.G("tpGlobal"), pnGlobal) { name = "tpGlobal" }
-
-        listenTo(selection)
-        listenTo(pnKitsPads)
-        listenTo(pnGlobal)
-
-        reactions += {
-            case e: TabChangeEvent => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => {
-                val tpnE = e.source.asInstanceOf[TabbedPane]
-                deafTo(this)
-                publish(new TabChangeEvent(tpnE.selection.page))
-                listenTo(this)
-            }
-            case e: KitChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: PadChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: SelectionChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: CbxEditorFocused => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: ValueChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: ButtonClicked => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-        }
-    }
-
     contents = new MigPanel("insets 3", "[grow]", "[grow, fill][bottom]") {
 
         contents += (tpnMain, "cell 0 0,grow")

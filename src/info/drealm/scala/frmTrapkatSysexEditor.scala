@@ -31,7 +31,7 @@ import info.drealm.scala.eventX._
 import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 import info.drealm.scala.updateTool._
 
-object frmTrapkatSysexEditor extends MainFrame {
+object frmTrapkatSysexEditor extends Frame {
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {

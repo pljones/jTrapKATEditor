@@ -63,118 +63,10 @@ object frmTrapkatSysexEditor extends Frame {
 
     reactions += {
         case wo: WindowOpened => windowOpened
-        case amc: eventX.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
-        case amdc: eventX.DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
-        case mie: FileMenuEvent => {
-            mie.source.name.stripPrefix("miFile") match {
-                case "NewV3" => jTrapKATEditor.reinitV3
-                case "NewV4" => jTrapKATEditor.reinitV4
-                case "Open" => try {
-                    OpenFileChooser.selectedFile = if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile() else jTrapKATEditor.currentFile
-                    OpenFileChooser.file match {
-                        case Some(file) => jTrapKATEditor.openFile(file)
-                        case None       => {}
-                    }
-                }
-                catch {
-                    case ex: IllegalArgumentException => {
-                        Dialog.showMessage(null, ex.getLocalizedMessage(), L.G("InvalidSysexFile"), Dialog.Message.Error, null)
-                    }
-                }
-                case save if save.startsWith("Save") => {
-                    save.stripPrefix("Save") match {
-                        case saveAs if saveAs.endsWith("As") => {
-                            val dumpType = saveAs.stripSuffix("As") match {
-                                case "AllMemory"    => model.DumpType.AllMemory
-                                case "GlobalMemory" => model.DumpType.Global
-                                case "CurrentKit"   => model.DumpType.Kit
-                                case _              => model.DumpType.NotSet
-                            }
-                            SaveFileChooser.selectedFile = if (dumpType == jTrapKATEditor.currentType)
-                                jTrapKATEditor.currentFile
-                            else
-                                new java.io.File(
-                                    (if (dumpType != model.DumpType.Kit)
-                                        dumpType.toString
-                                    else if (jTrapKATEditor.currentKit != null)
-                                        jTrapKATEditor.currentKit.kitName.trim()
-                                    else "CurrentKit" // should never happen
-                                    ) + ".syx")
-                            SaveFileChooser.file(dumpType.toString) match {
-                                case Some(file) => jTrapKATEditor.saveFileAs(dumpType, file)
-                                case _          => {}
-                            }
-                        }
-                        case otherwise => jTrapKATEditor.saveFileAs(jTrapKATEditor.currentType, jTrapKATEditor.currentFile)
-                    }
-                }
-                case "Close" => jTrapKATEditor.exitClose
-                case "Exit"  => jTrapKATEditor.exitClose
-                case otherwise => {
-                    Console.println("File event " + mie.source.name)
-                }
-            }
-        }
-        case mie: EditMenuEvent => {
-            mie.source.name.stripPrefix("miEdit") match {
-                case "Undo"     => Console.println("Edit Undo")
-                case "Redo"     => Console.println("Edit Redo")
-                case "CopyKit"  => Console.println("Edit CopyKit")
-                case "SwapKits" => Console.println("Edit SwapKits")
-                case "CopyPad"  => Console.println("Edit CopyPad")
-                case "PastePad" => Console.println("Edit PastePad")
-                case "SwapPads" => Console.println("Edit SwapPads")
-                case otherwise => {
-                    Console.println("Edit event " + mie.source.name)
-                }
-            }
-        }
-        case mie: ToolsMenuEvent => {
-            mie.source.name.stripPrefix("miTools") match {
-                case "OptionsDMNAsNumbers" => notesAs(PadSlot.DisplayMode.AsNumber)
-                case "OptionsDMNAsNamesC3" => notesAs(PadSlot.DisplayMode.AsNamesC3)
-                case "OptionsDMNAsNamesC4" => notesAs(PadSlot.DisplayMode.AsNamesC4)
-                case "Convert" => {
-                    def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(null,
-                        L.G("ConvertVersions", L.G(from), L.G(to)), L.G("ConvertCaption"),
-                        Dialog.Options.YesNo, Dialog.Message.Question, null) match {
-                            case Dialog.Result.Yes => converter
-                            case _                 => {}
-                        }
-                    jTrapKATEditor.currentAllMemory match {
-                        case v3: model.AllMemoryV3 => f("V3", "V4", jTrapKATEditor.convertToV4)
-                        case _                     => f("V4", "V3", jTrapKATEditor.convertToV3)
-                    }
-                }
-                case otherwise => {
-                    Console.println("Tools event " + mie.source.name)
-                }
-            }
-        }
-        case mie: HelpMenuEvent => {
-            mie.source.name.stripPrefix("miHelp") match {
-                case "Contents"           => Console.println("Help Contents")
-                case "CheckForUpdate"     => Checker.getUpdate()
-                case "CheckAutomatically" => prefs.updateAutomatically = if (mie.source.selected) Checker.AutoUpdateMode.Automatically else Checker.AutoUpdateMode.Off
-                case "About"              => Console.println("Help About")
-                case otherwise => {
-                    Console.println("Help event " + mie.source.name)
-                }
-            }
-        }
-        case mne: MenuEvent => {
-            mne.source.name.stripPrefix("mn") match {
-                case "File"            => Console.println("File menu " + mne.action)
-                case "Edit"            => Console.println("Edit menu " + mne.action)
-                case "Tools"           => Console.println("Tools menu " + mne.action)
-                case "ToolsOptions"    => Console.println("Tools Options menu " + mne.action)
-                case "ToolsOptionsDMN" => Console.println("Tools Options DMN menu " + mne.action)
-                case "Help"            => Console.println("Help menu " + mne.action)
-                case otherwise => {
-                    Console.println("MenuEvent" + mne.source.name + " action " + mne.action)
-                }
-            }
-        }
+        case amc: AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
+        case gmc: GlobalChanged => jTrapKATEditor_GlobalChanged
+        case kc: KitChanged => jTrapKATEditor_KitChanged(kc.oldKit, kc.newKit)
+        case amdc: DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
         case tpe: TabChangeEvent => {
             tpe.source.content.name.stripPrefix("pn") match {
                 case "KitsPads"   => Console.println("Main KitsPads")
@@ -186,9 +78,6 @@ object frmTrapkatSysexEditor extends Frame {
                     Console.println("TabChangeEvent " + otherwise)
                 }
             }
-        }
-        case e: KitChanged => {
-            Console.println("Kit change" + (if (e.oldKit >= 0) " from " + e.oldKit else "") + " to " + e.newKit)
         }
         case e: PadChanged => {
             Console.println("Pad change" + (if (e.oldPad >= 0) " from " + e.oldPad else "") + " to " + e.newPad)
@@ -232,21 +121,38 @@ object frmTrapkatSysexEditor extends Frame {
 
         listenTo(menuBar)
         listenTo(tpnMain)
-        //listenTo(this)
         listenTo(jTrapKATEditor)
         jTrapKATEditor_AllMemoryChanged
     }
 
-    private[this] def notesAs(displayMode: PadSlot.DisplayMode.DisplayMode) = {
+    def notesAs(displayMode: PadSlot.DisplayMode.DisplayMode) = {
         prefs.notesAs = displayMode
         PadSlot.displayMode = prefs.notesAs
     }
 
+    private[this] def jTrapKATEditor_KitChanged(oldKit: Int, newKit: Int) = {
+        if (oldKit >= 0) deafTo(jTrapKATEditor.currentAllMemory(oldKit))
+        Console.println(s"Kit change${if (oldKit >= 0) s" from ${oldKit}" else ""} to ${newKit}")
+        //TODO: port MainProgram_KitChanged... if anything to be done...
+        if (newKit >= 0) listenTo(jTrapKATEditor.currentAllMemory(newKit))
+        currentKit_DataChanged
+    }
+    
+    private[this] def currentKit_DataChanged = {
+        //TODO: port currentKit_DataChanged... if anything to be done...
+    }
+
+    private[this] def jTrapKATEditor_GlobalChanged = {
+        //TODO: port MainProgram_KitChanged... if anything to be done...
+    }
+
     private[this] def jTrapKATEditor_AllMemoryChanged = {
         deafTo(jTrapKATEditor.currentAllMemory)
-        //...
+        //TODO: port MainProgram_AllMemoryChanged... if anything to be done...
         listenTo(jTrapKATEditor.currentAllMemory)
         currentAllMemory_DataChanged
+        jTrapKATEditor_GlobalChanged
+        jTrapKATEditor_KitChanged(-1, -1)
     }
 
     private[this] def currentAllMemory_DataChanged = {

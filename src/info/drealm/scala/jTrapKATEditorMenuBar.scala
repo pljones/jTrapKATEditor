@@ -28,51 +28,40 @@ import java.awt.event.{ InputEvent, KeyEvent }
 import javax.swing.KeyStroke
 import swing._
 import swing.event._
-import info.drealm.scala.{ Localization => L }
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 
 object jTrapKATEditorMenuBar extends MenuBar {
-    def menuEventCallback(source: Menu, action: eventX.MenuEvent.Action) = {
-        deafTo(this)
-        publish(new eventX.MenuEvent(source, action))
-        listenTo(this)
-    }
     class RichMenu(_name: String) extends Menu(L.G(s"mn${_name}")) {
+
         name = s"mn${_name}"
         L.G(s"mne${_name}") match {
             case x if x == s"<<mne${_name}>>" => {}
             case mne                          => mnemonic = scala.swing.event.Key(mne.charAt(0))
         }
 
+        def add(mi: RichMenuItem) = {
+            listenTo(mi)
+            contents += mi
+        }
+
         reactions += {
-            case e: eventX.MenuCanceled   => menuEventCallback(e.source, eventX.MenuEvent.Canceled)
-            case e: eventX.MenuDeselected => menuEventCallback(e.source, eventX.MenuEvent.Deselected)
-            case e: eventX.MenuSelected   => menuEventCallback(e.source, eventX.MenuEvent.Selected)
+            case e: eventX.MenuCancelled  => Console.println(s"RichMenu traceMenu ${e.source.name} Canceled")
+            case e: eventX.MenuDeselected => Console.println(s"RichMenu traceMenu ${e.source.name} Deselected")
+            case e: eventX.MenuSelected   => Console.println(s"RichMenu traceMenu ${e.source.name} Selected")
         }
 
-        private[this] final def MenuListener(f1: javax.swing.event.MenuEvent => Unit, f2: javax.swing.event.MenuEvent => Unit, f3: javax.swing.event.MenuEvent => Unit) = new javax.swing.event.MenuListener {
-            def menuCanceled(e: javax.swing.event.MenuEvent) { f1(e) }
-            def menuDeselected(e: javax.swing.event.MenuEvent) { f2(e) }
-            def menuSelected(e: javax.swing.event.MenuEvent) { f3(e) }
-        }
-        peer.addMenuListener(MenuListener(
-            { e => publish(new eventX.MenuCanceled(this)) },
-            { e => publish(new eventX.MenuDeselected(this)) },
-            { e => publish(new eventX.MenuSelected(this)) }
-        ))
+        private[this] val menu = this
+        peer.addMenuListener(new javax.swing.event.MenuListener {
+            def menuCanceled(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuCancelled(menu)) // not my choice of spelling on the interface...
+            def menuDeselected(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuDeselected(menu))
+            def menuSelected(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuSelected(menu))
+        })
     }
 
-    def menuItemEventCallback(source: MenuItem) = {
-        deafTo(this)
-        listenTo(this)
-        source.name match {
-            case miName if miName.startsWith("miFile")  => publish(new eventX.FileMenuEvent(source))
-            case miName if miName.startsWith("miEdit")  => publish(new eventX.EditMenuEvent(source))
-            case miName if miName.startsWith("miTools") => publish(new eventX.ToolsMenuEvent(source))
-            case miName if miName.startsWith("miHelp")  => publish(new eventX.HelpMenuEvent(source))
-            case otherwise                              => {}
-        }
+    object RichMenuItem {
+        def traceMenuItem(mi: RichMenuItem): Unit = Console.println(s"RichMenuItem traceMenuItem ${mi.name} clicked")
     }
-    class RichMenuItem(protected val _name: String) extends MenuItem(L.G(s"mi${_name}")) {
+    class RichMenuItem(protected val _name: String, miClick: RichMenuItem => Unit = RichMenuItem.traceMenuItem) extends MenuItem(L.G(s"mi${_name}")) {
         name = s"mi${_name}"
 
         // Must define any accelerator before mnemonic...
@@ -88,35 +77,68 @@ object jTrapKATEditorMenuBar extends MenuBar {
             case mne                          => mnemonic = scala.swing.event.Key(mne.charAt(0))
         }
 
-        reactions += { case e: ButtonClicked => menuItemEventCallback(e.source.asInstanceOf[MenuItem]) }
+        reactions += {
+            case e: ButtonClicked => if (miClick != null) miClick(e.source.asInstanceOf[RichMenuItem])
+        }
 
     }
 
     object mnFile extends RichMenu("File") {
-
-        contents += new RichMenuItem("FileNewV3")
-        contents += new RichMenuItem("FileNewV4")
-        contents += new RichMenuItem("FileOpen")
+        add(new RichMenuItem("FileNewV3", x => jTrapKATEditor.reinitV3))
+        add(new RichMenuItem("FileNewV4", x => jTrapKATEditor.reinitV4))
+        add(new RichMenuItem("FileOpen", x => try {
+            OpenFileChooser.selectedFile = if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile() else jTrapKATEditor.currentFile
+            OpenFileChooser.file match {
+                case Some(file) => jTrapKATEditor.openFile(file)
+                case None       => {}
+            }
+        }
+        catch {
+            case ex: IllegalArgumentException => {
+                Dialog.showMessage(null, ex.getLocalizedMessage(), L.G("InvalidSysexFile"), Dialog.Message.Error, null)
+            }
+        }
+        ))
 
         contents += new Separator()
 
         object SaveMenuItem {
             var currentItem: SaveMenuItem = null
         }
-        class SaveMenuItem(_name: String) extends RichMenuItem(_name) {
+        class SaveMenuItem(_name: String) extends RichMenuItem(s"FileSave${_name}", x => jTrapKATEditor.saveFileAs(jTrapKATEditor.currentType, jTrapKATEditor.currentFile)) {
             protected def saveAction: Action = {
                 if (SaveMenuItem.currentItem != null) {
                     SaveMenuItem.currentItem.action = Action.NoAction
                     SaveMenuItem.currentItem.text = L.G(s"mi${SaveMenuItem.currentItem._name}")
                 }
                 SaveMenuItem.currentItem = this
-                new Action(L.G(s"mi${_name}")) {
+                new Action(L.G(s"miFileSave${_name}")) {
                     accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_MASK))
                     override def apply = {}
                 }
             }
         }
-        contents += new SaveMenuItem("FileSaveAllMemory") {
+        object SaveAsMenuItem {
+            protected def saveAs(dumpType: model.DumpType.DumpType): Unit = {
+                SaveFileChooser.selectedFile = if (dumpType == jTrapKATEditor.currentType)
+                    jTrapKATEditor.currentFile
+                else
+                    new java.io.File(
+                        (if (dumpType != model.DumpType.Kit)
+                            dumpType.toString
+                        else if (jTrapKATEditor.currentKit != null)
+                            jTrapKATEditor.currentKit.kitName.trim()
+                        else "CurrentKit" // should never happen
+                        ) + ".syx")
+                SaveFileChooser.file(dumpType.toString) match {
+                    case Some(file) => jTrapKATEditor.saveFileAs(dumpType, file)
+                    case _          => {}
+                }
+            }
+        }
+        class SaveAsMenuItem(_name: String, dumpType: model.DumpType.DumpType) extends RichMenuItem(s"FileSave${_name}As", x => SaveAsMenuItem.saveAs(dumpType))
+
+        add(new SaveMenuItem("AllMemory") {
             listenTo(jTrapKATEditor)
             listenTo(jTrapKATEditor.currentAllMemory)
             reactions += {
@@ -129,9 +151,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
             }
             action = saveAction
             enabled = false
-        }
-        contents += new RichMenuItem("FileSaveAllMemoryAs")
-        contents += new SaveMenuItem("FileSaveGlobalMemory") {
+        })
+        add(new SaveAsMenuItem("AllMemory", model.DumpType.AllMemory))
+        add(new SaveMenuItem("GlobalMemory") {
             listenTo(jTrapKATEditor)
             listenTo(jTrapKATEditor.currentAllMemory.global)
             reactions += {
@@ -143,9 +165,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 }
             }
             enabled = false
-        }
-        contents += new RichMenuItem("FileSaveGlobalMemoryAs")
-        contents += new SaveMenuItem("FileSaveCurrentKit") {
+        })
+        add(new SaveAsMenuItem("GlobalMemory", model.DumpType.Global))
+        add(new SaveMenuItem("CurrentKit") {
             listenTo(jTrapKATEditor)
             reactions += {
                 case kc: eventX.KitChanged if jTrapKATEditor.currentType == model.DumpType.Kit => {
@@ -156,40 +178,41 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 }
             }
             enabled = false
-        }
-        contents += new RichMenuItem("FileSaveCurrentKitAs") {
+        })
+        add(new SaveAsMenuItem("CurrentKit", model.DumpType.Kit) {
             listenTo(jTrapKATEditor)
+            listenTo(pnKitsPads)
             reactions += {
                 case e: eventX.KitChanged => enabled = e.newKit != -1
             }
             enabled = false
-        }
+        })
 
         contents += new Separator()
 
-        contents += new RichMenuItem("FileClose")
+        add(new RichMenuItem("FileClose", x => jTrapKATEditor.exitClose))
 
         contents += new Separator()
 
-        contents += new RichMenuItem("FileExit")
+        add(new RichMenuItem("FileExit", x => jTrapKATEditor.exitClose))
 
     }
 
     object mnEdit extends RichMenu("Edit") {
 
-        contents += new RichMenuItem("EditUndo") { visible = false }
-        contents += new RichMenuItem("EditRedo") { visible = false }
+        add(new RichMenuItem("EditUndo", x => Console.println("Edit Undo")) { visible = false })
+        add(new RichMenuItem("EditRedo", x => Console.println("Edit Redo")) { visible = false })
 
         contents += new Separator() { visible = false }
 
-        contents += new RichMenuItem("EditCopyKit")
-        contents += new RichMenuItem("EditSwapKits")
+        add(new RichMenuItem("EditCopyKit", x => Console.println("Edit CopyKit")))
+        add(new RichMenuItem("EditSwapKits", x => Console.println("Edit SwapKits")))
 
         contents += new Separator()
 
-        contents += new RichMenuItem("EditCopyPad")
-        contents += new RichMenuItem("EditPastePad")
-        contents += new RichMenuItem("EditSwapPads")
+        add(new RichMenuItem("EditCopyPad", x => Console.println("Edit CopyPad")))
+        add(new RichMenuItem("EditPastePad", x => Console.println("Edit PastePad")))
+        add(new RichMenuItem("EditSwapPads", x => Console.println("Edit SwapPads")))
 
     }
 
@@ -210,7 +233,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     bgTODMN.buttons.add(this)
                     reactions += {
                         case e: eventX.DisplayNotesAs if e.newMode == displayMode => selected = true
-                        case ButtonClicked(_)                                     => menuItemEventCallback(this)
+                        case ButtonClicked(_)                                     => frmTrapkatSysexEditor.notesAs(displayMode)
                     }
                 }
 
@@ -220,35 +243,46 @@ object jTrapKATEditorMenuBar extends MenuBar {
             }
         }
 
-        contents += new RichMenuItem("ToolsConvert")
+        add(new RichMenuItem("ToolsConvert", x => {
+            def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(null,
+                L.G("ConvertVersions", L.G(from), L.G(to)), L.G("ConvertCaption"),
+                Dialog.Options.YesNo, Dialog.Message.Question, null) match {
+                    case Dialog.Result.Yes => converter
+                    case _                 => {}
+                }
+            jTrapKATEditor.currentAllMemory match {
+                case v3: model.AllMemoryV3 => f("V3", "V4", jTrapKATEditor.convertToV4)
+                case _                     => f("V4", "V3", jTrapKATEditor.convertToV3)
+            }
+        }))
 
     }
 
     object mnHelp extends RichMenu("Help") {
 
-        contents += new RichMenuItem("HelpContents") {
+        add(new RichMenuItem("HelpContents", x => Console.println("Help Contents")) {
             action = new Action(L.G(name)) {
                 accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))
                 override def apply = {}
             }
-        }
+        })
 
         contents += new Separator()
 
-        contents += new RichMenuItem("HelpCheckForUpdate")
+        add(new RichMenuItem("HelpCheckForUpdate", x => updateTool.Checker.getUpdate()))
 
         contents += new CheckMenuItem(L.G("miHelpCheckAutomatically")) {
             name = "miHelpCheckAutomatically"
             listenTo(updateTool.Checker)
             reactions += {
                 case e: updateTool.Checker.AutoUpdateModeChanged => selected = e.newMode == updateTool.Checker.AutoUpdateMode.Automatically
-                case ButtonClicked(_)                            => menuItemEventCallback(this)
+                case ButtonClicked(_)                            => prefs.updateAutomatically = if (selected) updateTool.Checker.AutoUpdateMode.Automatically else updateTool.Checker.AutoUpdateMode.Off
             }
         }
 
         contents += new Separator()
 
-        contents += new RichMenuItem("HelpAbout")
+        add(new RichMenuItem("HelpAbout", x => Console.println("Help About")))
 
     }
 

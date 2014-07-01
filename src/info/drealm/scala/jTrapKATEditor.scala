@@ -35,6 +35,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     UIManager.put("swing.boldMetal", false);
     UIManager.setLookAndFeel(ui);
 
+    def top = frmTrapkatSysexEditor
+
     private var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType
 
@@ -48,16 +50,22 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentKit: model.Kit[_] = if (_currentKit < 0 || _currentKit > _currentAllMemory.length) null else _currentAllMemory(_currentKit)
     listenTo(pnKitsPads)
     reactions += {
-        case kc: eventX.KitChanged => {
-            _currentKit = kc.newKit
-        }
+        case kc: eventX.KitChanged => _currentKit = kc.newKit
     }
-
-    def top = frmTrapkatSysexEditor
+    def isKitCurve: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].curve == currentKit.curve)
+    def isKitGate: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].gate == currentKit.gate)
+    def fcChanAsChick: Boolean = currentKit.fcChannel >= 16
+    def isNoVolume(sc: Int): Boolean = currentKit.soundControls(sc).volume >= 128
+    def isNoPrgChg(sc: Int): Boolean = currentKit.soundControls(sc).prgChg == 0
+    def isNoBankMSB(sc: Int): Boolean = currentKit.soundControls(sc).bankMSB >= 128
+    def isNoBankLSB(sc: Int): Boolean = currentKit.soundControls(sc).bankLSB >= 128
+    def isNoBank: Boolean = currentKit.asInstanceOf[model.KitV3].bank >= 128
 
     def reinitV3: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
+        publish(new KitChanged(_currentKit, -1))
+        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV3
         publish(new AllMemoryChanged)
     }
@@ -65,6 +73,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def reinitV4: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
+        publish(new KitChanged(_currentKit, -1))
+        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV4
         publish(new AllMemoryChanged)
     }
@@ -72,6 +82,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def convertToV3: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
+        publish(new KitChanged(_currentKit, -1))
+        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
         _currentAllMemory.makeChanged
         publish(new AllMemoryChanged)
@@ -80,6 +92,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def convertToV4: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
+        publish(new KitChanged(_currentKit, -1))
+        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
         _currentAllMemory.makeChanged
         publish(new AllMemoryChanged)

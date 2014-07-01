@@ -72,7 +72,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
             case otherwise                              => {}
         }
     }
-    class RichMenuItem(_name: String) extends MenuItem(L.G(s"mi${_name}")) {
+    class RichMenuItem(protected val _name: String) extends MenuItem(L.G(s"mi${_name}")) {
         name = s"mi${_name}"
 
         // Must define any accelerator before mnemonic...
@@ -100,52 +100,59 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        private[this] val saveAction = new Action("File Save") {
-            accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_MASK))
-            override def apply = {}
+        object SaveMenuItem {
+            var currentItem: SaveMenuItem = null
         }
-
-        contents += new RichMenuItem("FileSaveAllMemory") {
-            listenTo(jTrapKATEditor.currentAllMemory)
-            reactions += {
-                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory => {
-                    enabled = jTrapKATEditor.currentType == model.DumpType.AllMemory &&
-                        jTrapKATEditor.currentFile.isFile() &&
-                        jTrapKATEditor.currentAllMemory.changed
-                    action = if (enabled) saveAction else Action.NoAction
+        class SaveMenuItem(_name: String) extends RichMenuItem(_name) {
+            protected def saveAction: Action = {
+                if (SaveMenuItem.currentItem != null) {
+                    SaveMenuItem.currentItem.action = Action.NoAction
+                    SaveMenuItem.currentItem.text = L.G(s"mi${SaveMenuItem.currentItem._name}")
+                }
+                SaveMenuItem.currentItem = this
+                new Action(L.G(s"mi${_name}")) {
+                    accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_MASK))
+                    override def apply = {}
                 }
             }
-            //action = saveAction
+        }
+        contents += new SaveMenuItem("FileSaveAllMemory") {
+            listenTo(jTrapKATEditor)
+            listenTo(jTrapKATEditor.currentAllMemory)
+            reactions += {
+                case e: eventX.AllMemoryChanged if jTrapKATEditor.currentType == model.DumpType.AllMemory => {
+                    action = saveAction
+                }
+                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory && jTrapKATEditor.currentType == model.DumpType.AllMemory => {
+                    enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentAllMemory.changed
+                }
+            }
+            action = saveAction
             enabled = false
         }
         contents += new RichMenuItem("FileSaveAllMemoryAs")
-        contents += new RichMenuItem("FileSaveGlobalMemory") {
+        contents += new SaveMenuItem("FileSaveGlobalMemory") {
+            listenTo(jTrapKATEditor)
             listenTo(jTrapKATEditor.currentAllMemory.global)
             reactions += {
-                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory.global => {
-                    enabled = jTrapKATEditor.currentType == model.DumpType.Global &&
-                        jTrapKATEditor.currentFile.isFile() &&
-                        jTrapKATEditor.currentAllMemory.global.changed
-                    action = if (enabled) saveAction else Action.NoAction
+                case e: eventX.GlobalChanged if jTrapKATEditor.currentType == model.DumpType.Global => {
+                    action = saveAction
+                }
+                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory.global && jTrapKATEditor.currentType == model.DumpType.Global => {
+                    enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentAllMemory.global.changed
                 }
             }
             enabled = false
         }
         contents += new RichMenuItem("FileSaveGlobalMemoryAs")
-        contents += new RichMenuItem("FileSaveCurrentKit") {
+        contents += new SaveMenuItem("FileSaveCurrentKit") {
             listenTo(jTrapKATEditor)
             reactions += {
-                case kc: jTrapKATEditor.KitChanged => {
-                    jTrapKATEditor.currentKit match {
-                        case null => {}
-                        case _    => listenTo(jTrapKATEditor.currentKit)
-                    }
+                case kc: eventX.KitChanged if jTrapKATEditor.currentType == model.DumpType.Kit => {
+                    action = saveAction
                 }
-                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => {
-                    enabled = jTrapKATEditor.currentType == model.DumpType.Kit &&
-                        jTrapKATEditor.currentFile.isFile() &&
-                        jTrapKATEditor.currentKit.changed
-                    action = if (enabled) saveAction else Action.NoAction
+                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentKit && jTrapKATEditor.currentType == model.DumpType.Kit => {
+                    enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentKit.changed
                 }
             }
             enabled = false
@@ -153,7 +160,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         contents += new RichMenuItem("FileSaveCurrentKitAs") {
             listenTo(jTrapKATEditor)
             reactions += {
-                case e: jTrapKATEditor.KitChanged => enabled = jTrapKATEditor.currentKit != null
+                case e: eventX.KitChanged => enabled = e.newKit != -1
             }
             enabled = false
         }

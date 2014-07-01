@@ -63,7 +63,7 @@ object frmTrapkatSysexEditor extends Frame {
 
     reactions += {
         case wo: WindowOpened => windowOpened
-        case amc: jTrapKATEditor.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
+        case amc: eventX.AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
         case amdc: eventX.DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
         case mie: FileMenuEvent => {
             mie.source.name.stripPrefix("miFile") match {

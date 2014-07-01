@@ -49,6 +49,8 @@ class ItemDeselected(override val source: info.drealm.scala.RichComboBox[_], ove
 class ItemSelected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
 class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
 
+class AllMemoryChanged extends Event
+class GlobalChanged extends Event
 class KitChanged(val oldKit: Int, val newKit: Int) extends Event
 class PadChanged(val oldPad: Int, val newPad: Int) extends Event
 class DisplayNotesAs(val oldMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode, val newMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode) extends Event

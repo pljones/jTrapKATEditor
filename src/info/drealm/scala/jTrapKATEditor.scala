@@ -43,14 +43,15 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
     def currentAllMemory = _currentAllMemory
-    listenTo(_currentAllMemory)
 
     private var _currentKit: Int = -1
     def currentKit: model.Kit[_] = if (_currentKit < 0 || _currentKit > _currentAllMemory.length) null else _currentAllMemory(_currentKit)
-
-    class AllMemoryChanged extends Event
-    class GlobalChanged extends Event
-    class KitChanged extends Event
+    listenTo(pnKitsPads)
+    reactions += {
+        case kc: eventX.KitChanged => {
+            _currentKit = kc.newKit
+        }
+    }
 
     def top = frmTrapkatSysexEditor
 
@@ -83,25 +84,30 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentAllMemory.makeChanged
         publish(new AllMemoryChanged)
     }
-    
+
     def openFile(file: java.io.File): Unit = {
         val dump = model.TrapKATSysexDump.fromFile(file)
 
         if (dump.isInstanceOf[model.AllMemoryV3Dump] || dump.isInstanceOf[model.AllMemoryV4Dump] || _currentType != model.DumpType.AllMemory) {
             _currentFile = file
-            _currentType = model.DumpType.AllMemory
         }
 
         dump match {
             case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
+                Console.println("allMemoryV3Dump.self")
                 _currentAllMemory = allMemoryV3Dump.self
+                _currentType = model.DumpType.AllMemory
                 publish(new AllMemoryChanged)
             }
             case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
+                Console.println("allMemoryV4Dump.self")
                 _currentAllMemory = allMemoryV4Dump.self
+                _currentType = model.DumpType.AllMemory
                 publish(new AllMemoryChanged)
             }
             case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
+                Console.println("globalV3Dump.self")
+                _currentType = model.DumpType.Global
                 if (_currentAllMemory.isInstanceOf[model.AllMemoryV3]) {
                     _currentAllMemory.global = globalV3Dump.self
                     publish(new GlobalChanged)
@@ -112,6 +118,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 }
             }
             case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
+                Console.println("globalV4Dump.self")
+                _currentType = model.DumpType.Global
                 if (_currentAllMemory.isInstanceOf[model.AllMemoryV4]) {
                     _currentAllMemory.global = globalV4Dump.self
                     publish(new GlobalChanged)
@@ -123,33 +131,41 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             }
             case kitV3Dump: model.KitV3Dump if _currentKit >= 0 && _currentKit < _currentAllMemory.length &&
                 frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKit), f"Kit ${_currentKit} (${_currentAllMemory(_currentKit).kitName})") => {
+                Console.println("kitV3Dump.self")
+                _currentType = model.DumpType.Kit
 
                 if (_currentAllMemory.isInstanceOf[model.AllMemoryV3]) {
                     if (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV3Dump.auxType, kitV3Dump.self.kitName)) {
                         _currentAllMemory(_currentKit) = kitV3Dump.self
-                        publish(new KitChanged)
+                        Console.println("Send KitChanged V3")
+                        publish(new KitChanged(_currentKit, _currentKit))
                     }
                 }
                 else if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) {
                     if (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV3Dump.auxType, kitV3Dump.self.kitName)) {
                         _currentAllMemory(_currentKit) = new model.KitV4(kitV3Dump.self)
-                        publish(new KitChanged)
+                        Console.println("Send KitChanged V3->V4")
+                        publish(new KitChanged(_currentKit, _currentKit))
                     }
                 }
 
             }
             case kitV4Dump: model.KitV4Dump if _currentKit >= 0 && _currentKit < _currentAllMemory.length &&
                 frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKit), f"Kit ${_currentKit} (${_currentAllMemory(_currentKit).kitName})") => {
+                Console.println("kitV4Dump.self")
+                _currentType = model.DumpType.Kit
 
                 if (_currentAllMemory.isInstanceOf[model.AllMemoryV4] &&
                     (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
                     _currentAllMemory(_currentKit) = kitV4Dump.self
-                    publish(new KitChanged)
+                    Console.println("Send KitChanged V4")
+                    publish(new KitChanged(_currentKit, _currentKit))
                 }
                 else if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")) &&
                     (dump.auxType == _currentKit || frmTrapkatSysexEditor.okayToRenumber(_currentKit, _currentAllMemory(_currentKit).kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
                     _currentAllMemory(_currentKit) = new model.KitV3(kitV4Dump.self)
-                    publish(new KitChanged)
+                    Console.println("Send KitChanged V4->V3")
+                    publish(new KitChanged(_currentKit, _currentKit))
                 }
 
             }
@@ -163,7 +179,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         thing match {
             case model.DumpType.AllMemory => _save(false, file, _currentAllMemory, thing, new AllMemoryChanged)
             case model.DumpType.Global    => _save(_currentType != thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new GlobalChanged)
-            case model.DumpType.Kit       => _save(_currentType != thing && _currentAllMemory(_currentKit).changed, file, _currentAllMemory(_currentKit), thing, new KitChanged)
+            case model.DumpType.Kit       => _save(_currentType != thing && _currentAllMemory(_currentKit).changed, file, _currentAllMemory(_currentKit), thing, new KitChanged(_currentKit, _currentKit))
             case unknown =>
                 throw new IllegalArgumentException(s"Do not ask to save ${unknown} as it is unknown.")
         }

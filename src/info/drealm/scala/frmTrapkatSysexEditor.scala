@@ -28,7 +28,7 @@ import swing._
 import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L, Resource => R }
 import info.drealm.scala.updateTool._
 
 object frmTrapkatSysexEditor extends Frame {
@@ -42,7 +42,7 @@ object frmTrapkatSysexEditor extends Frame {
         jTrapKATEditor.exitClose
     }
 
-    iconImage = (new javax.swing.ImageIcon(classOf[Curve].getClassLoader().getResource("info/drealm/scala/tk_wild2-sq.png"))).getImage
+    iconImage = (new javax.swing.ImageIcon(R.U("info/drealm/scala/tk_wild2-sq.png"))).getImage
     title = L.G("ApplicationProductName")
     resizable = false
 

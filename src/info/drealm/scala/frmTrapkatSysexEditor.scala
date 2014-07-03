@@ -42,10 +42,9 @@ object frmTrapkatSysexEditor extends Frame {
         jTrapKATEditor.exitClose
     }
 
-    iconImage = toolkit.getImage("resources/tk_wild2-sq.png")
-    resizable = false
+    iconImage = (new javax.swing.ImageIcon(classOf[Curve].getClassLoader().getResource("info/drealm/scala/tk_wild2-sq.png"))).getImage
     title = L.G("ApplicationProductName")
-    bounds = new Rectangle(100, 100, 880, 516)
+    resizable = false
 
     menuBar = jTrapKATEditorMenuBar
 
@@ -137,7 +136,7 @@ object frmTrapkatSysexEditor extends Frame {
         if (newKit >= 0) listenTo(jTrapKATEditor.currentAllMemory(newKit))
         currentKit_DataChanged
     }
-    
+
     private[this] def currentKit_DataChanged = {
         //TODO: port currentKit_DataChanged... if anything to be done...
     }

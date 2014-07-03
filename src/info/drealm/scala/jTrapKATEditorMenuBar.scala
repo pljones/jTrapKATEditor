@@ -282,8 +282,10 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        add(new RichMenuItem("HelpAbout", x => Console.println("Help About")))
-
+        add(new RichMenuItem("HelpAbout", x => Dialog.showMessage(null,
+            L.G("helpAbout", version.currentVersion, L.G("UT" + prefs.updateAutomatically.toString()), f"${prefs.lastUpdateTS}%TF"),
+            L.G("helpAboutCaption"))
+        ))
     }
 
     contents += mnFile

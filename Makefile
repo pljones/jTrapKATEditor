@@ -1,6 +1,7 @@
 CLASSPATH=../lib/miglayout-4.0-swing.jar:../lib/jna-4.1.0.jar:../lib/jna-platform-4.1.0.jar
 SRC=$(shell cd src && find -type f -name '*.scala')
 NOTSRC=$(shell cd src && find -type f ! -name '*.scala')
+VERSION=$(shell date '+%y-%m%d-%H%M')
 
 jTrapKATEditor.jar: one-jar/main/main.jar one-jar/boot-manifest.mf one-jar/lib
 	rm -f jTrapKATEditor.jar
@@ -9,6 +10,7 @@ jTrapKATEditor.jar: one-jar/main/main.jar one-jar/boot-manifest.mf one-jar/lib
 one-jar/main/main.jar: class not-class
 	rm -rf one-jar/main
 	mkdir one-jar/main
+	echo ${VERSION} > bin/info/drealm/scala/version.txt
 	jar cmf META-INF/MANIFEST.MF one-jar/main/main.jar -C bin/ .
 
 one-jar/boot-manifest.mf: one-jar/META-INF/MANIFEST.MF META-INF/MANIFEST.MF

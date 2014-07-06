@@ -269,14 +269,20 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        add(new RichMenuItem("HelpCheckForUpdate", x => updateTool.Checker.getUpdate()))
+        add(new RichMenuItem("HelpCheckForUpdate", x => if (!updateTool.Checker.getUpdate())
+            Dialog.showMessage(null, L.G("UHNoUpdate"), L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Message.Info)))
 
         contents += new CheckMenuItem(L.G("miHelpCheckAutomatically")) {
+            import updateTool.Checker._
             name = "miHelpCheckAutomatically"
             listenTo(updateTool.Checker)
             reactions += {
-                case e: updateTool.Checker.AutoUpdateModeChanged => selected = e.newMode == updateTool.Checker.AutoUpdateMode.Automatically
-                case ButtonClicked(_)                            => prefs.updateAutomatically = if (selected) updateTool.Checker.AutoUpdateMode.Automatically else updateTool.Checker.AutoUpdateMode.Off
+                case e: eventX.AutoUpdateModeChanged => {
+                    selected = e.newMode == AutoUpdateMode.Automatically
+                    dailyCheck
+                }
+                case ButtonClicked(_) if (selected) => autoUpdateMode = AutoUpdateMode.Automatically
+                case ButtonClicked(_)               => autoUpdateMode = AutoUpdateMode.Off
             }
         }
 

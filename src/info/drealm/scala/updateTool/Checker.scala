@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala.updateTool
 
@@ -26,13 +28,58 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import swing._
 import swing.event._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L, Resource => R, util, eventX }
 
 object Checker extends Publisher {
 
     lazy val currentVersion = R.S("info/drealm/scala/version.txt") match {
         case null   => "Unknown"
         case stream => try { io.Source.fromInputStream(stream).getLines.toSeq.head.trim } finally { stream.close() }
+    }
+
+    private[this] object updateInfo {
+        /*
+         * Lines may be requested in any order, hence munching into a Seq and lazily determining values
+         * Line 1: boolean [Ff]alse/[Tt]rue) - reset (optional!)
+         * Line 2: version (string in format of version.currentVersion)
+         * Line 3: update URL (string)
+         * Live 4+: message (string, multi-line) 
+         * */
+        private[this] lazy val _update_txt: Seq[String] = {
+            // No benefit having this in an ini file
+            val url = new java.net.URL("http://www.drealm.info/kat/TrapKATEditor/jTrapKATEditorUpdate.txt")
+            try {
+                val stream = url.openStream()
+                try { io.Source.fromInputStream(stream).getLines.toSeq } finally { stream.close() }
+            }
+            catch {
+                case e: Throwable => {
+                    Dialog.showMessage(null,
+                        L.G("UIWebException", e.toString()),
+                        L.G("UCErrorCaption", L.G("ApplicationProductName")), Dialog.Message.Error)
+                    Nil
+                }
+            }
+        }
+
+        lazy val reset: Option[Boolean] = if (_update_txt.length > 0) _update_txt.head.trim match {
+            case "true" | "True"   => Some(true)
+            case "false" | "False" => Some(false)
+            case _                 => None
+        }
+        else None
+        lazy val availableVersion: Option[String] = _update_txt.drop(if (reset.isDefined) 1 else 0) match {
+            case x if x.length > 0 => Some(x.head.trim)
+            case _                 => None
+        }
+        lazy val updateURL: Option[String] = _update_txt.drop(if (reset.isDefined) 1 else 0) match {
+            case x if x.length > 1 => Some(x.drop(1).head.trim)
+            case _                 => None
+        }
+        lazy val updateMessage: Option[String] = _update_txt.drop(if (reset.isDefined) 1 else 0) match {
+            case x if x.length > 2 => Some(x.drop(2).mkString("\n"))
+            case _                 => None
+        }
     }
 
     object AutoUpdateMode extends Enumeration {
@@ -42,26 +89,59 @@ object Checker extends Publisher {
     }
     import AutoUpdateMode._
 
-    class AutoUpdateModeChanged(val oldMode: AutoUpdateMode, val newMode: AutoUpdateMode) extends Event
-
     private[this] var _autoUpdateMode: AutoUpdateMode = NotSet
     def autoUpdateMode: AutoUpdateMode = _autoUpdateMode
     def autoUpdateMode_=(value: AutoUpdateMode): Unit = {
-        Console.println("Checker autoUpdateMode -> " + value)
         val oldMode = _autoUpdateMode
         _autoUpdateMode = value
-        publish(new AutoUpdateModeChanged(oldMode, _autoUpdateMode))
+        prefs.updateAutomatically = _autoUpdateMode
+        publish(new eventX.AutoUpdateModeChanged(oldMode, _autoUpdateMode))
     }
 
-    private[this] def _dateToDay(value: Date): String = new SimpleDateFormat("YYYY-MM-DD").format(value)
     def dailyCheck: Unit = {
-        if (autoUpdateMode == Automatically && prefs.lastUpdateTS != _dateToDay(new Date())) {
-            prefs.lastUpdateTS = new Date()
+        if (autoUpdateMode == Automatically && prefs.lastUpdateTS != util.dateToDay(new Date())) {
             getUpdate(true)
+            prefs.lastUpdateTS = new Date()
         }
     }
 
-    def getUpdate(auto: Boolean = false): Unit = {
-        Console.println("updateTool Checker getUpdate " + auto)
+    def getUpdate(auto: Boolean = false): Boolean = {
+        updateApplicable(auto).getOrElse(false) match {
+            case true => {
+                Dialog.showOptions(null,
+                    L.G("UCAvailableUpdate", updateInfo.updateMessage.getOrElse(""), currentVersion, updateInfo.availableVersion.get, updateInfo.updateURL.getOrElse("updateURL missing!")),
+                    L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Options.YesNoCancel, Dialog.Message.Question, null, L.G("UCAvailableOptions").split("\n"), 0) match {
+                        case Dialog.Result.Yes => /*Visit*/ util.browse(updateInfo.updateURL.getOrElse("updateURL missing!"))
+                        case Dialog.Result.No  => /*Later*/ {}
+                        case _                 => /*Ignore*/ prefs.lastIgnoredVersion = updateInfo.availableVersion.get
+                    }
+                true
+            }
+            case _ => false
+        }
+    }
+
+    def updateApplicable(auto: Boolean): Option[Boolean] = {
+        currentVersion match {
+            case "Unknown" => None
+            case cv => updateInfo.availableVersion match {
+                case None => None
+                case Some(av) => Some(if (av <= cv) false else {
+                    if (updateInfo.reset.getOrElse(false) && av != prefs.lastIgnoredVersion) prefs.lastIgnoredVersion = cv
+                    !(auto && av <= prefs.lastIgnoredVersion)
+                })
+            }
+        }
+    }
+
+    if (prefs.updateAutomatically == NotSet) {
+        Dialog.showConfirmation(null,
+            L.G("UCNotSet", L.G("ApplicationProductName")), L.G("UCNotSetCaption", L.G("ApplicationProductName"))) match {
+                case Dialog.Result.Yes => prefs.updateAutomatically = Automatically
+                case _ => {
+                    Dialog.showMessage(null, L.G("UCSaidNo"), L.G("UCNotSetCaption", L.G("ApplicationProductName")))
+                    prefs.updateAutomatically = Off
+                }
+            }
     }
 }

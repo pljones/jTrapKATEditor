@@ -38,6 +38,7 @@ object jTrapKATEditorPreferences extends swing.Publisher {
     class NotesAsPreferencChanged extends PreferenceChanged
     class UpdateAudomaticallyPreferencChanged extends PreferenceChanged
     class LastUpdateTSPreferencChanged extends PreferenceChanged
+    class LastIgnoredVersionPreferencChanged extends PreferenceChanged
 
     lazy val userPreferences = Preferences.userNodeForPackage(classOf[PreferenceChanged])
     //lazy val systemPreferences = Preferences.systemNodeForPackage(classOf[PreferenceChanged])
@@ -65,7 +66,9 @@ object jTrapKATEditorPreferences extends swing.Publisher {
     }
 
     def updateAutomatically: updateTool.Checker.AutoUpdateMode.AutoUpdateMode =
-        if (userPreferences.getBoolean("updateAutomatically", false))
+        if (userPreferences.get("updateAutomatically", "NotSet") == "NotSet")
+            updateTool.Checker.AutoUpdateMode.NotSet
+        else if (userPreferences.getBoolean("updateAutomatically", false))
             updateTool.Checker.AutoUpdateMode.Automatically
         else
             updateTool.Checker.AutoUpdateMode.Off
@@ -75,11 +78,22 @@ object jTrapKATEditorPreferences extends swing.Publisher {
     }
 
     def lastUpdateTS: Date = {
-        val date = new SimpleDateFormat("YYYY-MM-DD").parse(userPreferences.get("lastUpdateTS", "1970-01-01"))
-        if (date == null) new SimpleDateFormat("YYYY-MM-DD").parse("1970-01-01") else date
+        new SimpleDateFormat("YYYY-MM-DD").parse(userPreferences.get("lastUpdateTS", "2000-01-01")) match {
+            case null => new SimpleDateFormat("YYYY-MM-DD").parse("2000-01-01")
+            case date => date
+        }
     }
     def lastUpdateTS_=(value: Date): Unit = {
-        userPreferences.put("lastUpdateTS", new SimpleDateFormat("YYYY-MM-DD").format(value))
+        val ts = f"${value}%TF"
+        Console.println(s"lastUpdateTS -> ${ts}")
+        userPreferences.put("lastUpdateTS", f"${value}%TF") //new SimpleDateFormat("YYYY-MM-DD").format(value)
         publish(new LastUpdateTSPreferencChanged)
+    }
+
+    def lastIgnoredVersion: String = userPreferences.get("lastIgnoredVersion", "00-0101-0000")
+    def lastIgnoredVersion_=(value: String): Unit = {
+        Console.println(s"lastIgnoredVersion -> ${value}")
+        userPreferences.put("lastIgnoredVersion", value)
+        publish(new LastIgnoredVersionPreferencChanged)
     }
 }

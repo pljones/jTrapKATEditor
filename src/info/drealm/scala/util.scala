@@ -67,4 +67,6 @@ object util {
             }.peer, L.G("ApplicationProductName"), swing.Dialog.Message.Info)
         }
     }
+
+    @inline def dateToDay(value: java.util.Date): java.util.Date = new java.text.SimpleDateFormat("YYYY-MM-DD").parse(new java.text.SimpleDateFormat("YYYY-MM-DD").format(value))
 }

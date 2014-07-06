@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala.eventX
 
@@ -45,3 +47,5 @@ class PadChanged(val oldPad: Int, val newPad: Int) extends Event
 class DisplayNotesAs(val oldMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode, val newMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode) extends Event
 
 class DataItemChanged(val dataItem: info.drealm.scala.model.DataItem) extends Event
+
+class AutoUpdateModeChanged(val oldMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode, val newMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode) extends Event

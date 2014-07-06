@@ -59,10 +59,9 @@ object frmTrapkatSysexEditor extends Frame {
     layout.Focus.set(tpnMain, "cbxPad1")
 
     centerOnScreen
-
+    
     private[this] def windowOpened = {
         Checker.autoUpdateMode = prefs.updateAutomatically
-        Checker.dailyCheck
         PadSlot.displayMode = prefs.notesAs
 
         listenTo(menuBar)

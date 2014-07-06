@@ -38,7 +38,7 @@ object frmTrapkatSysexEditor extends Frame {
         prefs.currentWorkingDirectory =
             if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
             else if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile.getCanonicalFile()
-            else windowsHacks.getHome
+            else util.getHome
         jTrapKATEditor.exitClose
     }
 

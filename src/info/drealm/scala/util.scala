@@ -30,8 +30,7 @@ import com.sun.jna.platform.win32._
 /**
  * Provides hacks around standard mechanisms to fix Windows-isms
  */
-object windowsHacks {
-
+object util {
     def getHome: java.io.File = {
         if (!com.sun.jna.Platform.isWindows()) {
             new java.io.File(System.getProperty("user.home"))

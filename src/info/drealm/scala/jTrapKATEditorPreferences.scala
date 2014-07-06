@@ -41,7 +41,7 @@ object jTrapKATEditorPreferences extends swing.Publisher {
     //lazy val systemPreferences = Preferences.systemNodeForPackage(classOf[PreferenceChanged])
 
     def currentWorkingDirectory: java.io.File = userPreferences.get("currentWorkingDirectory", "") match {
-        case ""   => windowsHacks.getHome
+        case ""   => util.getHome
         case some => new java.io.File(some)
     }
     def currentWorkingDirectory_=(value: java.io.File): Unit = {

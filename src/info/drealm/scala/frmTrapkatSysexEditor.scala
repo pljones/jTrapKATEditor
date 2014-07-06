@@ -35,10 +35,10 @@ object frmTrapkatSysexEditor extends Frame {
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
-        prefs.currentWorkingDirectory =
-            if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
-            else if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile.getCanonicalFile()
-            else util.getHome
+        prefs.currentWorkingDirectory = (
+            if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile
+            else if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
+            else util.getHome).getCanonicalFile()
         jTrapKATEditor.exitClose
     }
 

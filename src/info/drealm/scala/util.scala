@@ -43,4 +43,15 @@ object util {
             })
         }
     }
+
+    def browse(target: String): Unit = {
+        import java.awt.Desktop
+        import info.drealm.scala.{ Localization => L }
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            Desktop.getDesktop().browse(new java.net.URL(target).toURI())
+        }
+        else {
+            swing.Dialog.showMessage(null, L.G("NoDesktopBrowse", target), L.G("ApplicationProductName"), swing.Dialog.Message.Info)
+        }
+    }
 }

@@ -260,7 +260,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
     object mnHelp extends RichMenu("Help") {
 
-        add(new RichMenuItem("HelpContents", x => Console.println("Help Contents")) {
+        add(new RichMenuItem("HelpContents", x => util.browse("http://www.drealm.info/kat/TrapKATEditor/")) {
             action = new Action(L.G(name)) {
                 accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))
                 override def apply = {}

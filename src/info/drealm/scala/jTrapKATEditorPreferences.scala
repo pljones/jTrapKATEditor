@@ -29,6 +29,8 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import swing.event._
 
+// TODO: The Windows implementation of this needs be backward compatible - i.e. not use registry
+
 // Yes, please do rename this on import...
 object jTrapKATEditorPreferences extends swing.Publisher {
     abstract class PreferenceChanged extends Event
@@ -51,7 +53,12 @@ object jTrapKATEditorPreferences extends swing.Publisher {
         publish(new CurrentWorkingDirectoryPreferencChanged)
     }
 
-    def notesAs: PadSlot.DisplayMode.DisplayMode = PadSlot.DisplayMode(userPreferences.getInt("notesAs", PadSlot.DisplayMode.AsNumber.id))
+    def notesAs: PadSlot.DisplayMode.DisplayMode = {
+        if (userPreferences.get("notesAs", "NotSet") == "NotSet")
+            PadSlot.DisplayMode.AsNumber // Do not need to know if it was not set
+        else
+            PadSlot.DisplayMode(userPreferences.getInt("notesAs", PadSlot.DisplayMode.AsNumber.id))
+    }
     def notesAs_=(value: PadSlot.DisplayMode.DisplayMode): Unit = {
         userPreferences.putInt("notesAs", value.id)
         publish(new NotesAsPreferencChanged)

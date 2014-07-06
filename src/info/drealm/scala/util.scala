@@ -51,7 +51,20 @@ object util {
             Desktop.getDesktop().browse(new java.net.URL(target).toURI())
         }
         else {
-            swing.Dialog.showMessage(null, L.G("NoDesktopBrowse", target), L.G("ApplicationProductName"), swing.Dialog.Message.Info)
+            import swing._
+            Dialog.showMessage(null, new info.drealm.scala.migPanel.MigPanel("insets 5", "[]", "[]") {
+                name = "pnNoDesktopBrowse"
+
+                contents += (new Label(L.G("NoDesktopBrowse")), "cell 0 0")
+
+                contents += (new swing.TextField {
+                    editable = false
+                    focusable = true
+                    foreground = java.awt.Color.BLUE
+                    text = target
+                    preferredSize = new Dimension((preferredSize.getWidth() * 1.05).toInt, preferredSize.getHeight().toInt)
+                }, "cell 0 1")
+            }.peer, L.G("ApplicationProductName"), swing.Dialog.Message.Info)
         }
     }
 }

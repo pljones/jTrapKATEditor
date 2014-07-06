@@ -60,6 +60,17 @@ object frmTrapkatSysexEditor extends Frame {
 
     centerOnScreen
 
+    private[this] def windowOpened = {
+        Checker.autoUpdateMode = prefs.updateAutomatically
+        Checker.dailyCheck
+        PadSlot.displayMode = prefs.notesAs
+
+        listenTo(menuBar)
+        listenTo(tpnMain)
+        listenTo(jTrapKATEditor)
+        jTrapKATEditor_AllMemoryChanged
+    }
+
     reactions += {
         case wo: WindowOpened => windowOpened
         case amc: AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
@@ -112,17 +123,6 @@ object frmTrapkatSysexEditor extends Frame {
         L.G("RenumberKit", "" + into, intoName, "" + from, fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
-
-    private[this] def windowOpened = {
-        Checker.autoUpdateMode = prefs.updateAutomatically
-        Checker.dailyCheck
-        PadSlot.displayMode = prefs.notesAs
-
-        listenTo(menuBar)
-        listenTo(tpnMain)
-        listenTo(jTrapKATEditor)
-        jTrapKATEditor_AllMemoryChanged
-    }
 
     def notesAs(displayMode: PadSlot.DisplayMode.DisplayMode) = {
         prefs.notesAs = displayMode

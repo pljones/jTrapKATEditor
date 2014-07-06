@@ -30,6 +30,11 @@ import info.drealm.scala.{ jTrapKATEditorPreferences => prefs }
 
 object Checker extends Publisher {
 
+    lazy val currentVersion = R.S("info/drealm/scala/version.txt") match {
+        case null   => "Unknown"
+        case stream => try { io.Source.fromInputStream(stream).getLines.toSeq.head.trim } finally { stream.close() }
+    }
+
     object AutoUpdateMode extends Enumeration {
         type AutoUpdateMode = Value
         val Off, Automatically = Value

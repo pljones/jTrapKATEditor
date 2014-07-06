@@ -44,11 +44,11 @@ object jTrapKATEditorMenuBar extends MenuBar {
             contents += mi
         }
 
-        reactions += {
-            case e: eventX.MenuCancelled  => Console.println(s"RichMenu traceMenu ${e.source.name} Canceled")
-            case e: eventX.MenuDeselected => Console.println(s"RichMenu traceMenu ${e.source.name} Deselected")
-            case e: eventX.MenuSelected   => Console.println(s"RichMenu traceMenu ${e.source.name} Selected")
-        }
+        //reactions += {
+        //    case e: eventX.MenuCancelled  => Console.println(s"RichMenu traceMenu ${e.source.name} Canceled")
+        //    case e: eventX.MenuDeselected => Console.println(s"RichMenu traceMenu ${e.source.name} Deselected")
+        //    case e: eventX.MenuSelected   => Console.println(s"RichMenu traceMenu ${e.source.name} Selected")
+        //}
 
         private[this] val menu = this
         peer.addMenuListener(new javax.swing.event.MenuListener {
@@ -61,7 +61,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
     object RichMenuItem {
         def traceMenuItem(mi: RichMenuItem): Unit = Console.println(s"RichMenuItem traceMenuItem ${mi.name} clicked")
     }
-    class RichMenuItem(protected val _name: String, miClick: RichMenuItem => Unit = RichMenuItem.traceMenuItem) extends MenuItem(L.G(s"mi${_name}")) {
+    class RichMenuItem(protected val _name: String, miClick: RichMenuItem => Unit = null) extends MenuItem(L.G(s"mi${_name}")) {
         name = s"mi${_name}"
 
         // Must define any accelerator before mnemonic...

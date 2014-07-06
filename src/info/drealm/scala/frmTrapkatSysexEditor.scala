@@ -124,11 +124,6 @@ object frmTrapkatSysexEditor extends Frame {
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
-    def notesAs(displayMode: PadSlot.DisplayMode.DisplayMode) = {
-        prefs.notesAs = displayMode
-        PadSlot.displayMode = prefs.notesAs
-    }
-
     private[this] def jTrapKATEditor_KitChanged(oldKit: Int, newKit: Int) = {
         if (oldKit >= 0) deafTo(jTrapKATEditor.currentAllMemory(oldKit))
         Console.println(s"Kit change${if (oldKit >= 0) s" from ${oldKit}" else ""} to ${newKit}")

@@ -233,7 +233,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     bgTODMN.buttons.add(this)
                     reactions += {
                         case e: eventX.DisplayNotesAs if e.newMode == displayMode => selected = true
-                        case ButtonClicked(_)                                     => frmTrapkatSysexEditor.notesAs(displayMode)
+                        case ButtonClicked(_)                                     => PadSlot.displayMode = displayMode
                     }
                 }
 

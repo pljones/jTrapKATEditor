@@ -26,7 +26,7 @@ import javax.swing.{ JComponent, JComboBox, JTextField, InputVerifier }
 import scala.swing._
 import swing.event._
 import info.drealm.scala.migPanel._
-import info.drealm.scala.{ Localization => L }
+import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 
 object PadSlot extends Publisher {
     val padFunction = L.G("PadSlot").split("\n").toSeq
@@ -38,11 +38,13 @@ object PadSlot extends Publisher {
     }
     import DisplayMode._
 
+    // Do we really need a copy of the pref here?
     private[this] var _displayMode = NotSet
     def displayMode: DisplayMode = _displayMode
     def displayMode_=(value: DisplayMode): Unit = {
         val oldMode = _displayMode
         _displayMode = value
+        prefs.notesAs = _displayMode
         publish(new eventX.DisplayNotesAs(oldMode, _displayMode))
     }
 

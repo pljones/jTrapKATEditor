@@ -100,14 +100,14 @@ object Checker extends Publisher {
 
     def dailyCheck: Unit = {
         if (autoUpdateMode == Automatically && prefs.lastUpdateTS != util.dateToDay(new Date())) {
-            getUpdate(true)
-            prefs.lastUpdateTS = new Date()
+            if (getUpdate(true).isDefined)
+                prefs.lastUpdateTS = new Date()
         }
     }
 
-    def getUpdate(auto: Boolean = false): Boolean = {
-        updateApplicable(auto).getOrElse(false) match {
-            case true => {
+    def getUpdate(auto: Boolean = false): Option[Boolean] = {
+        updateApplicable(auto) match {
+            case Some(true) => {
                 Dialog.showOptions(null,
                     L.G("UCAvailableUpdate", updateInfo.updateMessage.getOrElse(""), currentVersion, updateInfo.availableVersion.get, updateInfo.updateURL.getOrElse("updateURL missing!")),
                     L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Options.YesNoCancel, Dialog.Message.Question, null, L.G("UCAvailableOptions").split("\n"), 0) match {
@@ -115,9 +115,9 @@ object Checker extends Publisher {
                         case Dialog.Result.No  => /*Later*/ {}
                         case _                 => /*Ignore*/ prefs.lastIgnoredVersion = updateInfo.availableVersion.get
                     }
-                true
+                Some(true)
             }
-            case _ => false
+            case x => x
         }
     }
 

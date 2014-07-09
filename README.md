@@ -22,8 +22,10 @@ I wanted to make running the program simple.  Once built, all you need to say is
 
 + java -jar jTrapKATEditor.jar
 
-or double-clicking on Windows.  To make this work, the build
+or double-click on Windows.  To make this work, the build
 depends on P. Simon Tuffs' [One-Jar](http://one-jar.sourceforge.net/index.php?page=introduction&file=intro "One-Jar Introduction")
 packaging system.  If you want to build from source, get
 [one-jar-boot-0.97.jar](http://one-jar.sourceforge.net/index.php?page=downloads&file=downloads "Downloads") and unzip
-it into "one-jar", then use the Makefile.  (I had to do things my own way, naturally.)
+it into "one-jar".
+
+I had to do things my own way, naturally, when it comes to the build processes.  Yes, it's scala... so I used a classic Makefile...

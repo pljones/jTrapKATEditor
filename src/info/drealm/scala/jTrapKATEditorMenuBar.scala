@@ -269,7 +269,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        add(new RichMenuItem("HelpCheckForUpdate", x => if (!updateTool.Checker.getUpdate())
+        add(new RichMenuItem("HelpCheckForUpdate", x => if (!updateTool.Checker.getUpdate().getOrElse(true)) // true as error already displayed
             Dialog.showMessage(null, L.G("UHNoUpdate"), L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Message.Info)))
 
         contents += new CheckMenuItem(L.G("miHelpCheckAutomatically")) {

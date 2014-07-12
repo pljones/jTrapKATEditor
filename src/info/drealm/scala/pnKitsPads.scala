@@ -464,7 +464,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        private[this] val pnMoreSlots = new MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
+        private[this] val pnMoreSlots = new MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
             name = "pnMoreSlots"
 
             contents += (new Label(L.G("lblSlots")), "cell 0 0")
@@ -474,7 +474,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     val s = new Slot(slot)
                     s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
                     contents += (s.lblSlot, s"cell 1 ${slot - 7},alignx right")
-                    contents += (s.cbxSlot.cbxV3, s"cell 2 ${slot - 7},gapy 2,grow")
                     contents += (s.cbxSlot.cbxV4, s"cell 2 ${slot - 7},gapy 2,grow")
                     listenTo(s.cbxSlot.selection)
                     listenTo(s.cbxSlot)
@@ -486,7 +485,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     val s = new Slot(slot)
                     s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
                     contents += (s.lblSlot, s"cell 4 ${slot - 12},alignx right")
-                    contents += (s.cbxSlot.cbxV3, s"cell 5 ${slot - 12},gapy 2,grow")
                     contents += (s.cbxSlot.cbxV4, s"cell 5 ${slot - 12},gapy 2,grow")
                     listenTo(s.cbxSlot.selection)
                     listenTo(s.cbxSlot)

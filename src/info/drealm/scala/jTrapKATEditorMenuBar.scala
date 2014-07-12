@@ -222,24 +222,24 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
             contents += new RichMenu("ToolsOptionsDMN") {
 
-                import PadSlot.DisplayMode._
+                import DisplayMode._
 
                 private[this] val bgTODMN = new ButtonGroup();
 
                 class DisplayModeMenuItem(displayMode: DisplayMode, val nameSuffix: String)
                     extends RadioMenuItem(L.G("miToolsOptionsDMN" + nameSuffix)) {
                     name = "miToolsOptionsDMN" + nameSuffix
-                    listenTo(PadSlot)
                     bgTODMN.buttons.add(this)
+                    listenTo(jTrapKATEditorPreferences)
                     reactions += {
-                        case e: eventX.DisplayNotesAs if e.newMode == displayMode => selected = true
-                        case ButtonClicked(_)                                     => PadSlot.displayMode = displayMode
+                        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if prefs.notesAs == displayMode => selected = true
+                        case ButtonClicked(_) => prefs.notesAs = displayMode
                     }
                 }
 
-                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers")
-                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3")
-                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4")
+                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers") { selected = prefs.notesAs == AsNumber }
+                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3") { selected = prefs.notesAs == AsNamesC3 }
+                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4") { selected = prefs.notesAs == AsNamesC4 }
             }
         }
 

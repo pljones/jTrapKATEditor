@@ -39,12 +39,13 @@ trait ItemEvent extends ComponentEvent {
 class ItemDeselected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
 class ItemSelected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
 class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
+class V3V4SelectionChanged(val source: info.drealm.scala.V3V4ComboBox[_, _, _, _]) extends Event
 
 class AllMemoryChanged extends Event
 class GlobalChanged extends Event
 class KitChanged(val oldKit: Int, val newKit: Int) extends Event
 class PadChanged(val oldPad: Int, val newPad: Int) extends Event
-class DisplayNotesAs(val oldMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode, val newMode: info.drealm.scala.PadSlot.DisplayMode.DisplayMode) extends Event
+class DisplayNotesAs(val oldMode: info.drealm.scala.DisplayMode.DisplayMode, val newMode: info.drealm.scala.DisplayMode.DisplayMode) extends Event
 
 class DataItemChanged(val dataItem: info.drealm.scala.model.DataItem) extends Event
 

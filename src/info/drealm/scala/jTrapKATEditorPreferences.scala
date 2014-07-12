@@ -54,13 +54,13 @@ object jTrapKATEditorPreferences extends swing.Publisher {
         publish(new CurrentWorkingDirectoryPreferencChanged)
     }
 
-    def notesAs: PadSlot.DisplayMode.DisplayMode = {
+    def notesAs: DisplayMode.DisplayMode = {
         if (userPreferences.get("notesAs", "NotSet") == "NotSet")
-            PadSlot.DisplayMode.AsNumber // Do not need to know if it was not set
+            DisplayMode.AsNumber // Do not need to know if it was not set
         else
-            PadSlot.DisplayMode(userPreferences.getInt("notesAs", PadSlot.DisplayMode.AsNumber.id))
+            DisplayMode(userPreferences.getInt("notesAs", DisplayMode.AsNumber.id))
     }
-    def notesAs_=(value: PadSlot.DisplayMode.DisplayMode): Unit = {
+    def notesAs_=(value: DisplayMode.DisplayMode): Unit = {
         userPreferences.putInt("notesAs", value.id)
         publish(new NotesAsPreferencChanged)
     }

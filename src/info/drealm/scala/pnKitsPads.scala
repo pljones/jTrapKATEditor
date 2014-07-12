@@ -17,13 +17,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         case 26 => L.G("lbChick")
         case 27 => L.G("lbSplash")
         case 28 => L.G("lbBC")
-        case _  => x
+        case _  => "" + x
     })
-    private[this] val padNames = allPads map (x => s"cbxPad${x}")
-    private[this] val slotNames = (2 to 16) map (x => s"cbxSlot${x}")
-    private[this] val padSlotNames = padNames ++ slotNames
 
-    private[this] val padCurves = CurveV4.curveSelection //TODO: move all curve stuff
     private[this] val fcFunctions = L.G("fcFunctions").split("\n").toSeq
     private[this] val fcCurves = L.G("fcCurves").split("\n").toSeq
 
@@ -48,7 +44,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
             }
-            private[this] val lblKitEdited = new Label(L.G("lbbXEdited")){
+            private[this] val lblKitEdited = new Label(L.G("lbbXEdited")) {
                 visible = if (jTrapKATEditor.currentKit != null) jTrapKATEditor.currentKit.changed else false
                 listenTo(cbxSelectKit)
                 reactions += {
@@ -145,7 +141,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, 1 to 24 map { n => s"cbxPad${n}" }))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((1 to 24) map { n => s"cbxPad${n}V3" }) ++ ((1 to 24) map { n => s"cbxPad${n}V4" })))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
@@ -203,6 +199,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         listenTo(pnSelector)
         listenTo(pnPads)
         listenTo(pnPedals)
+        listenTo(jTrapKATEditor)
 
         reactions += {
             case e: KitChanged => {
@@ -214,10 +211,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 // I am not entirely happy with this as it steals focus
                 // from the Select Pad combo -- on first key press, too,
                 // so you can't type "12" to get to pad 12.
-                Focus.findInContainer(this, padNames(e.newPad)) match {
-                    case Some(cp: ComboBox[_]) => cp.peer.getEditor().getEditorComponent().requestFocus()
-                    case _                     => {}
-                }
+                Focus.set(this, s"pnPad${allPads(e.newPad)}")
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -230,9 +224,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             case e: CbxEditorFocused => {
                 // This is a bit gruesome, too.
                 // I guess I could publish and subscribe... bah...
-                padNames.indexOf(e.source.name) match {
-                    case i if i >= 0 => pnSelector.cbxSelectPad.selection.index = i
-                    case _           => {}
+                e.source.name match {
+                    case x if x.startsWith("cbxPad") => x.stripPrefix("cbxPad") match {
+                        case x if x.endsWith("V3") || x.endsWith("V4") => allPads.indexOf(x.stripSuffix(if (x.endsWith("V3")) "V3" else "V4")) match {
+                            case i if i >= 0 => pnSelector.cbxSelectPad.selection.index = i
+                            case _           => {}
+                        }
+                    }
+                    case _ => {}
                 }
                 deafTo(this)
                 publish(e)
@@ -243,24 +242,27 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 publish(e)
                 listenTo(this)
             }
+            case e: eventX.AllMemoryChanged => Focus.set(this, s"pnPad${allPads(pnSelector.cbxSelectPad.selection.index)}")
         }
     }
 
     private[this] object tpnKitPadsDetails extends TabbedPane() {
         name = "tpnKitPadsDetails"
 
-        private[this] object pnPadDetails extends MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]") {
+        private[this] object pnPadDetails extends MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]") {
             name = "pnPadDetails"
 
             contents += (new Label(L.G("lblSlots")), "cell 0 0")
 
-            (2 to 6) map { slot => new Slot(slot) } foreach { s =>
+            (2 to 6) foreach { slot =>
                 {
-                    contents += (s._2, s"cell 1 ${s._1 - 2},alignx right")
-                    contents += (s._3, s"cell 2 ${s._1 - 2},gapy 2,grow")
-                    listenTo(s._3.selection)
-                    listenTo(s._3)
-                    s._3
+                    val s = new Slot(slot)
+                    s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
+                    contents += (s.lblSlot, s"cell 1 ${slot - 2},alignx right")
+                    contents += (s.cbxSlot.cbxV3, s"cell 2 ${slot - 2},gapy 2,grow")
+                    contents += (s.cbxSlot.cbxV4, s"cell 2 ${slot - 2},gapy 2,grow")
+                    listenTo(s.cbxSlot.selection)
+                    listenTo(s.cbxSlot)
                 }
             }
 
@@ -319,13 +321,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
             }
-            contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center")
+            contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center,hidemode 0")
             listenTo(pnLinkTo)
 
             val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
-            val cbxPadCurve = new RichComboBox(padCurves, "cbxPadCurve", lblPadCurve)
+
+            val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", lblPadCurve)
             contents += (lblPadCurve, "cell 4 0,alignx right")
-            contents += (cbxPadCurve, "cell 5 0")
+            contents += (cbxPadCurve.cbxV3, "cell 5 0")
+            contents += (cbxPadCurve.cbxV4, "cell 5 0")
             listenTo(cbxPadCurve.selection)
             listenTo(cbxPadCurve)
 
@@ -422,13 +426,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnGlobalPadDynamics, "cell 4 3 6 4,aligny center")
             listenTo(pnGlobalPadDynamics)
 
-            private[this] val tabOrder = (2 to 6 map { slot => s"cbxSlot${slot}" }) ++
+            private[this] val tabOrder = (2 to 6 map { slot => s"cbxSlot${slot}V3" }) ++ (2 to 6 map { slot => s"cbxSlot${slot}V4" }) ++
                 Seq("cbxLinkTo") ++
-                Seq("cbxPadCurve", "cbxPadGate", "spnPadChannel") ++
+                Seq("cbxPadCurveV3", "cbxPadCurveV4", "cbxPadGate", "spnPadChannel") ++
                 Seq("spnPadVelMin", "spnPadVelMax") ++
                 (7 to 0 by -1 map { flag => s"ckbFlag${flag}" }) ++
                 Seq("spnLowLevel", "spnHighLevel", "spnThresholdManual", "spnInternalMargin", "spnThresholdActual", "spnUserMargin")
 
+            listenTo(jTrapKATEditor)
             reactions += {
                 case e: SelectionChanged => {
                     deafTo(this)
@@ -450,32 +455,41 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
+                case e: eventX.AllMemoryChanged => {
+                    pnLinkTo.visible = jTrapKATEditor.isV4
+                }
             }
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        private[this] val pnMoreSlots = new MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
+        private[this] val pnMoreSlots = new MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
             name = "pnMoreSlots"
 
             contents += (new Label(L.G("lblSlots")), "cell 0 0")
 
-            (7 to 11) map { slot => new Slot(slot) } foreach { s =>
+            (7 to 11) foreach { slot =>
                 {
-                    contents += (s._2, s"cell 1 ${s._1 - 7},alignx right")
-                    contents += (s._3, s"cell 2 ${s._1 - 7},gapy 2,grow")
-                    listenTo(s._3.selection)
-                    listenTo(s._3)
+                    val s = new Slot(slot)
+                    s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
+                    contents += (s.lblSlot, s"cell 1 ${slot - 7},alignx right")
+                    contents += (s.cbxSlot.cbxV3, s"cell 2 ${slot - 7},gapy 2,grow")
+                    contents += (s.cbxSlot.cbxV4, s"cell 2 ${slot - 7},gapy 2,grow")
+                    listenTo(s.cbxSlot.selection)
+                    listenTo(s.cbxSlot)
                 }
             }
 
-            (12 to 16) map { slot => new Slot(slot) } foreach { s =>
+            (12 to 16) foreach { slot =>
                 {
-                    contents += (s._2, s"cell 4 ${s._1 - 12},alignx right")
-                    contents += (s._3, s"cell 5 ${s._1 - 12},gapy 2,grow")
-                    listenTo(s._3.selection)
-                    listenTo(s._3)
+                    val s = new Slot(slot)
+                    s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
+                    contents += (s.lblSlot, s"cell 4 ${slot - 12},alignx right")
+                    contents += (s.cbxSlot.cbxV3, s"cell 5 ${slot - 12},gapy 2,grow")
+                    contents += (s.cbxSlot.cbxV4, s"cell 5 ${slot - 12},gapy 2,grow")
+                    listenTo(s.cbxSlot.selection)
+                    listenTo(s.cbxSlot)
                 }
             }
 
@@ -492,17 +506,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, (7 to 16) map { slot => s"cbxSlot${slot}" }))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((7 to 16) map { slot => s"cbxSlot${slot}V3" }) ++ ((7 to 16) map { slot => s"cbxSlot${slot}V4" })))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        private[this] val pnKitDetails = new MigPanel("insets 5, gapx 2, gapy 0", "[][][][16px:n,grow][][16px:n,grow][][][][4px:n][][][]", "[][][][][][][]") {
+        private[this] val pnKitDetails = new MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][][][16px:n,grow][][16px:n,grow][][][][4px:n][][][]", "[][][][][][][]") {
             name = "pnKitDetails"
 
             private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
             private[this] val lblKitCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mneKitCurve").charAt(0)) }
-            private[this] val cbxKitCurve = new RichComboBox(padCurves, "cbxKitCurve", lblKitCurve)
+            private[this] val cbxKitCurve = new CurveComboBoxV3V4("cbxKitCurve", lblKitCurve)
             private[this] val ckbVarCurve = new CheckBox(L.G("lblXVarious")) { name = "ckbVarCurve" }
 
             private[this] val lblKitGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mneKitGate").charAt(0)) }
@@ -514,7 +528,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val ckbVarChannel = new CheckBox(L.G("lblXVarious")) { name = "ckbVarChannel" }
 
             contents += (lblKitCurve, "cell 0 0,alignx right")
-            contents += (cbxKitCurve, "cell 1 0")
+            contents += (cbxKitCurve.cbxV3, "cell 1 0")
+            contents += (cbxKitCurve.cbxV4, "cell 1 0")
             contents += (ckbVarCurve, "cell 2 0")
 
             contents += (lblKitGate, "cell 0 1,alignx right")
@@ -535,7 +550,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             listenTo(spnKitChannel)
             listenTo(ckbVarChannel)
 
-            order += cbxKitCurve.name
+            order += cbxKitCurve.cbxV3.name
+            order += cbxKitCurve.cbxV4.name
             order += ckbVarCurve.name
 
             order += cbxKitGate.name
@@ -555,7 +571,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblFCCurve = new Label(L.G("lblFCCurve")) { peer.setDisplayedMnemonic(L.G("mneFCCurve").charAt(0)) }
             val cbxFCCurve = new RichComboBox(fcCurves, "cbxFCCurve", lblFCCurve)
             contents += (lblFCCurve, "cell 0 6,alignx right")
-            contents += (cbxFCCurve, "cell 1 6,growx")
+            contents += (cbxFCCurve, "cell 1 6,growx") //
             listenTo(cbxFCCurve.selection)
 
             private[this] val lblFCChannel = new Label(L.G("lblFCChannel")) { peer.setDisplayedMnemonic(L.G("mneFCChannel").charAt(0)) }
@@ -638,7 +654,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
 
             }
-            contents += (pnSoundControl, "cell 6 0 7 1,center")
+            contents += (pnSoundControl, "cell 6 0 7 1,center,hidemode 0")
             listenTo(pnSoundControl)
 
             Seq(("Volume", 127, 0, 127, true),
@@ -675,6 +691,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
 
+            listenTo(jTrapKATEditor)
             reactions += {
                 case e: SelectionChanged => {
                     deafTo(this)
@@ -696,26 +713,30 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
+                case e: eventX.AllMemoryChanged => {
+                    pnSoundControl.visible = jTrapKATEditor.isV4
+                }
             }
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, order))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        pages += new TabbedPane.Page("Pad Details", pnPadDetails) { name = "tpPadDetails" }
-        pages += new TabbedPane.Page("More Slots", pnMoreSlots) { name = "tpMoreSlots" }
-        pages += new TabbedPane.Page("Kit Details", pnKitDetails) { name = "tpKitDetails" }
+        val tpnPadDetails = new TabbedPane.Page("Pad Details", pnPadDetails) { name = "tpPadDetails" }
+        val tpnMoreSlots = new TabbedPane.Page("More Slots", pnMoreSlots) { name = "tpMoreSlots" }
+        val tpnKitDetails = new TabbedPane.Page("Kit Details", pnKitDetails) { name = "tpKitDetails" }
 
         listenTo(selection)
         listenTo(pnPadDetails)
         listenTo(pnMoreSlots)
         listenTo(pnKitDetails)
+        listenTo(jTrapKATEditor)
 
         reactions += {
             case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => {
                 val tpnE = e.source.asInstanceOf[TabbedPane]
                 deafTo(this)
-                publish(new TabChangeEvent(tpnE.selection.page))
+                if (tpnE.selection.index >= 0) publish(new TabChangeEvent(tpnE.selection.page))
                 listenTo(this)
             }
             case e: SelectionChanged => {
@@ -737,6 +758,18 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
+            }
+            case e: eventX.AllMemoryChanged => {
+                val seln = if (selection.index < 0) null else selection.page
+                while (pages.length > 0) {
+                    pages.remove(pages.length - 1)
+                    pages.runCount
+                }
+                pages += tpnPadDetails
+                if (jTrapKATEditor.isV4) pages += tpnMoreSlots
+                pages += tpnKitDetails
+
+                if (seln != null) selection.page = if (jTrapKATEditor.isV3 && seln == tpnMoreSlots) tpnPadDetails else seln
             }
         }
 

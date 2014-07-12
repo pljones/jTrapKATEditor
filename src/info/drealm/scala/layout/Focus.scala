@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala.layout
 
@@ -43,20 +45,20 @@ object Focus {
     }
     def findInComponent(component: Component, value: String): Option[Component] = findInComponent(component, (cp => cp.name == value))
     def findInComponent(component: Component, found: Component => Boolean): Option[Component] = {
-        component match {
-            case cn: Container   => findInContainer(cn, found)
-            case tp: TabbedPane  => findInTabbedPane(tp, found)
-            case cp if found(cp) => Some(cp)
-            case _               => None
-        }
+        if (found(component)) Some(component) else
+            component match {
+                case cn: Container  => findInContainer(cn, found)
+                case tp: TabbedPane => findInTabbedPane(tp, found)
+                case _              => None
+            }
     }
     def findAllInComponent(component: Component, found: Component => Boolean): Seq[Component] = {
-        component match {
+        (if (found(component)) Seq(component) else Seq()) ++ (component match {
             case cn: Container   => findAllInContainer(cn, found)
             case tp: TabbedPane  => findAllInTabbedPane(tp, found)
             case cp if found(cp) => Seq(cp)
             case _               => Seq()
-        }
+        })
     }
 
     def set(component: Component, target: String): Unit = {

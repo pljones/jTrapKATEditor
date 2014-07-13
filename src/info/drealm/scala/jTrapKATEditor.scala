@@ -32,8 +32,8 @@ import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L
 
 object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     val ui = UIManager.getSystemLookAndFeelClassName()
-    UIManager.put("swing.boldMetal", false);
-    UIManager.setLookAndFeel(ui);
+    UIManager.put("swing.boldMetal", false)
+    UIManager.setLookAndFeel(ui)
 
     def top = frmTrapkatSysexEditor
 

@@ -37,18 +37,18 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     def top = frmTrapkatSysexEditor
 
-    private var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
+    private[this] var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType
 
-    private var _currentFile: java.io.File = new java.io.File(prefs.currentWorkingDirectory.getPath() + "/.")
+    private[this] var _currentFile: java.io.File = new java.io.File(prefs.currentWorkingDirectory.getPath() + "/.")
     def currentFile = _currentFile
 
-    private var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
+    private[this] var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
     def currentAllMemory = _currentAllMemory
     def isV3 = _currentAllMemory.isInstanceOf[model.AllMemoryV3]
     def isV4 = _currentAllMemory.isInstanceOf[model.AllMemoryV4]
 
-    private var _currentKit: Int = 0
+    private[this] var _currentKit: Int = 0
     def currentKit: model.Kit[_] = if (_currentKit < 0 || _currentKit > _currentAllMemory.length) null else _currentAllMemory(_currentKit)
     listenTo(pnKitsPads)
     reactions += {

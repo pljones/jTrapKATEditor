@@ -1,4 +1,5 @@
-/****************************************************************************
+/**
+ * **************************************************************************
  *                                                                          *
  *   (C) Copyright 2014 by Peter L Jones                                    *
  *   pljones@users.sf.net                                                   *
@@ -18,7 +19,8 @@
  *   You should have received a copy of the GNU General Public License      *
  *   along with jTrapKATEditor.  If not, see http://www.gnu.org/licenses/   *
  *                                                                          *
- ****************************************************************************/
+ * **************************************************************************
+ */
 
 package info.drealm.scala
 
@@ -28,6 +30,9 @@ import scala.swing.event._
 class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends ComboBox[A](items) {
     def this(items: Seq[A], _name: String) = this(items, _name, null)
     def this(items: Seq[A]) = this(items, "", null)
+
+    // For some reason I do not yet understand, this loses platform look'n'feel
+    //peer.setUI(new SteppedComboBoxUI(this))
 
     name = _name
     if (_label != null) {

@@ -30,20 +30,34 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             name = "pnSelector"
 
             private[this] val lblSelectKit = new Label(L.G("lblSelectKit")) { peer.setDisplayedMnemonic(L.G("mneSelectKit").charAt(0)) }
-            private[this] val cbxSelectKit = new RichComboBox((1 to 24) map (x => x + ": New kit"), "cbxSelectKit", lblSelectKit) {
+
+            private[this] class CbxSelectKit extends RichComboBox((1 to 24) map (x => s"${x}: ${jTrapKATEditor.currentAllMemory(x - 1).kitName}"), "cbxSelectKit", lblSelectKit) {
                 peer.setMaximumRowCount(24)
                 prototypeDisplayValue = Some("WWWWWWWWWWWW")
-                var currentKit = -1
+
+                private[this] var currentKit = -1
+
                 listenTo(selection)
+                listenTo(jTrapKATEditor)
+
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
+                        deafTo(selection)
                         if (currentKit != selection.index) {
                             publish(new KitChanged(currentKit, selection.index))
                             currentKit = selection.index
                         }
+                        listenTo(selection)
+                    }
+                    case e: AllMemoryChanged => {
+                        deafTo(selection)
+                        publish(new ReplaceSelectKit)
                     }
                 }
             }
+            private[pnSelector] class ReplaceSelectKit extends Event
+
+            private[this] val cbxSelectKit = new CbxSelectKit
             private[this] val lblKitEdited = new Label(L.G("lbbXEdited")) {
                 visible = if (jTrapKATEditor.currentKit != null) jTrapKATEditor.currentKit.changed else false
                 listenTo(cbxSelectKit)
@@ -105,6 +119,22 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     deafTo(this)
                     publish(e)
                     listenTo(this)
+                }
+                case e: ReplaceSelectKit => {
+                    lblSelectKit.peer.setLabelFor(null)
+                    Focus.findInContainer(this, "cbxSelectKit") match {
+                        case Some(cp: ComboBox[_]) => {
+                            deafTo(cp)
+                            cp.deafTo(cp.selection)
+                            contents -= cp
+                        }
+                        case _ => {}
+                    }
+
+                    val cbx = new CbxSelectKit
+                    contents += (cbx, "cell 1 0")
+                    cbx.revalidate()
+                    listenTo(cbx)
                 }
             }
         }
@@ -305,12 +335,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     case e: ReplaceCbxLinkTo => {
                         lblLinkTo.peer.setLabelFor(null)
                         Focus.findInContainer(this, "cbxLinkTo") match {
-                            case Some(cp) => {
+                            case Some(cp: ComboBox[_]) => {
                                 deafTo(cp)
-                                deafTo(cp.asInstanceOf[ComboBox[_]].selection)
+                                deafTo(cp.selection)
                                 contents -= cp
                             }
-                            case None => {}
+                            case _ => {}
                         }
 
                         val cbx = new CbxLinkTo(e.pad)

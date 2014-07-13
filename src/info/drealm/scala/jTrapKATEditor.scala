@@ -48,11 +48,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def isV3 = _currentAllMemory.isInstanceOf[model.AllMemoryV3]
     def isV4 = _currentAllMemory.isInstanceOf[model.AllMemoryV4]
 
-    private var _currentKit: Int = -1
+    private var _currentKit: Int = 0
     def currentKit: model.Kit[_] = if (_currentKit < 0 || _currentKit > _currentAllMemory.length) null else _currentAllMemory(_currentKit)
     listenTo(pnKitsPads)
     reactions += {
-        case kc: eventX.KitChanged => _currentKit = kc.newKit
+        case kc: KitChanged => _currentKit = kc.newKit
     }
     def isKitCurve: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].curve == currentKit.curve)
     def isKitGate: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].gate == currentKit.gate)
@@ -66,8 +66,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def reinitV3: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        publish(new KitChanged(_currentKit, -1))
-        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV3
         publish(new AllMemoryChanged)
     }
@@ -75,8 +73,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def reinitV4: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        publish(new KitChanged(_currentKit, -1))
-        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV4
         publish(new AllMemoryChanged)
     }
@@ -84,8 +80,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def convertToV3: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        publish(new KitChanged(_currentKit, -1))
-        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
         _currentAllMemory.makeChanged
         publish(new AllMemoryChanged)
@@ -94,8 +88,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def convertToV4: Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        publish(new KitChanged(_currentKit, -1))
-        _currentKit = -1
         _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
         _currentAllMemory.makeChanged
         publish(new AllMemoryChanged)
@@ -212,5 +204,5 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(thingChanged)
     }
 
-    publish(new eventX.AllMemoryChanged)
+    publish(new AllMemoryChanged)
 }

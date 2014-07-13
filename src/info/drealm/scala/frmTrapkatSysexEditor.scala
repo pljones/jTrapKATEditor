@@ -72,8 +72,6 @@ object frmTrapkatSysexEditor extends Frame {
     reactions += {
         case wo: WindowOpened => windowOpened
         case amc: AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
-        case gmc: GlobalChanged => jTrapKATEditor_GlobalChanged
-        case kc: KitChanged => jTrapKATEditor_KitChanged(kc.oldKit, kc.newKit)
         case amdc: DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
         case tpe: TabChangeEvent => {
             tpe.source.content.name.stripPrefix("pn") match {
@@ -121,30 +119,8 @@ object frmTrapkatSysexEditor extends Frame {
         L.G("RenumberKit", "" + into, intoName, "" + from, fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
-
-    private[this] def jTrapKATEditor_KitChanged(oldKit: Int, newKit: Int) = {
-        if (oldKit >= 0) deafTo(jTrapKATEditor.currentAllMemory(oldKit))
-        Console.println(s"Kit change${if (oldKit >= 0) s" from ${oldKit}" else ""} to ${newKit}")
-        //TODO: port MainProgram_KitChanged... if anything to be done...
-        if (newKit >= 0) listenTo(jTrapKATEditor.currentAllMemory(newKit))
-        currentKit_DataChanged
-    }
-
-    private[this] def currentKit_DataChanged = {
-        //TODO: port currentKit_DataChanged... if anything to be done...
-    }
-
-    private[this] def jTrapKATEditor_GlobalChanged = {
-        //TODO: port MainProgram_KitChanged... if anything to be done...
-    }
-
     private[this] def jTrapKATEditor_AllMemoryChanged = {
-        deafTo(jTrapKATEditor.currentAllMemory)
-        //TODO: port MainProgram_AllMemoryChanged... if anything to be done...
-        listenTo(jTrapKATEditor.currentAllMemory)
         currentAllMemory_DataChanged
-        jTrapKATEditor_GlobalChanged
-        jTrapKATEditor_KitChanged(-1, -1)
     }
 
     private[this] def currentAllMemory_DataChanged = {

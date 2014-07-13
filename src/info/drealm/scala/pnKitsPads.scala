@@ -57,22 +57,49 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
             private[pnSelector] class ReplaceSelectKit extends Event
 
+            def selectedKit: Int = Focus.findInContainer(this, "cbxSelectKit") match {
+                case Some(cp: ComboBox[_]) => cp.selection.index
+                case _                     => -1
+            }
+            def selectedKit_=(value: Int): Unit = Focus.findInContainer(this, "cbxSelectKit") match {
+                case Some(cp: ComboBox[_]) => cp.selection.index = value
+                case _                     => {}
+            }
+
             private[this] val cbxSelectKit = new CbxSelectKit
+
             private[this] val lblKitEdited = new Label(L.G("lbbXEdited")) {
-                visible = if (jTrapKATEditor.currentKit != null) jTrapKATEditor.currentKit.changed else false
-                listenTo(cbxSelectKit)
+                def makeVisible = visible = jTrapKATEditor.currentKit != null && jTrapKATEditor.currentKit.changed
+
+                makeVisible
+
+                listenTo(pnSelector)
+                listenTo(jTrapKATEditor)
                 reactions += {
-                    case e: KitChanged => {
-                        Console.println(s"lblKitEdited got KitChanged ${e.oldKit} -> ${e.newKit}; was visible ${visible}; will be visible ${jTrapKATEditor.currentAllMemory(e.newKit).changed}")
-                        visible = if (e.newKit >= 0) jTrapKATEditor.currentAllMemory(e.newKit).changed else false
-                    }
+                    case e: KitChanged       => makeVisible
+                    case e: AllMemoryChanged => makeVisible
                 }
             }
             private[this] val lblKitName = new Label(L.G("lblKitName"))
             private[this] val txtKitName = new TextField {
+                def makeText = {
+                    pnSelector.deafTo(this)
+                    text = if (jTrapKATEditor.currentKit == null) "New kit" else jTrapKATEditor.currentKit.kitName.trim()
+                    pnSelector.listenTo(this)
+                }
+
+                lblKitName.peer.setLabelFor(peer)
                 name = "txtKitName"
                 columns = 16
-                lblKitName.peer.setLabelFor(peer)
+
+                makeText
+
+                listenTo(pnSelector)
+                listenTo(jTrapKATEditor)
+                reactions += {
+                    case e: KitChanged       => makeText
+                    case e: AllMemoryChanged => makeText
+                }
             }
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
             private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox(allPads, "cbxSelectPad", lblSelectPad) {
@@ -121,6 +148,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     listenTo(this)
                 }
                 case e: ReplaceSelectKit => {
+                    val oldKit = selectedKit
                     lblSelectKit.peer.setLabelFor(null)
                     Focus.findInContainer(this, "cbxSelectKit") match {
                         case Some(cp: ComboBox[_]) => {
@@ -131,7 +159,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         case _ => {}
                     }
 
-                    val cbx = new CbxSelectKit
+                    val cbx = new CbxSelectKit { selection.index = oldKit }
                     contents += (cbx, "cell 1 0")
                     cbx.revalidate()
                     listenTo(cbx)

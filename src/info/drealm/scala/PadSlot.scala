@@ -204,12 +204,22 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String) extends RichCo
 class PadSlotComboBoxV3(name: String) extends PadSlotComboBoxParent(PadSlotV3, name + "V3")
 class PadSlotComboBoxV4(name: String) extends PadSlotComboBoxParent(PadSlotV4, name + "V4")
 
-class PadSlotComboBoxV3V4(name: String, label: swing.Label) extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = false) extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
     def this(name: String) = this(name, null)
 
     var _value: String = (if (jTrapKATEditor.isV3) PadSlotV3 else PadSlotV4).padFunction(0)
-    val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name)
-    val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name)
+    val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name) {
+        if (stepped) {
+            prototypeDisplayValue = Some("WWWW")
+            peer.setUI(new SteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
+        }
+    }
+    val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name) {
+        if (stepped) {
+            prototypeDisplayValue = Some("WWWW")
+            peer.setUI(new SteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
+        }
+    }
     val lbl: Label = label
 
     def focus: Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()
@@ -229,7 +239,7 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label) extends V3V4ComboBox
 class Pad(pad: String) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {
     name = "pnPad" + pad
     private[this] val lblPad = new Label("" + pad) { name = s"lblPad${pad}" }
-    private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad)
+    private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true)
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
     contents += (cbxPad.cbxV3, "cell 1 0,grow")
     contents += (cbxPad.cbxV4, "cell 1 0,grow")

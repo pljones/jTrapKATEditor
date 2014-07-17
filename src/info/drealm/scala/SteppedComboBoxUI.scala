@@ -56,6 +56,7 @@ class SteppedComboBoxUI(peer: JComboBox[_]) extends BasicComboBoxUI {
 }
 
 // However, for some reason, I cannot get scala.swing.ComboBox to take this as a peer
+// Rolling my own JDK7-compatible ComboBox scala class will help...
 class SteppedJComboBox[A](model: ComboBoxModel[A]) extends JComboBox[A](model) {
     private[this] var layingOut = false
     private[this] lazy val width = {

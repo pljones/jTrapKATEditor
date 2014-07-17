@@ -31,7 +31,8 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
     def this(items: Seq[A], _name: String) = this(items, _name, null)
     def this(items: Seq[A]) = this(items, "", null)
 
-    // For some reason I do not yet understand, this loses platform look'n'feel
+    // Because this extends BasicComboBoxUI, we forfeit platform look and feel, so only the
+    // chosen few (er, majority) get it.
     //peer.setUI(new SteppedComboBoxUI(this))
 
     name = _name

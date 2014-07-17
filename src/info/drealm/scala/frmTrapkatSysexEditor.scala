@@ -119,6 +119,7 @@ object frmTrapkatSysexEditor extends Frame {
         L.G("RenumberKit", "" + into, intoName, "" + from, fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
+
     private[this] def jTrapKATEditor_AllMemoryChanged = {
         currentAllMemory_DataChanged
     }

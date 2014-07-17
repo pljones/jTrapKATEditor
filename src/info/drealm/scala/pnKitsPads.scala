@@ -12,14 +12,6 @@ import info.drealm.scala.{ Localization => L }
 object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     name = "pnKitsPads"
 
-    private[this] val allPads = (1 to 28) map (x => x match {
-        case 25 => L.G("lbBass")
-        case 26 => L.G("lbChick")
-        case 27 => L.G("lbSplash")
-        case 28 => L.G("lbBC")
-        case _  => "" + x
-    })
-
     private[this] val fcFunctions = L.G("fcFunctions").split("\n").toSeq
     private[this] val fcCurves = L.G("fcCurves").split("\n").toSeq
 
@@ -102,17 +94,24 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
-            private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox(allPads, "cbxSelectPad", lblSelectPad) {
+            private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
+                case x if x < 25 => s"${x}"
+                case x           => L.G(s"lbPad${x}")
+            }), "cbxSelectPad", lblSelectPad) {
                 prototypeDisplayValue = Some("88 mmmm")
-                peer.setMaximumRowCount(allPads.length)
+                peer.setMaximumRowCount(28)
                 var currentPad = -1
                 listenTo(selection)
+                listenTo(jTrapKATEditor)
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
                         if (currentPad != selection.index) {
                             publish(new PadChanged(currentPad, selection.index))
                             currentPad = selection.index
                         }
+                    }
+                    case e: AllMemoryChanged => {
+                        publish(new PadChanged(currentPad, selection.index))
                     }
                 }
             }
@@ -180,7 +179,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 col <- (0 to 7) zip row._2;
                 if col._2 != 0
             } yield (s"cell ${col._1} ${row._1}", col._2)) foreach { pad =>
-                val pn = new Pad(s"${pad._2}") { background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250) }
+                val pn = new Pad(pad._2) { background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250) }
                 contents += (pn, pad._1 + ",grow")
                 listenTo(pn)
                 pn
@@ -206,7 +205,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         private[this] object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][grow,fill][][][grow,trailing]", "[]") {
             name = "pnPedals"
 
-            Seq(("cell 1 0", L.G("lbBass")), ("cell 2 0", L.G("lbChick")), ("cell 6 0", L.G("lbSplash")), ("cell 7 0", L.G("lbBC"))) foreach (pad => {
+            Seq(("cell 1 0", 25), ("cell 2 0", 26), ("cell 6 0", 27), ("cell 7 0", 28)) foreach (pad => {
                 val pn = new Pad(pad._2) { background = new Color(228, 228, 228) }
                 contents += (pn, pad._1 + ",gapx 1, pad 0 -1 0 1,grow")
                 listenTo(pn)
@@ -259,6 +258,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         listenTo(pnPedals)
         listenTo(jTrapKATEditor)
 
+        val padMatch = """^cbxPad\(\d\d?\)V[34]$""".r
         reactions += {
             case e: KitChanged => {
                 deafTo(this)
@@ -269,7 +269,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 // I am not entirely happy with this as it steals focus
                 // from the Select Pad combo -- on first key press, too,
                 // so you can't type "12" to get to pad 12.
-                Focus.set(this, s"pnPad${allPads(e.newPad)}")
+                Focus.set(this, s"pnPad${e.newPad + 1}")
                 deafTo(this)
                 publish(e)
                 listenTo(this)
@@ -282,14 +282,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             case e: CbxEditorFocused => {
                 // This is a bit gruesome, too.
                 // I guess I could publish and subscribe... bah...
-                e.source.name match {
-                    case x if x.startsWith("cbxPad") => x.stripPrefix("cbxPad") match {
-                        case x if x.endsWith("V3") || x.endsWith("V4") => allPads.indexOf(x.stripSuffix(if (x.endsWith("V3")) "V3" else "V4")) match {
-                            case i if i >= 0 => pnSelector.cbxSelectPad.selection.index = i
-                            case _           => {}
-                        }
-                    }
-                    case _ => {}
+                padMatch findFirstIn e.source.name match {
+                    case Some(padMatch(pad)) => pnSelector.cbxSelectPad.selection.index = pad.toInt
+                    case _                   => {}
                 }
                 deafTo(this)
                 publish(e)
@@ -300,7 +295,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 publish(e)
                 listenTo(this)
             }
-            case e: eventX.AllMemoryChanged => Focus.set(this, s"pnPad${allPads(pnSelector.cbxSelectPad.selection.index)}")
+            case e: AllMemoryChanged => Focus.set(this, s"pnPad${pnSelector.cbxSelectPad.selection.index + 1}")
         }
     }
 
@@ -328,13 +323,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnLinkTo"
 
                 private[this] object CbxLinkTo {
-                    private[this] val model = Seq(L.G("cbxLinkToOff")) ++ allPads
-                    def items(pad: Int) = if (pad < 0 || pad >= model.length) Seq() else model.take(pad + 1) ++ model.drop(pad + 2)
+                    def items(pad: Int) = (0 to 28) filter (x => x != pad + 1) map (x => x match {
+                        case 0           => L.G("cbxLinkToOff")
+                        case x if x < 25 => s"${x}"
+                        case x           => L.G(s"lb${x}")
+                    })
                 }
                 private[this] class CbxLinkTo(private[this] val pad: Int) extends RichComboBox(CbxLinkTo.items(pad), "cbxLinkTo", lblLinkTo) {
                     prototypeDisplayValue = Some("88 mmmm")
 
                     listenTo(pnKitsPads)
+                    listenTo(jTrapKATEditor)
 
                     reactions += {
                         case e: PadChanged if e.newPad != pad => {

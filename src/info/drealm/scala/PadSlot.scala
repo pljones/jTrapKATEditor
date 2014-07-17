@@ -236,9 +236,9 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
     }
 }
 
-class Pad(pad: String) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {
-    name = "pnPad" + pad
-    private[this] val lblPad = new Label("" + pad) { name = s"lblPad${pad}" }
+class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {
+    name = s"pnPad${pad}"
+    private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) { name = s"lblPad${pad}" }
     private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true)
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
     contents += (cbxPad.cbxV3, "cell 1 0,grow")

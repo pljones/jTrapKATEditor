@@ -36,7 +36,7 @@ object DisplayMode extends Enumeration {
     val NotSet = Value(-1)
 }
 
-trait PadSlot extends Publisher {
+trait PadSlot {
     val padFunction: Seq[String]
 
     import DisplayMode._

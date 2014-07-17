@@ -720,6 +720,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 ("LSB", 0, 0, 127, true),
                 ("Bank", 0, 0, 127, true)) map { t =>
                     val lbl = new Label(L.G(s"lbl${t._1}")) {
+                        name = s"lbl${t._1}"
                         L.G(s"mne${t._1}") match {
                             case x if x.length != 0 => peer.setDisplayedMnemonic(x.charAt(0))
                             case _                  => {}
@@ -732,14 +733,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                     (lbl, spn, ckb)
                 } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) foreach { t =>
-                    contents += (t._1._1, s"cell ${6 + 3 * t._2._2} ${1 + t._2._1},alignx right")
-                    contents += (t._1._2, s"cell ${7 + 3 * t._2._2} ${1 + t._2._1},growx")
+                    contents += (t._1._1, s"cell ${6 + 3 * t._2._2} ${1 + t._2._1},alignx right,hidemode 0")
+                    contents += (t._1._2, s"cell ${7 + 3 * t._2._2} ${1 + t._2._1},growx,hidemode 0")
                     listenTo(t._1._2)
                     order += t._1._2.name
 
                     t._1._3 match {
                         case Some(ckb) => {
-                            contents += (ckb, s"cell ${8 + 3 * t._2._2} ${1 + t._2._1}")
+                            contents += (ckb, s"cell ${8 + 3 * t._2._2} ${1 + t._2._1},hidemode 0")
                             listenTo(ckb)
                             order += ckb.name
                         }
@@ -771,6 +772,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
                 case e: eventX.AllMemoryChanged => {
                     pnSoundControl.visible = jTrapKATEditor.isV4
+                    Seq("lbl", "spn", "ckb") foreach (x => Focus.findInContainer(this, s"${x}Bank") match { case Some(cp) => cp.visible = jTrapKATEditor.isV3; case _ => {} })
                 }
             }
 

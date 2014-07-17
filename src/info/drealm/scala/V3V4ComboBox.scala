@@ -35,15 +35,14 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     val cbxV4: C2
     val lbl: Label
     protected def cbx = if (jTrapKATEditor.isV3) cbxV3 else cbxV4
-    // Uhhhhh, right...
-    if (lbl != null) lbl.peer.setLabelFor(cbx.peer.asInstanceOf[java.awt.Component])
+    private[this] def peer = cbx.peer.asInstanceOf[javax.swing.JComboBox[_]]
 
     def selectionV3 = cbxV3.selection
     def selectionV4 = cbxV4.selection
     object selection extends Publisher {
         def index: Int = cbx.selection.index
         def index_=(n: Int) {
-            val nn = if (n >= (cbx.peer.asInstanceOf[javax.swing.JComboBox[_]]).getItemCount()) -1 else n
+            val nn = if (n >= peer.getItemCount()) -1 else n
             selectionV3.index = nn
             selectionV4.index = nn
         }
@@ -77,6 +76,8 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         // Uhhhhh, right...
         if (lbl != null) lbl.peer.setLabelFor(toVisible.peer.asInstanceOf[java.awt.Component])
     }
+
+    if (lbl != null) lbl.peer.setLabelFor(peer)
     listenTo(jTrapKATEditor)
     reactions += {
         case e: eventX.AllMemoryChanged if jTrapKATEditor.isV3 => allMemoryChanged(cbxV3, cbxV4)

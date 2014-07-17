@@ -33,7 +33,7 @@ object GateTime {
      * No one ever uses "signed bytes" in the real world.  Ever...
      * Forcing use of larger data types by not supporting unsigned values at all
      * is simply ridiculous.
-     * To avoid some of that, magic (byteValue & intMask) is used to up-cast
+     * To avoid some of that, magic (intMask & byteValue) is used to up-cast
      * without sign extension, to keep the logic readable.
      */
 

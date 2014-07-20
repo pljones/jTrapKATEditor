@@ -36,13 +36,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     case e: SelectionChanged if e.source == this => {
                         deafTo(selection)
                         if (currentKit != selection.index) {
+                            Console.println(s"currentKit ${currentKit} != selection.index ${selection.index}")
                             publish(new KitChanged(currentKit, selection.index))
                             currentKit = selection.index
                         }
                         listenTo(selection)
                     }
                     case e: AllMemoryChanged => {
+Console.println(e)
                         deafTo(selection)
+                        deafTo(jTrapKATEditor)
                         publish(new ReplaceSelectKit)
                     }
                 }
@@ -147,6 +150,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     listenTo(this)
                 }
                 case e: ReplaceSelectKit => {
+Console.println("ReplaceSelectKit")
                     val oldKit = selectedKit
                     lblSelectKit.peer.setLabelFor(null)
                     Focus.findInContainer(this, "cbxSelectKit") match {
@@ -162,6 +166,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     contents += (cbx, "cell 1 0")
                     cbx.revalidate()
                     listenTo(cbx)
+Console.println("ReplaceSelectKit - done")
                 }
             }
         }
@@ -512,7 +517,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
-                case e: eventX.AllMemoryChanged => {
+                case e: AllMemoryChanged => {
                     pnLinkTo.visible = jTrapKATEditor.isV4
                 }
             }
@@ -769,7 +774,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
-                case e: eventX.AllMemoryChanged => {
+                case e: AllMemoryChanged => {
                     pnSoundControl.visible = jTrapKATEditor.isV4
                     Seq("lbl", "spn", "ckb") foreach (x => Focus.findInContainer(this, s"${x}Bank") match { case Some(cp) => cp.visible = jTrapKATEditor.isV3; case _ => {} })
                 }
@@ -816,7 +821,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 publish(e)
                 listenTo(this)
             }
-            case e: eventX.AllMemoryChanged => {
+            case e: AllMemoryChanged => {
                 val seln = if (selection.index < 0) null else selection.page
                 while (pages.length > 0) {
                     pages.remove(pages.length - 1)

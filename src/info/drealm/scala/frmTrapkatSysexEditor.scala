@@ -66,7 +66,8 @@ object frmTrapkatSysexEditor extends Frame {
         listenTo(menuBar)
         listenTo(tpnMain)
         listenTo(jTrapKATEditor)
-        jTrapKATEditor_AllMemoryChanged
+        //jTrapKATEditor_AllMemoryChanged
+        jTrapKATEditor.onWindowOpened
     }
 
     reactions += {

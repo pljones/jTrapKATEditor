@@ -38,7 +38,7 @@ object util {
         else {
             val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
             new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_MYDOCUMENTS, false) match {
-                case true => new String(pszPath.takeWhile(c => c != '\0'))
+                case true => new String(pszPath.takeWhile(c => c != '\u0000'))
                 case _    => System.getProperty("user.home")
             })
         }

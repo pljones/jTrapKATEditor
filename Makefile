@@ -23,7 +23,7 @@ one-jar/lib:
 
 VPATH=src
 class: bin ${SRC}
-	(cd src && scalac -classpath ${CLASSPATH} -d ../bin -feature -optimise ${SRC}) && touch $@
+	(cd src && scalac -classpath ${CLASSPATH} -d ../bin -deprecation -feature -optimise ${SRC}) && touch $@
 
 not-class: bin ${NOTSRC}
 	tar cf - -C src ${NOTSRC} | tar xf - -C bin && touch $@

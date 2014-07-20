@@ -211,13 +211,13 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
     val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name) {
         if (stepped) {
             prototypeDisplayValue = Some("WWWW")
-            peer.setUI(new SteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
+            peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
         }
     }
     val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name) {
         if (stepped) {
             prototypeDisplayValue = Some("WWWW")
-            peer.setUI(new SteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
+            peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
         }
     }
     val lbl: Label = label

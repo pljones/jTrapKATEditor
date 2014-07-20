@@ -31,8 +31,8 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
     def this(items: Seq[A], _name: String) = this(items, _name, null)
     def this(items: Seq[A]) = this(items, "", null)
 
-    // Because this extends BasicComboBoxUI, we forfeit platform look and feel, so only the
-    // chosen few (er, majority) get it.
+    // Not all LnFs have a pretty SteppedComboBoxUI (only Metal and Windows)
+    // so only a chosen few (er, majority) get it.
     //peer.setUI(new SteppedComboBoxUI(this))
 
     name = _name

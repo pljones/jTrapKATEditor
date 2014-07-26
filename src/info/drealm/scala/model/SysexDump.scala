@@ -253,10 +253,10 @@ class GlobalV4Dump(globalV4: GlobalV4) extends TrapKATSysexDump[GlobalV4](global
     def this(in: FileInputStream) = { this(null.asInstanceOf[GlobalV4]); deserialize(in) }
 }
 
-class KitV3Dump(kitV3: KitV3, auxType: Byte) extends TrapKATSysexDump[KitV3](kitV3, in => new KitV3(in), DumpType.Kit, auxType) {
+class KitV3Dump(kitV3: KitV3, auxType: Byte) extends TrapKATSysexDump[KitV3](kitV3, in => { val self = new KitV3(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {
     def this(in: FileInputStream) = { this(null.asInstanceOf[KitV3], 0); deserialize(in) }
 }
 
-class KitV4Dump(kitV4: KitV4, auxType: Byte) extends TrapKATSysexDump[KitV4](kitV4, in => new KitV4(in), DumpType.Kit, auxType) {
+class KitV4Dump(kitV4: KitV4, auxType: Byte) extends TrapKATSysexDump[KitV4](kitV4, in => { val self = new KitV4(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {
     def this(in: FileInputStream) = { this(null.asInstanceOf[KitV4], 0); deserialize(in) }
 }

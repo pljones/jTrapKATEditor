@@ -29,13 +29,13 @@ import collection.mutable
 
 //abstract class AllMemory[TKit <% Kit[_], TGlobal <% Global[_]](k: => Int => TKit, kn: (Int, TKit) => Unit, u: () => Array[Byte], g: => () => TGlobal)(implicit TKit: Manifest[TKit], TGlobal: Manifest[TGlobal])
 //    extends DataItem with mutable.Seq[TKit] {
-abstract class AllMemory(k: => Int => Kit[_], kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: => () => Global[_])
-    extends DataItem with mutable.Seq[Kit[_]] {
+abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) => Unit, u: () => Array[Byte], g: => () => Global[_])
+    extends DataItem with mutable.Seq[Kit[_ <: Pad]] {
 
     def iterator = _kits.iterator
     def length = _kits.length
 //    def update(idx: Int, value: TKit): Unit = {
-    def update(idx: Int, value: Kit[_]): Unit = {
+    def update(idx: Int, value: Kit[_ <: Pad]): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Kit must not be null.")
         if (_kits(idx) != value) {
@@ -46,7 +46,7 @@ abstract class AllMemory(k: => Int => Kit[_], kn: (Int, Kit[_]) => Unit, u: () =
         }
     }
 //    def apply(idx: Int): TKit = _kits.apply(idx)
-    def apply(idx: Int): Kit[_] = _kits.apply(idx)
+    def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)
 
     def deserialize(in: FileInputStream): Unit = {
         _kits foreach (x => x.deserialize(in))
@@ -62,7 +62,7 @@ abstract class AllMemory(k: => Int => Kit[_], kn: (Int, Kit[_]) => Unit, u: () =
     }
 
 //    private[this] val _kits: Array[TKit] = ((0 to 23) map (x => k(x))).toArray
-    private[this] val _kits: Array[Kit[_]] = ((0 to 23) map (x => k(x))).toArray
+    private[this] val _kits: Array[Kit[_ <: Pad]] = ((0 to 23) map (x => k(x))).toArray
     (0 to 23) foreach (x => kn(x, _kits(x)))
 
     private[this] val _unused: Array[Byte] = u()

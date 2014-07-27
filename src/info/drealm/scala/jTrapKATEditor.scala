@@ -68,7 +68,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV3
         Console.println("reinitV3: AllMemoryChanged")
-        publish(new AllMemoryChanged)
+        publish(new CurrentAllMemoryChanged(this))
     }
 
     def reinitV4: Unit = {
@@ -76,7 +76,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV4
         Console.println("reinitV4: AllMemoryChanged")
-        publish(new AllMemoryChanged)
+        publish(new CurrentAllMemoryChanged(this))
     }
 
     def convertToV3: Unit = {
@@ -85,7 +85,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
         _currentAllMemory.makeChanged
         Console.println("convertToV3: AllMemoryChanged")
-        publish(new AllMemoryChanged)
+        publish(new CurrentAllMemoryChanged(this))
     }
 
     def convertToV4: Unit = {
@@ -94,7 +94,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
         _currentAllMemory.makeChanged
         Console.println("convertToV4: AllMemoryChanged")
-        publish(new AllMemoryChanged)
+        publish(new CurrentAllMemoryChanged(this))
     }
 
     def openFile(file: java.io.File): Unit = {
@@ -110,7 +110,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 _currentAllMemory = allMemoryV3Dump.self
                 _currentType = model.DumpType.AllMemory
                 Console.println("openFile allMemoryV3Dump: AllMemoryChanged")
-                publish(new AllMemoryChanged)
+                publish(new CurrentAllMemoryChanged(this))
                 Console.println("Send KitChanged (AllMemoryChanged V3)")
                 publish(new KitChanged(_currentKit, _currentKit))
             }
@@ -119,7 +119,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 _currentAllMemory = allMemoryV4Dump.self
                 _currentType = model.DumpType.AllMemory
                 Console.println("openFile allMemoryV4Dump: AllMemoryChanged")
-                publish(new AllMemoryChanged)
+                publish(new CurrentAllMemoryChanged(this))
                 Console.println("Send KitChanged (AllMemoryChanged V4)")
                 publish(new KitChanged(_currentKit, _currentKit))
             }
@@ -193,7 +193,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     def saveFileAs(thing: model.DumpType.DumpType, file: java.io.File) = {
         thing match {
-            case model.DumpType.AllMemory => _save(false, file, _currentAllMemory, thing, new AllMemoryChanged)
+            case model.DumpType.AllMemory => _save(false, file, _currentAllMemory, thing, new CurrentAllMemoryChanged(this))
             case model.DumpType.Global    => _save(_currentType != thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new GlobalChanged)
             case model.DumpType.Kit       => _save(_currentType != thing && _currentAllMemory(_currentKit).changed, file, _currentAllMemory(_currentKit), thing, new KitChanged(_currentKit, _currentKit))
             case unknown =>
@@ -216,7 +216,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     def onWindowOpened = {
         Console.println("onWindowOpened AllMemoryChanged")
-        publish(new AllMemoryChanged)
+        publish(new CurrentAllMemoryChanged(this))
         Console.println("Send KitChanged (AllMemoryChanged V4)")
         publish(new KitChanged(_currentKit, _currentKit))
     }

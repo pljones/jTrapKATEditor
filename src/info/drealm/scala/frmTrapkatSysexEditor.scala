@@ -72,7 +72,7 @@ object frmTrapkatSysexEditor extends Frame {
 
     reactions += {
         case wo: WindowOpened => windowOpened
-        case amc: AllMemoryChanged => jTrapKATEditor_AllMemoryChanged
+        case amc: CurrentAllMemoryChanged => jTrapKATEditor_AllMemoryChanged
         case amdc: DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
         case tpe: TabChangeEvent => {
             tpe.source.content.name.stripPrefix("pn") match {

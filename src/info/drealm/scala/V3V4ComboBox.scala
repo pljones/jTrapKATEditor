@@ -80,8 +80,8 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     if (lbl != null) lbl.peer.setLabelFor(peer)
     listenTo(jTrapKATEditor)
     reactions += {
-        case e: eventX.AllMemoryChanged if jTrapKATEditor.isV3 => allMemoryChanged(cbxV3, cbxV4)
-        case e: eventX.AllMemoryChanged if jTrapKATEditor.isV4 => allMemoryChanged(cbxV4, cbxV3)
+        case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.isV3 => allMemoryChanged(cbxV3, cbxV4)
+        case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.isV4 => allMemoryChanged(cbxV4, cbxV3)
     }
 
 }

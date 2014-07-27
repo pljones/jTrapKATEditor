@@ -120,9 +120,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
             listenTo(jTrapKATEditor)
             reactions += {
-                case e: eventX.AllMemoryChanged if jTrapKATEditor.currentType == dumpType => {
-                    action = saveAction
-                }
+                case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.currentType == dumpType => action = saveAction
             }
         }
         object SaveAsMenuItem {
@@ -183,8 +181,8 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     Console.println(s"${this.name} got ${e}")
                     enabled = e.newKit != -1
                 }
-                case e: eventX.AllMemoryChanged => {
-                    Console.println(s"CurrentKitSaveAsMenuItem Got AllMemoryChanged (has kit? ${jTrapKATEditor.currentKit != null})")
+                case e: eventX.CurrentAllMemoryChanged => {
+                    Console.println(s"CurrentKitSaveAsMenuItem got AllMemoryChanged from ${e.source} (has kit? ${jTrapKATEditor.currentKit != null})")
                     enabled = jTrapKATEditor.currentKit != null
                 }
             }

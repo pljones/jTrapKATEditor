@@ -66,7 +66,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         }
                         listenTo(selection)
                     }
-                    case e: AllMemoryChanged => {
+                    case e: CurrentAllMemoryChanged => {
 Console.println(e)
                         deafTo(selection)
                         deafTo(jTrapKATEditor)
@@ -96,7 +96,7 @@ Console.println(e)
                 listenTo(jTrapKATEditor)
                 reactions += {
                     case e: KitChanged       => makeVisible
-                    case e: AllMemoryChanged => makeVisible
+                    case e: CurrentAllMemoryChanged => makeVisible
                 }
             }
             private[this] val lblKitName = new Label(L.G("lblKitName"))
@@ -117,7 +117,7 @@ Console.println(e)
                 listenTo(jTrapKATEditor)
                 reactions += {
                     case e: KitChanged       => makeText
-                    case e: AllMemoryChanged => makeText
+                    case e: CurrentAllMemoryChanged => makeText
                 }
             }
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
@@ -137,9 +137,7 @@ Console.println(e)
                             currentPad = selection.index
                         }
                     }
-                    case e: AllMemoryChanged => {
-                        publish(new PadChanged(currentPad, selection.index))
-                    }
+                    case e: CurrentAllMemoryChanged => publish(new PadChanged(currentPad, selection.index))
                 }
             }
             private[this] val lblPadEdited = new Label(L.G("lbbXEdited"))
@@ -324,7 +322,7 @@ Console.println("ReplaceSelectKit - done")
                 publish(e)
                 listenTo(this)
             }
-            case e: AllMemoryChanged => Focus.set(this, s"pnPad${pnSelector.cbxSelectPad.selection.index + 1}")
+            case e: CurrentAllMemoryChanged => Focus.set(this, s"pnPad${pnSelector.cbxSelectPad.selection.index + 1}")
         }
     }
 
@@ -541,9 +539,7 @@ Console.println("ReplaceSelectKit - done")
                     publish(e)
                     listenTo(this)
                 }
-                case e: AllMemoryChanged => {
-                    pnLinkTo.visible = jTrapKATEditor.isV4
-                }
+                case e: CurrentAllMemoryChanged => pnLinkTo.visible = jTrapKATEditor.isV4
             }
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
@@ -798,7 +794,7 @@ Console.println("ReplaceSelectKit - done")
                     publish(e)
                     listenTo(this)
                 }
-                case e: AllMemoryChanged => {
+                case e: CurrentAllMemoryChanged => {
                     pnSoundControl.visible = jTrapKATEditor.isV4
                     Seq("lbl", "spn", "ckb") foreach (x => Focus.findInContainer(this, s"${x}Bank") match { case Some(cp) => cp.visible = jTrapKATEditor.isV3; case _ => {} })
                 }
@@ -845,7 +841,7 @@ Console.println("ReplaceSelectKit - done")
                 publish(e)
                 listenTo(this)
             }
-            case e: AllMemoryChanged => {
+            case e: CurrentAllMemoryChanged => {
                 val seln = if (selection.index < 0) null else selection.page
                 while (pages.length > 0) {
                     pages.remove(pages.length - 1)

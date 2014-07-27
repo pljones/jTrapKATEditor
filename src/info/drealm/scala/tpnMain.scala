@@ -52,11 +52,6 @@ object tpnMain extends TabbedPane {
             publish(new TabChangeEvent(tpnE.selection.page))
             listenTo(this)
         }
-        case e: KitChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
         case e: PadChanged => {
             deafTo(this)
             publish(e)

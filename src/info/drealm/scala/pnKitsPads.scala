@@ -47,63 +47,59 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val lblSelectKit = new Label(L.G("lblSelectKit")) { peer.setDisplayedMnemonic(L.G("mneSelectKit").charAt(0)) }
 
-            private[this] class CbxSelectKit extends RichComboBox((1 to 24) map (x => s"${x}: ${jTrapKATEditor.currentAllMemory(x - 1).kitName}"), "cbxSelectKit", lblSelectKit) {
+            private[this] val kitNames: Array[String] = ((1 to 24) map (x => s"${x}: ${jTrapKATEditor.currentAllMemory(x - 1).kitName}")).toArray
+            private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", lblSelectKit) {
                 peer.setMaximumRowCount(24)
                 prototypeDisplayValue = Some("WWWWWWWWWWWW")
+                selection.index = jTrapKATEditor.currentKitNumber
 
-                private[this] var currentKit = -1
+                def updateKitName(idx: Int): Unit = kitNames(idx) = s"${idx + 1}: ${jTrapKATEditor.currentAllMemory(idx).kitName}"
+                def updateAllKitNames(): Unit = {
+                    (0 to 23) foreach updateKitName _
+                    selectCurrentKit
+                }
+                def selectCurrentKit(): Unit = {
+                    deafTo(this)
+                    deafTo(selection)
+                    selection.index = jTrapKATEditor.currentKitNumber
+                    listenTo(selection)
+                    listenTo(this)
+                }
 
                 listenTo(selection)
                 listenTo(jTrapKATEditor)
 
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
-                        deafTo(selection)
-                        if (currentKit != selection.index) {
-                            Console.println(s"currentKit ${currentKit} != selection.index ${selection.index}")
-                            publish(new KitChanged(currentKit, selection.index))
-                            currentKit = selection.index
-                        }
-                        listenTo(selection)
-                    }
-                    case e: CurrentAllMemoryChanged => {
-Console.println(e)
-                        deafTo(selection)
                         deafTo(jTrapKATEditor)
-                        publish(new ReplaceSelectKit)
+                        jTrapKATEditor.currentKitNumber = selection.index
+                        listenTo(jTrapKATEditor)
                     }
+                    case e: CurrentAllMemoryChanged => updateAllKitNames()
+                    case e: CurrentKitChanged => selectCurrentKit
+                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => updateKitName(jTrapKATEditor.currentKitNumber)
                 }
             }
-            private[pnSelector] class ReplaceSelectKit extends Event
-
-            def selectedKit: Int = Focus.findInContainer(this, "cbxSelectKit") match {
-                case Some(cp: ComboBox[_]) => cp.selection.index
-                case _                     => -1
-            }
-            def selectedKit_=(value: Int): Unit = Focus.findInContainer(this, "cbxSelectKit") match {
-                case Some(cp: ComboBox[_]) => cp.selection.index = value
-                case _                     => {}
-            }
-
-            private[this] val cbxSelectKit = new CbxSelectKit
 
             private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
-                def makeVisible = visible = jTrapKATEditor.currentKit != null && jTrapKATEditor.currentKit.changed
+                visible = jTrapKATEditor.currentKit.changed
 
-                makeVisible
-
-                listenTo(pnSelector)
                 listenTo(jTrapKATEditor)
                 reactions += {
-                    case e: KitChanged       => makeVisible
-                    case e: CurrentAllMemoryChanged => makeVisible
+                    case e: CurrentKitChanged => visible = jTrapKATEditor.currentKit.changed
+                    case e: CurrentAllMemoryChanged => visible = jTrapKATEditor.currentKit.changed
+                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => visible = jTrapKATEditor.currentKit.changed
                 }
             }
+
             private[this] val lblKitName = new Label(L.G("lblKitName"))
+
             private[this] val txtKitName = new TextField {
-                def makeText = {
+                def quietText(value: String): Unit = {
                     pnSelector.deafTo(this)
-                    text = if (jTrapKATEditor.currentKit == null) "New kit" else jTrapKATEditor.currentKit.kitName.trim()
+                    deafTo(this)
+                    text = value
+                    listenTo(this)
                     pnSelector.listenTo(this)
                 }
 
@@ -111,15 +107,21 @@ Console.println(e)
                 name = "txtKitName"
                 columns = 16
 
-                makeText
+                quietText(jTrapKATEditor.currentKit.kitName.trim())
 
-                listenTo(pnSelector)
                 listenTo(jTrapKATEditor)
                 reactions += {
-                    case e: KitChanged       => makeText
-                    case e: CurrentAllMemoryChanged => makeText
+                    case e: ValueChanged if e.source == this => {
+                        deafTo(jTrapKATEditor)
+                        jTrapKATEditor.currentKit.kitName = text
+                        listenTo(jTrapKATEditor)
+                    }
+                    case e: CurrentKitChanged => quietText(jTrapKATEditor.currentKit.kitName.trim())
+                    case e: CurrentAllMemoryChanged => quietText(jTrapKATEditor.currentKit.kitName.trim())
+                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => quietText(jTrapKATEditor.currentKit.kitName.trim())
                 }
             }
+
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
             private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
                 case x if x < 25 => s"${x}"
@@ -151,16 +153,11 @@ Console.println(e)
             contents += (cbxSelectPad, "cell 8 0")
             contents += (lblPadEdited, "cell 9 0")
 
-            listenTo(cbxSelectKit)
+            // TODO: txtKitName should set the current kit name
             listenTo(txtKitName)
             listenTo(cbxSelectPad)
 
             reactions += {
-                case e: KitChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
                 case e: PadChanged => {
                     deafTo(this)
                     publish(e)
@@ -170,25 +167,6 @@ Console.println(e)
                     deafTo(this)
                     publish(e)
                     listenTo(this)
-                }
-                case e: ReplaceSelectKit => {
-Console.println("ReplaceSelectKit")
-                    val oldKit = selectedKit
-                    lblSelectKit.peer.setLabelFor(null)
-                    Focus.findInContainer(this, "cbxSelectKit") match {
-                        case Some(cp: ComboBox[_]) => {
-                            deafTo(cp)
-                            cp.deafTo(cp.selection)
-                            contents -= cp
-                        }
-                        case _ => {}
-                    }
-
-                    val cbx = new CbxSelectKit { selection.index = oldKit }
-                    contents += (cbx, "cell 1 0")
-                    cbx.revalidate()
-                    listenTo(cbx)
-Console.println("ReplaceSelectKit - done")
                 }
             }
         }
@@ -287,11 +265,6 @@ Console.println("ReplaceSelectKit - done")
 
         val padMatch = """^cbxPad\(\d\d?\)V[34]$""".r
         reactions += {
-            case e: KitChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
             case e: PadChanged => {
                 // I am not entirely happy with this as it steals focus
                 // from the Select Pad combo -- on first key press, too,
@@ -864,11 +837,6 @@ Console.println("ReplaceSelectKit - done")
     listenTo(tpnKitPadsDetails)
     reactions += {
         case e: TabChangeEvent => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: KitChanged => {
             deafTo(this)
             publish(e)
             listenTo(this)

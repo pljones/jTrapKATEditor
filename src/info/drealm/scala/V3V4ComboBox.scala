@@ -76,6 +76,11 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         // Uhhhhh, right...
         if (lbl != null) lbl.peer.setLabelFor(toVisible.peer.asInstanceOf[java.awt.Component])
     }
+    
+    protected def init() = jTrapKATEditor match {
+        case e if e.isV3 => allMemoryChanged(cbxV3, cbxV4)
+        case e if e.isV4 => allMemoryChanged(cbxV4, cbxV3)
+    }
 
     if (lbl != null) lbl.peer.setLabelFor(peer)
     listenTo(jTrapKATEditor)

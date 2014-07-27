@@ -234,6 +234,7 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
             listenTo(this)
         }
     }
+    init()
 }
 
 class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {

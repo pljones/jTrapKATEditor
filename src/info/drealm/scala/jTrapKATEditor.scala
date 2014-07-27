@@ -69,6 +69,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentPadNumber: Int = _currentPadNumber
     def currentPadNumber_=(value: Int): Unit = {
         _currentPadNumber = value
+        publish(new CurrentPadChanged(this))
     }
     def currentPad: model.Pad = currentKit(_currentPadNumber)
     def currentPadV3: model.PadV3 = currentKitV3(_currentPadNumber)

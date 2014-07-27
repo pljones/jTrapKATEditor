@@ -118,8 +118,10 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 }
             }
 
+            listenTo(frmTrapkatSysexEditor)
             listenTo(jTrapKATEditor)
             reactions += {
+                case e: WindowOpened if jTrapKATEditor.currentType == dumpType            => action = saveAction
                 case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.currentType == dumpType => action = saveAction
             }
         }
@@ -174,10 +176,15 @@ object jTrapKATEditorMenuBar extends MenuBar {
             enabled = false
         })
         add(new SaveAsMenuItem("CurrentKit", model.DumpType.Kit) {
+            listenTo(frmTrapkatSysexEditor)
             listenTo(jTrapKATEditor)
             listenTo(pnKitsPads)
             // Does this care about KitSelectionChanged?
             reactions += {
+                case e: WindowOpened => {
+                    Console.println(s"SaveAsMenuItemCurrentKit got WindowOpened from ${e.source}")
+                    enabled = jTrapKATEditor.currentKit != null
+                }
                 case e: eventX.CurrentKitChanged => {
                     Console.println(s"SaveAsMenuItemCurrentKit got KitChanged from ${e.source}")
                     enabled = jTrapKATEditor.currentKit != null
@@ -300,6 +307,4 @@ object jTrapKATEditorMenuBar extends MenuBar {
     contents += mnEdit
     contents += mnTools
     contents += mnHelp
-
-    Console.println("Hello")
 }

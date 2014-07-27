@@ -123,26 +123,47 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
 
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
-            private[pnKitsPadsTop] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
+            private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
                 case x if x < 25 => s"${x}"
                 case x           => L.G(s"lbPad${x}")
             }), "cbxSelectPad", lblSelectPad) {
-                prototypeDisplayValue = Some("88 mmmm")
+
                 peer.setMaximumRowCount(28)
-                var currentPad = -1
+                prototypeDisplayValue = Some("88 mmmm")
+
                 listenTo(selection)
                 listenTo(jTrapKATEditor)
+
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
-                        if (currentPad != selection.index) {
-                            publish(new PadChanged(currentPad, selection.index))
-                            currentPad = selection.index
-                        }
+                        deafTo(jTrapKATEditor)
+                        jTrapKATEditor.currentPadNumber = selection.index
+                        listenTo(jTrapKATEditor)
                     }
-                    case e: CurrentAllMemoryChanged => publish(new PadChanged(currentPad, selection.index))
+                    case e: CurrentPadChanged => {
+                        deafTo(this)
+                        deafTo(selection)
+                        selection.index = jTrapKATEditor.currentPadNumber
+                        listenTo(selection)
+                        listenTo(this)
+                    }
                 }
             }
-            private[this] val lblPadEdited = new Label(L.G("lblXEdited"))
+
+            def selectedPad: Int = cbxSelectPad.selection.index
+            def selectedPad_=(value: Int): Unit = cbxSelectPad.selection.index = value
+
+            private[this] val lblPadEdited = new Label(L.G("lblXEdited")) {
+                visible = jTrapKATEditor.currentPad.changed
+
+                listenTo(jTrapKATEditor)
+                reactions += {
+                    case e: CurrentPadChanged => visible = jTrapKATEditor.currentPad.changed
+                    case e: CurrentKitChanged => visible = jTrapKATEditor.currentPad.changed
+                    case e: CurrentAllMemoryChanged => visible = jTrapKATEditor.currentPad.changed
+                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentPad => visible = jTrapKATEditor.currentPad.changed
+                }
+            }
 
             contents += (lblSelectKit, "cell 0 0,alignx right")
             contents += (cbxSelectKit, "cell 1 0")
@@ -155,14 +176,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             // TODO: txtKitName should set the current kit name
             listenTo(txtKitName)
-            listenTo(cbxSelectPad)
 
             reactions += {
-                case e: PadChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
                 case e: ValueChanged => {
                     deafTo(this)
                     publish(e)
@@ -184,7 +199,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 col <- (0 to 7) zip row._2;
                 if col._2 != 0
             } yield (s"cell ${col._1} ${row._1}", col._2)) foreach { pad =>
-                val pn = new Pad(pad._2) { background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250) }
+                val pn = new Pad(pad._2) {
+                    background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250)
+                }
                 contents += (pn, pad._1 + ",grow")
                 listenTo(pn)
                 pn
@@ -224,7 +241,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] val lblHH = new Label(L.G("lblHH")) { peer.setDisplayedMnemonic(L.G("mneHH").charAt(0)) }
                 contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
                 (1 to 4) foreach { x =>
-                    val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ (1 to 24), s"cbxHH${x}", if (x == 1) lblHH else null) { peer.setMaximumRowCount(25) }
+                    val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", if (x == 1) lblHH else null) { peer.setMaximumRowCount(25) }
                     contents += (cbxHH, s"cell ${x} 0, grow")
                     listenTo(cbxHH.selection)
                 }
@@ -263,16 +280,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         listenTo(pnPedals)
         listenTo(jTrapKATEditor)
 
-        val padMatch = """^cbxPad\(\d\d?\)V[34]$""".r
+        val padMatch = """^(?:cbxPad)(\d\d?)(?:V[34])""".r
         reactions += {
-            case e: PadChanged => {
+            case e: CurrentPadChanged => {
                 // I am not entirely happy with this as it steals focus
                 // from the Select Pad combo -- on first key press, too,
                 // so you can't type "12" to get to pad 12.
-                Focus.set(this, s"pnPad${e.newPad + 1}")
-                deafTo(this)
-                publish(e)
-                listenTo(this)
+                deafTo(jTrapKATEditor)
+                Focus.set(this, s"pnPad${jTrapKATEditor.currentPadNumber + 1}")
+                listenTo(jTrapKATEditor)
             }
             case e: SelectionChanged => {
                 deafTo(this)
@@ -282,20 +298,22 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             case e: CbxEditorFocused => {
                 // This is a bit gruesome, too.
                 // I guess I could publish and subscribe... bah...
+                // TODO: Or, really, a Pad could do this itself...
                 padMatch findFirstIn e.source.name match {
-                    case Some(padMatch(pad)) => pnSelector.cbxSelectPad.selection.index = pad.toInt
-                    case _                   => {}
+                    case Some(padMatch(pad)) => {
+                        deafTo(jTrapKATEditor)
+                        jTrapKATEditor.currentPadNumber = pad.toInt - 1
+                        listenTo(jTrapKATEditor)
+                    }
+                    case _ => { Console.println("NotAMatch") }
                 }
-                deafTo(this)
-                publish(e)
-                listenTo(this)
             }
             case e: ValueChanged => {
                 deafTo(this)
                 publish(e)
                 listenTo(this)
             }
-            case e: CurrentAllMemoryChanged => Focus.set(this, s"pnPad${pnSelector.cbxSelectPad.selection.index + 1}")
+            case e: CurrentAllMemoryChanged => Focus.set(this, s"pnPad${pnSelector.selectedPad + 1}")
         }
     }
 
@@ -336,7 +354,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     listenTo(jTrapKATEditor)
 
                     reactions += {
-                        case e: PadChanged if e.newPad != pad => {
+                        case e: PadSelectionChanged if e.newPad != pad => {
                             deafTo(pnKitsPads)
                             deafTo(this)
                             publish(new ReplaceCbxLinkTo(e.newPad))
@@ -694,18 +712,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 contents += (lblSoundControl, "cell 0 0,alignx right")
                 contents += (cbxSoundControl, "cell 1 0")
 
-                listenTo(cbxSoundControl.selection)
-
                 order += cbxSoundControl.name
-
-                reactions += {
-                    case e: SelectionChanged => {
-                        deafTo(this)
-                        publish(e)
-                        listenTo(this)
-                    }
-                }
-
             }
             contents += (pnSoundControl, "cell 6 0 7 1,center,hidemode 0")
             listenTo(pnSoundControl)
@@ -747,26 +754,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             listenTo(jTrapKATEditor)
             reactions += {
-                case e: SelectionChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: CbxEditorFocused => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: ValueChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: ButtonClicked => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
                 case e: CurrentAllMemoryChanged => {
                     pnSoundControl.visible = jTrapKATEditor.isV4
                     Seq("lbl", "spn", "ckb") foreach (x => Focus.findInContainer(this, s"${x}Bank") match { case Some(cp) => cp.visible = jTrapKATEditor.isV3; case _ => {} })
@@ -781,39 +768,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         val tpnMoreSlots = new TabbedPane.Page("More Slots", pnMoreSlots) { name = "tpMoreSlots" }
         val tpnKitDetails = new TabbedPane.Page("Kit Details", pnKitDetails) { name = "tpKitDetails" }
 
-        listenTo(selection)
-        listenTo(pnPadDetails)
-        listenTo(pnMoreSlots)
-        listenTo(pnKitDetails)
         listenTo(jTrapKATEditor)
 
         reactions += {
-            case e: SelectionChanged if (e.source.isInstanceOf[TabbedPane]) => {
-                val tpnE = e.source.asInstanceOf[TabbedPane]
-                deafTo(this)
-                if (tpnE.selection.index >= 0) publish(new TabChangeEvent(tpnE.selection.page))
-                listenTo(this)
-            }
-            case e: SelectionChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: CbxEditorFocused => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: ValueChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: ButtonClicked => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
             case e: CurrentAllMemoryChanged => {
                 val seln = if (selection.index < 0) null else selection.page
                 while (pages.length > 0) {
@@ -832,40 +789,5 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
     contents += (pnKitsPadsTop, "cell 0 0,grow")
     contents += (tpnKitPadsDetails, "cell 0 1,grow")
-
-    listenTo(pnKitsPadsTop)
-    listenTo(tpnKitPadsDetails)
-    reactions += {
-        case e: TabChangeEvent => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: PadChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: SelectionChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: CbxEditorFocused => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: ValueChanged => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-        case e: ButtonClicked => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
-    }
 
 }

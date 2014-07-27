@@ -35,8 +35,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     UIManager.put("swing.boldMetal", false)
     UIManager.setLookAndFeel(ui)
 
-    def top = frmTrapkatSysexEditor
-
     private[this] var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType
 
@@ -219,6 +217,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         }
         publish(thingChanged)
     }
+
+    def top = frmTrapkatSysexEditor
 
     def onWindowOpened = {
         Console.println("onWindowOpened AllMemoryChanged")

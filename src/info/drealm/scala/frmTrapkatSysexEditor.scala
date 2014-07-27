@@ -43,64 +43,33 @@ object frmTrapkatSysexEditor extends Frame {
     }
 
     iconImage = (new javax.swing.ImageIcon(R.U("info/drealm/scala/tk_wild2-sq.png"))).getImage
-    title = L.G("ApplicationProductName")
+    title = getTitle
     resizable = false
 
     menuBar = jTrapKATEditorMenuBar
 
     contents = new MigPanel("insets 3", "[grow]", "[grow, fill][bottom]") {
-
         contents += (tpnMain, "cell 0 0,grow")
-
         contents += (new Label(L.G("lbMIDIOX")), "cell 0 1,alignx center")
-
     }
 
     layout.Focus.set(pnKitsPads, "pnPad1")
 
     centerOnScreen
 
-    private[this] def windowOpened = {
-        Checker.autoUpdateMode = prefs.updateAutomatically
+    listenTo(jTrapKATEditor)
 
-        listenTo(menuBar)
-        listenTo(tpnMain)
-        listenTo(jTrapKATEditor)
-        //jTrapKATEditor_AllMemoryChanged
-        jTrapKATEditor.onWindowOpened
-    }
+    private[this] def getTitle = L.G("MainProgramTitle",
+        L.G("ApplicationProductName"),
+        if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
+        if (jTrapKATEditor.currentAllMemory.isInstanceOf[model.AllMemoryV3]) L.G("V3") else L.G("V4"),
+        if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
+    )
 
     reactions += {
-        case wo: WindowOpened => windowOpened
-        case amc: CurrentAllMemoryChanged => jTrapKATEditor_AllMemoryChanged
-        case amdc: DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => currentAllMemory_DataChanged
-        case tpe: TabChangeEvent => {
-            tpe.source.content.name.stripPrefix("pn") match {
-                case "KitsPads"   => Console.println("Main KitsPads")
-                case "Global"     => Console.println("Main Global")
-                case "PadDetails" => Console.println("KitPadsDetails PadDetails")
-                case "MoreSlots"  => Console.println("KitPadsDetails MoreSlots")
-                case "KitDetails" => Console.println("KitPadsDetails KitDetails")
-                case otherwise => {
-                    Console.println("TabChangeEvent " + otherwise)
-                }
-            }
-        }
-        case e: PadChanged => {
-            Console.println("Pad change" + (if (e.oldPad >= 0) " from " + e.oldPad else "") + " to " + e.newPad)
-        }
-        case cbxE: SelectionChanged => {
-            Console.println("SelectionChanged " + cbxE.source.name)
-        }
-        case cbxE: CbxEditorFocused => {
-            Console.println("CbxEditorFocused " + cbxE.source.name)
-        }
-        case cpnE: ValueChanged => {
-            Console.println("ValueChanged " + cpnE.source.name)
-        }
-        case cbxE: ButtonClicked => {
-            Console.println("ButtonClicked " + cbxE.source.name)
-        }
+        case wo: WindowOpened => Checker.autoUpdateMode = prefs.updateAutomatically
+        case amc: CurrentAllMemoryChanged => title = getTitle
+        case amdc: DataItemChanged if amdc.dataItem == jTrapKATEditor.currentAllMemory => title = getTitle
     }
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
@@ -120,17 +89,4 @@ object frmTrapkatSysexEditor extends Frame {
         L.G("RenumberKit", "" + into, intoName, "" + from, fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
-
-    private[this] def jTrapKATEditor_AllMemoryChanged = {
-        currentAllMemory_DataChanged
-    }
-
-    private[this] def currentAllMemory_DataChanged = {
-        title = L.G("MainProgramTitle",
-            L.G("ApplicationProductName"),
-            if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
-            if (jTrapKATEditor.currentAllMemory.isInstanceOf[model.AllMemoryV3]) L.G("V3") else L.G("V4"),
-            if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
-        )
-    }
 }

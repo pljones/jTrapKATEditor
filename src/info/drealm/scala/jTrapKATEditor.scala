@@ -215,17 +215,19 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             _currentFile = file
             _currentType = thingType
         }
+        Console.println("_save thingChanged")
         publish(thingChanged)
     }
 
-    def top = frmTrapkatSysexEditor
-
-    def onWindowOpened = {
-        Console.println("onWindowOpened AllMemoryChanged")
+    def top = {
+        Console.println("Getting top window")
         publish(new CurrentAllMemoryChanged(this))
-        Console.println("Send KitChanged (AllMemoryChanged V4)")
-        publish(new KitChanged(_currentKitNumber, _currentKitNumber))
+        frmTrapkatSysexEditor
     }
-    onWindowOpened //anyway
+
+    // Need to alert contents of pnKitsPads before frmTrapkatSysexEditor gets instantiated 
+    val sideEffect = pnKitsPads
+    Console.println("Start up AllMemoryChanged")
+    publish(new CurrentAllMemoryChanged(this))
 
 }

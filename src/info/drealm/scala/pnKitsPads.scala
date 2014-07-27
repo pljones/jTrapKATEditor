@@ -87,7 +87,7 @@ Console.println(e)
 
             private[this] val cbxSelectKit = new CbxSelectKit
 
-            private[this] val lblKitEdited = new Label(L.G("lbbXEdited")) {
+            private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
                 def makeVisible = visible = jTrapKATEditor.currentKit != null && jTrapKATEditor.currentKit.changed
 
                 makeVisible
@@ -140,7 +140,7 @@ Console.println(e)
                     case e: CurrentAllMemoryChanged => publish(new PadChanged(currentPad, selection.index))
                 }
             }
-            private[this] val lblPadEdited = new Label(L.G("lbbXEdited"))
+            private[this] val lblPadEdited = new Label(L.G("lblXEdited"))
 
             contents += (lblSelectKit, "cell 0 0,alignx right")
             contents += (cbxSelectKit, "cell 1 0")

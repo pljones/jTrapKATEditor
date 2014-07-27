@@ -128,11 +128,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 _currentType = model.DumpType.Global
                 if (isV3) {
                     _currentAllMemory.global = globalV3Dump.self
-                    publish(new GlobalChanged)
+                    publish(new GlobalChanged(this))
                 }
                 else if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
                     _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
-                    publish(new GlobalChanged)
+                    publish(new GlobalChanged(this))
                 }
             }
             case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
@@ -140,11 +140,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 _currentType = model.DumpType.Global
                 if (isV4) {
                     _currentAllMemory.global = globalV4Dump.self
-                    publish(new GlobalChanged)
+                    publish(new GlobalChanged(this))
                 }
                 else if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
                     _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
-                    publish(new GlobalChanged)
+                    publish(new GlobalChanged(this))
                 }
             }
             case kitV3Dump: model.KitV3Dump if _currentKit >= 0 && _currentKit < _currentAllMemory.length &&
@@ -194,7 +194,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def saveFileAs(thing: model.DumpType.DumpType, file: java.io.File) = {
         thing match {
             case model.DumpType.AllMemory => _save(false, file, _currentAllMemory, thing, new CurrentAllMemoryChanged(this))
-            case model.DumpType.Global    => _save(_currentType != thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new GlobalChanged)
+            case model.DumpType.Global    => _save(_currentType != thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new GlobalChanged(this))
             case model.DumpType.Kit       => _save(_currentType != thing && _currentAllMemory(_currentKit).changed, file, _currentAllMemory(_currentKit), thing, new KitChanged(_currentKit, _currentKit))
             case unknown =>
                 throw new IllegalArgumentException(s"Do not ask to save ${unknown} as it is unknown.")

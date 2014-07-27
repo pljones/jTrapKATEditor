@@ -42,12 +42,12 @@ class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) e
 
 class V3V4SelectionChanged(val source: info.drealm.scala.V3V4ComboBox[_, _, _, _]) extends Event
 
-class CurrentAllMemoryChanged(val source: AnyRef) extends Event
-class GlobalChanged extends Event
 class KitChanged(val oldKit: Int, val newKit: Int) extends Event
 class PadChanged(val oldPad: Int, val newPad: Int) extends Event
 class DisplayNotesAs(val oldMode: info.drealm.scala.DisplayMode.DisplayMode, val newMode: info.drealm.scala.DisplayMode.DisplayMode) extends Event
 
+class CurrentAllMemoryChanged(val source: AnyRef) extends Event
+class GlobalChanged(val source: AnyRef) extends Event
 class DataItemChanged(val dataItem: info.drealm.scala.model.DataItem) extends Event
 
 class AutoUpdateModeChanged(val oldMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode, val newMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode) extends Event

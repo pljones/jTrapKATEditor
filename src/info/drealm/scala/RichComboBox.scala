@@ -69,6 +69,17 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label) extends Combo
                 editorPeer.selectAll()
             }
         }
+
+        peer.addActionListener(Swing.ActionListener { e =>
+            e match {
+                case aep: java.awt.event.ActionEvent if e.getID() == java.awt.event.ActionEvent.ACTION_PERFORMED => aep match {
+                    case cbxChg if aep.getActionCommand() == "comboBoxChanged" => publish(new ValueChanged(this))
+                    case cbxEdt if aep.getActionCommand() == "comboBoxEdited" => //publish(new ValueChanged(this)) // Rather EditDone(...) but what is ...?
+                    case _ => Console.println(s"Unknown action performed: ${aep.getActionCommand()}")
+                }
+                case _ => Console.println(s"Unexpected event: ${e}")
+            }
+        })
     }
 
     peer.addItemListener(ItemListener(

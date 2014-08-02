@@ -128,12 +128,16 @@ object PadSlotV4 extends PadSlot {
     override lazy val padFunction: Seq[String] = L.G("PadSlotV4").split("\n").toSeq
 }
 
-abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String) extends RichComboBox[String](v3v4.padFunction, name) {
+abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boolean = false) extends RichComboBox[String](v3v4.padFunction, name, stepped) {
     makeEditable()
     editorPeer.setColumns(4)
     editorPeer.setInputVerifier(Verifier)
     selection.index = 0
     peer.setMaximumRowCount(v3v4.padFunction.length)
+
+    if (stepped) {
+        prototypeDisplayValue = Some("WWWW")
+    }
 
     object Verifier extends InputVerifier {
 
@@ -201,25 +205,14 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String) extends RichCo
         }
     }
 }
-class PadSlotComboBoxV3(name: String) extends PadSlotComboBoxParent(PadSlotV3, name + "V3")
-class PadSlotComboBoxV4(name: String) extends PadSlotComboBoxParent(PadSlotV4, name + "V4")
+class PadSlotComboBoxV3(name: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV3, name + "V3", stepped)
+class PadSlotComboBoxV4(name: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", stepped)
 
 class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = false) extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
     def this(name: String) = this(name, null)
 
-    var _value: String = (if (jTrapKATEditor.isV3) PadSlotV3 else PadSlotV4).padFunction(0)
-    val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name) {
-        if (stepped) {
-            prototypeDisplayValue = Some("WWWW")
-            peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
-        }
-    }
-    val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name) {
-        if (stepped) {
-            prototypeDisplayValue = Some("WWWW")
-            peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
-        }
-    }
+    val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name, stepped)
+    val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, stepped)
     val lbl: Label = label
 
     def focus: Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()

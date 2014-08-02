@@ -64,7 +64,7 @@ trait PadSlot {
             case AsNamesC4 => toNameC4(x)
         }
         case x if (x - 128) < padFunction.length => padFunction(x - 128)
-        case x                                   => "" + x
+        case x                                   => s"${x}"
     }
 }
 

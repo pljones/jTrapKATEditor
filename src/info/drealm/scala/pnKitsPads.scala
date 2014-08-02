@@ -275,26 +275,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         contents += (pnPads, "cell 0 1, grow")
         contents += (pnPedals, "cell 0 2,grow")
 
-        listenTo(pnSelector)
         listenTo(pnPads)
         listenTo(pnPedals)
-        listenTo(jTrapKATEditor)
 
         val padMatch = """^(?:cbxPad)(\d\d?)(?:V[34])""".r
         reactions += {
-            case e: CurrentPadChanged => {
-                // I am not entirely happy with this as it steals focus
-                // from the Select Pad combo -- on first key press, too,
-                // so you can't type "12" to get to pad 12.
-                deafTo(jTrapKATEditor)
-                Focus.set(this, s"pnPad${jTrapKATEditor.currentPadNumber + 1}")
-                listenTo(jTrapKATEditor)
-            }
-            case e: SelectionChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
             case e: CbxEditorFocused => {
                 // This is a bit gruesome, too.
                 // I guess I could publish and subscribe... bah...
@@ -308,12 +293,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     case _ => { Console.println("NotAMatch") }
                 }
             }
-            case e: ValueChanged => {
-                deafTo(this)
-                publish(e)
-                listenTo(this)
-            }
-            case e: CurrentAllMemoryChanged => Focus.set(this, s"pnPad${pnSelector.selectedPad + 1}")
         }
     }
 
@@ -548,8 +527,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
                     contents += (s.lblSlot, s"cell 1 ${slot - 7},alignx right")
                     contents += (s.cbxSlot.cbxV4, s"cell 2 ${slot - 7},gapy 2,grow")
-                    listenTo(s.cbxSlot.selection)
-                    listenTo(s.cbxSlot)
                 }
             }
 
@@ -559,21 +536,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     s.lblSlot.peer.setDisplayedMnemonic(s.lblSlot.name.last)
                     contents += (s.lblSlot, s"cell 4 ${slot - 12},alignx right")
                     contents += (s.cbxSlot.cbxV4, s"cell 5 ${slot - 12},gapy 2,grow")
-                    listenTo(s.cbxSlot.selection)
-                    listenTo(s.cbxSlot)
-                }
-            }
-
-            reactions += {
-                case e: SelectionChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: CbxEditorFocused => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
                 }
             }
 

@@ -139,6 +139,9 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
         prototypeDisplayValue = Some("WWWW")
     }
 
+    def value: Byte = v3v4.toPadSlot(selection.item)
+    def value_=(value: Byte): Unit = selection.item = v3v4.toString(value)
+
     object Verifier extends InputVerifier {
 
         // Use pattern matching to neatly get the ComboBox
@@ -215,13 +218,20 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
     val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, stepped)
     val lbl: Label = label
 
-    def focus: Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()
+    def focus(): Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()
+    def value: Byte = cbx.value
+    def value_=(value: Byte): Unit = cbx.value = value
 
     listenTo(cbxV3)
     listenTo(cbxV4)
 
     reactions += {
         case e: eventX.CbxEditorFocused => {
+            deafTo(this)
+            publish(e)
+            listenTo(this)
+        }
+        case e: ValueChanged if e.source.isInstanceOf[PadSlotComboBoxParent] => {
             deafTo(this)
             publish(e)
             listenTo(this)
@@ -238,27 +248,62 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     contents += (cbxPad.cbxV3, "cell 1 0,grow")
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
 
-    listenTo(cbxPad.cbxV3.selection)
-    listenTo(cbxPad.cbxV4.selection)
-    listenTo(cbxPad)
+    override def requestFocus() = cbxPad.focus()
 
-    override def requestFocus = cbxPad.focus
+    private[this] def displayPad(): Unit = {
+        val myPad: model.Pad = jTrapKATEditor.currentKit(pad - 1)
+        deafTo(cbxPad)
+        cbxPad.value = myPad(0)
+        listenTo(cbxPad)
+    }
+
+    private[this] def updatePad(value: Byte): Unit = {
+        val myPad: model.Pad = jTrapKATEditor.currentKit(pad - 1)
+        deafTo(jTrapKATEditor)
+        myPad(0) = cbxPad.value
+        listenTo(jTrapKATEditor)
+    }
+
+    listenTo(cbxPad)
+    listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: SelectionChanged if (e.source.isInstanceOf[ComboBox[_]]) => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
-        }
         case e: eventX.CbxEditorFocused => {
             deafTo(this)
             publish(e)
             listenTo(this)
         }
+        case e: ValueChanged                   => updatePad(cbxPad.value)
+        case e: eventX.CurrentKitChanged       => displayPad()
+        case e: eventX.CurrentAllMemoryChanged => displayPad()
     }
 }
 
-class Slot(slot: Integer) extends Reactor {
+class Slot(slot: Int) extends Reactor {
     val lblSlot = new Label("" + slot) { name = s"lblSlot${slot}" }
     val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot)
+
+    private[this] def displaySlot(): Unit = {
+        val myPad: model.Pad = jTrapKATEditor.currentPad
+        deafTo(cbxSlot)
+        cbxSlot.value = myPad(slot - 1)
+        listenTo(cbxSlot)
+    }
+
+    private[this] def updateSlot(value: Byte): Unit = {
+        val myPad: model.Pad = jTrapKATEditor.currentPad
+        deafTo(jTrapKATEditor)
+        myPad(slot - 1) = cbxSlot.value
+        listenTo(jTrapKATEditor)
+    }
+
+    listenTo(cbxSlot)
+    listenTo(jTrapKATEditor)
+
+    reactions += {
+        case e: ValueChanged                   => updateSlot(cbxSlot.value)
+        case e: eventX.CurrentPadChanged       => displaySlot()
+        case e: eventX.CurrentKitChanged       => displaySlot()
+        case e: eventX.CurrentAllMemoryChanged => displaySlot()
+    }
 }

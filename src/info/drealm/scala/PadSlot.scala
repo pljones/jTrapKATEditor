@@ -30,6 +30,66 @@ import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 
+/**
+ * NoteNameToNumber
+ *
+ * This trait provides a method to convert note names (in the form "F#6")
+ * to note numbers in the MIDI range 0..127.
+ *
+ * @param octave This should be set to the octave number for middle C
+ *               (i.e. 3 for C3=60 or 4 for C4=60).
+ */
+trait NoteNameToNumber {
+    val notes = "C D EF G A B"
+    val octave: Int
+    /**
+     * Used to convert note name to note number
+     *
+     * @param  value  String representation of a note (such as "C#2")
+     * @return        The integer note number (based on the octave set for middle C)
+     */
+    def toNumber(value: String): Int = {
+        val noteName = value.trim().toLowerCase().capitalize
+        val note = notes.indexOf(noteName.head)
+        if (note < 0) throw new IllegalArgumentException("Invalid note")
+        val sharp = noteName.drop(1).take(1) == "#"
+        val flat = noteName.drop(1).take(1) == "b"
+        val octaveNum = noteName.drop(1 + (if (sharp || flat) 1 else 0)).toInt - octave + 5
+        if (octaveNum < 0 || octaveNum > 10) throw new IllegalArgumentException("Invalid octave")
+        note +
+            (if (sharp) 1 else 0) +
+            (if (flat) -1 else 0) +
+            (octaveNum * 12) match {
+                case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
+                case good                        => good
+            }
+    }
+}
+
+/**
+ * NoteNumberToName
+ *
+ * This trait provides a method to convert note numbers in the MIDI range 0..127
+ * to note names (in the form "F#6").
+ *
+ * @param octave This should be set to the octave number for middle C
+ *               (i.e. 3 for C3=60 or 4 for C4=60).
+ */
+trait NoteNumberToName {
+    val notes = "C C#D D#E F F#G G#A A#B "
+    val octave: Int
+    /**
+     * Used to convert note number to note name
+     *
+     * @param  number  Integer representation of a note (such as 64)
+     * @return         The string note name
+     */
+    def toName(number: Int): String = {
+        if (number < 0 || number > 127) throw new IllegalArgumentException("Note out of range")
+        notes.drop((number % 12) * 2).take(2).trim() + ((number / 12) - 5 + octave)
+    }
+}
+
 object DisplayMode extends Enumeration {
     type DisplayMode = Value
     val AsNumber, AsNamesC3, AsNamesC4 = Value
@@ -59,64 +119,12 @@ trait PadSlot {
     val toNameC4 = (new NoteNumberToName { val octave = 4 }).toName _
     def toString(value: Byte): String = (0x000000ff & value) match {
         case x if x < 128 => prefs.notesAs match {
-            case AsNumber  => x.toString
+            case AsNumber  => s"${x}"
             case AsNamesC3 => toNameC3(x)
             case AsNamesC4 => toNameC4(x)
         }
         case x if (x - 128) < padFunction.length => padFunction(x - 128)
         case x                                   => s"${x}"
-    }
-}
-
-// For note names, we need to convert to 0..127 based on note and octave
-// number.
-// "octave" should be set to indicate the octave for middle C (note 60),
-// e.g. 3 for C3=60 or 4 for C4=60.
-trait NoteNameToNumber {
-    val notes = "C D EF G A B"
-    val octave: Int
-    /**
-     * Used to convert note name to note number
-     *
-     * @param noteName String representation of a note (such as "C#2")
-     * @param octave   Number that follows "C" for middle C (note 60)
-     * @return         The integer note number
-     */
-    def toNumber(value: String): Int = {
-        val noteName = value.trim().toLowerCase().capitalize
-        val note = notes.indexOf(noteName.head)
-        if (note < 0) throw new IllegalArgumentException("Invalid note")
-        val sharp = noteName.drop(1).take(1) == "#"
-        val flat = noteName.drop(1).take(1) == "b"
-        val octaveNum = noteName.drop(1 + (if (sharp || flat) 1 else 0)).toInt - octave + 5
-        if (octaveNum < 0 || octaveNum > 10) throw new IllegalArgumentException("Invalid octave")
-        note +
-            (if (sharp) 1 else 0) +
-            (if (flat) -1 else 0) +
-            (octaveNum * 12) match {
-                case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
-                case good                        => good
-            }
-    }
-}
-
-// For note names, we need to convert to 0..127 based on note and octave
-// number.
-// "octave" should be set to indicate the octave for middle C (note 60),
-// e.g. 3 for C3=60 or 4 for C4=60.
-trait NoteNumberToName {
-    val notes = "C C#D D#E F F#G G#A A#B "
-    val octave: Int
-    /**
-     * Used to convert note number to note name
-     *
-     * @param number   Integer representation of a note (such as 64)
-     * @param octave   Number that should follows "C" for middle C (note 60)
-     * @return         The string note name
-     */
-    def toName(number: Int): String = {
-        if (number < 0 || number > 127) throw new IllegalArgumentException("Note out of range")
-        notes.drop((number % 12) * 2).take(2).trim() + ((number / 12) - 5 + octave)
     }
 }
 
@@ -142,7 +150,7 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
     def value: Byte = v3v4.toPadSlot(selection.item)
     def value_=(value: Byte): Unit = selection.item = v3v4.toString(value)
 
-    object Verifier extends InputVerifier {
+    private[this] object Verifier extends InputVerifier {
 
         // Use pattern matching to neatly get the ComboBox
         // If the verifier is happy, tidy the value up and commit it
@@ -188,22 +196,24 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
         }
     }
 
-    var _displayMode: DisplayMode.DisplayMode = prefs.notesAs
+    private[this] var _displayMode: DisplayMode.DisplayMode = prefs.notesAs
     listenTo(jTrapKATEditorPreferences)
     reactions += {
-        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if _displayMode != prefs.notesAs && !v3v4.padFunction.contains(editorPeer.getText()) => {
-            val oldVal: Byte = (_displayMode match {
-                case DisplayMode.AsNumber  => editorPeer.getText().toInt
-                case DisplayMode.AsNamesC3 => v3v4.toNumberC3(editorPeer.getText())
-                case DisplayMode.AsNamesC4 => v3v4.toNumberC4(editorPeer.getText())
-            }).toByte
-            val newVal: String = prefs.notesAs match {
-                case DisplayMode.AsNumber  => "" + oldVal
-                case DisplayMode.AsNamesC3 => v3v4.toNameC3(oldVal)
-                case DisplayMode.AsNamesC4 => v3v4.toNameC4(oldVal)
+        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if _displayMode != prefs.notesAs => {
+            if (!v3v4.padFunction.contains(editorPeer.getText())) {
+                val oldVal: Byte = (_displayMode match {
+                    case DisplayMode.AsNumber  => editorPeer.getText().toInt
+                    case DisplayMode.AsNamesC3 => v3v4.toNumberC3(editorPeer.getText())
+                    case DisplayMode.AsNamesC4 => v3v4.toNumberC4(editorPeer.getText())
+                }).toByte
+                val newVal: String = prefs.notesAs match {
+                    case DisplayMode.AsNumber  => s"${oldVal}"
+                    case DisplayMode.AsNamesC3 => v3v4.toNameC3(oldVal)
+                    case DisplayMode.AsNamesC4 => v3v4.toNameC4(oldVal)
+                }
+                editorPeer.setText(newVal)
+                selection.item = newVal
             }
-            editorPeer.setText(newVal)
-            selection.item = newVal
             _displayMode = prefs.notesAs
         }
     }
@@ -218,7 +228,8 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
     val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, stepped)
     val lbl: Label = label
 
-    def focus(): Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()
+    def requestFocus(): Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()
+
     def value: Byte = cbx.value
     def value_=(value: Byte): Unit = cbx.value = value
 
@@ -248,7 +259,7 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     contents += (cbxPad.cbxV3, "cell 1 0,grow")
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
 
-    override def requestFocus() = cbxPad.focus()
+    override def requestFocus() = cbxPad.requestFocus()
 
     private[this] def displayPad(): Unit = {
         val myPad: model.Pad = jTrapKATEditor.currentKit(pad - 1)

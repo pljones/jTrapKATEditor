@@ -58,7 +58,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         (0 to 3) foreach (idx => _hhPads(idx) = kit.hhPads(idx))
         _fcChannel = kit.fcChannel
         _fcCurve = kit.fcCurve
-        Array.copy((kit.kitName ++ Stream.continually(' ')).take(_kitName.length).toCharArray(), 0, _kitName, 0, _kitName.length)
+        Array.copy(kit.kitName.padTo(_kitName.length, ' ').toCharArray(), 0, _kitName, 0, _kitName.length)
     }
 
     protected def _deserializeKit(in: FileInputStream): Unit
@@ -133,7 +133,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def fcCurve: Byte = _fcCurve
     def fcCurve_=(value: Byte): Unit = if (_fcCurve != value) update(_fcCurve = value) else {}
     def kitName: String = new String(_kitName)
-    def kitName_=(value: String): Unit = (value.trim() + "            ").take(12) match {
+    def kitName_=(value: String): Unit = value.trim().padTo(12, ' ') match {
         case update if update != _kitName => {
             (0 to 11) zip update foreach (x => _kitName(x._1) = x._2)
             dataItemChanged
@@ -153,7 +153,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
     }
 
     def this(kitV4: KitV4) = {
-        this(new PadV3Seq(kitV4 map (x => x.asInstanceOf[PadV4])), Seq(kitV4.soundControls(0).clone).toArray)
+        this(new PadV3Seq(kitV4), Seq(kitV4.soundControls(0).clone).toArray)
         from(kitV4)
 
         _bank = kitV4.soundControls(0).bankLSB
@@ -228,14 +228,14 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 }
 
 class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
-    def this() = this(new PadV4Seq, Stream.continually(new SoundControl).take(4).toArray)
+    def this() = this(new PadV4Seq, Seq[SoundControl]().padTo(4, new SoundControl).toArray)
     def this(in: FileInputStream) = {
         this(new PadV4Seq(in), new Array[SoundControl](4))
         _deserializeKit(in)
     }
 
     def this(kitV3: KitV3) = {
-        this(new PadV4Seq(kitV3 map (x => x.asInstanceOf[PadV3])), (Seq(kitV3.soundControls(0).clone) ++ Stream.continually(new SoundControl).take(4)).take(4).toArray)
+        this(new PadV4Seq(kitV3), Seq(kitV3.soundControls(0).clone).padTo(4, new SoundControl).toArray)
         from(kitV3)
 
         // Curve needs fixing - pads can sort the details

@@ -73,7 +73,7 @@ object frmTrapkatSysexEditor extends Frame {
     }
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
-        Console.println(f"${to} - changed? ${dataItem.changed}")
+        Console.println(s"okayToSplat: ${to} - changed? ${dataItem.changed}")
         !dataItem.changed || (Dialog.showConfirmation(null,
             L.G("OKToSplat", to),
             L.G("ApplicationProductName"),
@@ -86,7 +86,7 @@ object frmTrapkatSysexEditor extends Frame {
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
     def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(null,
-        L.G("RenumberKit", "" + into, intoName, "" + from, fromName),
+        L.G("RenumberKit", s"${into}", intoName, s"${from}", fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 }

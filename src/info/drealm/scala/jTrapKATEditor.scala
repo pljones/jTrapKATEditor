@@ -65,7 +65,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def isNoPrgChg(sc: Int): Boolean = currentKit.soundControls(sc).prgChg == 0
     def isNoBankMSB(sc: Int): Boolean = currentKit.soundControls(sc).bankMSB >= 128
     def isNoBankLSB(sc: Int): Boolean = currentKit.soundControls(sc).bankLSB >= 128
-    def isNoBank: Boolean = currentKit.asInstanceOf[model.KitV3].bank >= 128
+    def isNoBank: Boolean = currentKitV3.bank >= 128
 
     private[this] var _currentPadNumber: Int = 0
     def currentPadNumber: Int = _currentPadNumber
@@ -77,7 +77,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentPadV3: model.PadV3 = currentKitV3(_currentPadNumber)
     def currentPadV4: model.PadV4 = currentKitV4(_currentPadNumber)
 
-    def reinitV3: Unit = {
+    def reinitV3(): Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV3
@@ -85,7 +85,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentAllMemoryChanged(this))
     }
 
-    def reinitV4: Unit = {
+    def reinitV4(): Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV4
@@ -93,7 +93,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentAllMemoryChanged(this))
     }
 
-    def convertToV3: Unit = {
+    def convertToV3(): Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
@@ -102,7 +102,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentAllMemoryChanged(this))
     }
 
-    def convertToV4: Unit = {
+    def convertToV4(): Unit = {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
@@ -202,7 +202,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     def exitClose() = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) quit
 
-    private[this] def _save(makeChanged: Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: Event) = {
+    private[this] def _save(makeChanged: => Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: => Event) = {
         model.TrapKATSysexDump.toFile(file, thing)
         if (makeChanged) thing.makeChanged
         Console.println(f"_currentType ${_currentType} | thingType ${thingType}")
@@ -214,11 +214,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(thingChanged)
     }
 
-    def top = {
-        Console.println("Getting top window")
-        publish(new CurrentAllMemoryChanged(this))
-        frmTrapkatSysexEditor
-    }
+    def top = frmTrapkatSysexEditor
 
     // Need to alert contents of pnKitsPads before frmTrapkatSysexEditor gets instantiated 
     val sideEffect = pnKitsPads

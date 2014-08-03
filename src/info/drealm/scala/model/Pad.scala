@@ -24,7 +24,7 @@
 
 package info.drealm.scala.model
 
-import java.io._
+import java.io.{ Console => _, _ }
 import collection.mutable
 
 abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.Seq[Byte] {
@@ -239,7 +239,6 @@ class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
         this(x => new PadV3(padV4seq(x)))
         dataItemChanged
     }
-    def this(padV4seq: PadV4Seq) = this(padV4seq map (x => x.asInstanceOf[PadV4]))
 }
 
 class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
@@ -249,5 +248,4 @@ class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
         this(x => new PadV4(padV3seq(x), (x + 1).toByte))
         dataItemChanged
     }
-    def this(padV3seq: PadV3Seq) = this(padV3seq map (x => x.asInstanceOf[PadV3]))
 }

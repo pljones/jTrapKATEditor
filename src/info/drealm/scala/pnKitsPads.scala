@@ -509,7 +509,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     publish(e)
                     listenTo(this)
                 }
-                case e: CurrentAllMemoryChanged => pnLinkTo.visible = jTrapKATEditor.isV4
+                case e: CurrentAllMemoryChanged => pnLinkTo.visible = jTrapKATEditor.doV3V4(false, true)
             }
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
@@ -717,8 +717,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             listenTo(jTrapKATEditor)
             reactions += {
                 case e: CurrentAllMemoryChanged => {
-                    pnSoundControl.visible = jTrapKATEditor.isV4
-                    Seq("lbl", "spn", "ckb") foreach (x => Focus.findInContainer(this, s"${x}Bank") match { case Some(cp) => cp.visible = jTrapKATEditor.isV3; case _ => {} })
+                    pnSoundControl.visible = jTrapKATEditor.doV3V4(false, true)
+                    Seq("lbl", "spn", "ckb") foreach (x => Focus.findInContainer(this, s"${x}Bank") match {
+                        case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
+                        case _        => {}
+                    })
                 }
             }
 
@@ -740,10 +743,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     pages.runCount
                 }
                 pages += tpnPadDetails
-                if (jTrapKATEditor.isV4) pages += tpnMoreSlots
+                jTrapKATEditor.doV3V4({}, pages += tpnMoreSlots)
                 pages += tpnKitDetails
 
-                if (seln != null) selection.page = if (jTrapKATEditor.isV3 && seln == tpnMoreSlots) tpnPadDetails else seln
+                if (seln != null) selection.page = jTrapKATEditor.doV3V4(if (seln == tpnMoreSlots) tpnPadDetails else seln, seln)
             }
         }
 

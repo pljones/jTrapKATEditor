@@ -308,13 +308,15 @@ class Slot(slot: Int) extends Reactor {
         listenTo(jTrapKATEditor)
     }
 
+    private[this] def v3v4(f: => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f, f)
+
     listenTo(cbxSlot)
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: ValueChanged                   => updateSlot(cbxSlot.value)
-        case e: eventX.CurrentPadChanged       => displaySlot()
-        case e: eventX.CurrentKitChanged       => displaySlot()
-        case e: eventX.CurrentAllMemoryChanged => displaySlot()
+        case e: ValueChanged                   => v3v4(updateSlot(cbxSlot.value))
+        case e: eventX.CurrentPadChanged       => v3v4(displaySlot())
+        case e: eventX.CurrentKitChanged       => v3v4(displaySlot())
+        case e: eventX.CurrentAllMemoryChanged => v3v4(displaySlot())
     }
 }

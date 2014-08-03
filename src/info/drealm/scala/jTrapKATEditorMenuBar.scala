@@ -259,10 +259,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     case Dialog.Result.Yes => converter
                     case _                 => {}
                 }
-            jTrapKATEditor.currentAllMemory match {
-                case v3: model.AllMemoryV3 => f("V3", "V4", jTrapKATEditor.convertToV4)
-                case _                     => f("V4", "V3", jTrapKATEditor.convertToV3)
-            }
+            jTrapKATEditor.doV3V4(f("V3", "V4", jTrapKATEditor.convertToV4()), f("V4", "V3", jTrapKATEditor.convertToV3()))
         }))
 
     }

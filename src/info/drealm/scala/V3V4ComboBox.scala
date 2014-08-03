@@ -34,7 +34,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     val cbxV3: C1
     val cbxV4: C2
     val lbl: Label
-    protected def cbx = if (jTrapKATEditor.isV3) cbxV3 else cbxV4
+    protected def cbx = jTrapKATEditor.doV3V4(cbxV3, cbxV4)
     private[this] def peer = cbx.peer.asInstanceOf[javax.swing.JComboBox[_]]
 
     def selectionV3 = cbxV3.selection
@@ -66,8 +66,8 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     def v3v4visible: Boolean = _visible && cbx.visible
     def v3v4visible_=(value: Boolean): Unit = {
         _visible = value
-        cbxV3.visible = jTrapKATEditor.isV3 && value
-        cbxV4.visible = jTrapKATEditor.isV4 && value
+        cbxV3.visible = jTrapKATEditor.doV3V4(_visible, false)
+        cbxV4.visible = jTrapKATEditor.doV3V4(false, _visible)
     }
 
     private[this] def allMemoryChanged(toVisible: CP, toHidden: CP): Unit = {
@@ -76,17 +76,13 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         // Uhhhhh, right...
         if (lbl != null) lbl.peer.setLabelFor(toVisible.peer.asInstanceOf[java.awt.Component])
     }
-    
-    protected def init() = jTrapKATEditor match {
-        case e if e.isV3 => allMemoryChanged(cbxV3, cbxV4)
-        case e if e.isV4 => allMemoryChanged(cbxV4, cbxV3)
-    }
+
+    protected def init() = jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
 
     if (lbl != null) lbl.peer.setLabelFor(peer)
     listenTo(jTrapKATEditor)
     reactions += {
-        case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.isV3 => allMemoryChanged(cbxV3, cbxV4)
-        case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.isV4 => allMemoryChanged(cbxV4, cbxV3)
+        case e: eventX.CurrentAllMemoryChanged => jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
     }
 
 }

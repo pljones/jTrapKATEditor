@@ -43,8 +43,10 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private[this] var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
     def currentAllMemory = _currentAllMemory
-    def isV3 = _currentAllMemory.isInstanceOf[model.AllMemoryV3]
-    def isV4 = _currentAllMemory.isInstanceOf[model.AllMemoryV4]
+    def doV3V4[T](fV3: => T, fV4: => T): T = _currentAllMemory match {
+        case am: model.AllMemoryV3 => fV3
+        case am: model.AllMemoryV4 => fV4
+    }
 
     private[this] var _currentKitNumber: Int = 0
     def currentKitNumber: Int = _currentKitNumber
@@ -134,68 +136,52 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 Console.println("globalV3Dump.self")
                 _currentType = model.DumpType.Global
-                if (isV3) {
+                doV3V4({
                     _currentAllMemory.global = globalV3Dump.self
                     publish(new GlobalChanged(this))
-                }
-                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
+                }, if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
                     _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
                     publish(new GlobalChanged(this))
-                }
+                })
             }
             case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 Console.println("globalV4Dump.self")
                 _currentType = model.DumpType.Global
-                if (isV4) {
-                    _currentAllMemory.global = globalV4Dump.self
-                    publish(new GlobalChanged(this))
-                }
-                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
+                doV3V4(if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
                     _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
                     publish(new GlobalChanged(this))
-                }
+                }, {
+                    _currentAllMemory.global = globalV4Dump.self
+                    publish(new GlobalChanged(this))
+                })
             }
             case kitV3Dump: model.KitV3Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
-                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), f"Kit ${_currentKitNumber} (${currentKit.kitName})") => {
+                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {
                 Console.println(s"kitV3Dump.self.kitName: ${kitV3Dump.self.kitName}")
 
-                if (isV3) {
-                    if ((dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber, currentKit.kitName, kitV3Dump.auxType, kitV3Dump.self.kitName))) {
-                        _currentAllMemory(_currentKitNumber) = kitV3Dump.self
+                def doKit(getKit: => model.Kit[_ <: model.Pad]): Unit = {
+                    if ((kitV3Dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitV3Dump.auxType + 1, kitV3Dump.self.kitName))) {
+                        _currentAllMemory(_currentKitNumber) = getKit
                         Console.println("Send KitChanged V3")
                         _currentType = model.DumpType.Kit
                         publish(new CurrentKitChanged(this))
                     }
                 }
-                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) {
-                    if ((dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber, currentKit.kitName, kitV3Dump.auxType, kitV3Dump.self.kitName))) {
-                        _currentAllMemory(_currentKitNumber) = new model.KitV4(kitV3Dump.self)
-                        Console.println("Send KitChanged V3->V4")
-                        _currentType = model.DumpType.Kit
-                        publish(new CurrentKitChanged(this))
-                    }
-                }
+                doV3V4(doKit(kitV3Dump.self), if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) doKit(new model.KitV4(kitV3Dump.self)))
             }
             case kitV4Dump: model.KitV4Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
                 frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), f"Kit ${_currentKitNumber} (${_currentAllMemory(_currentKitNumber).kitName})") => {
                 Console.println(s"kitV4Dump.self.kitName: ${kitV4Dump.self.kitName}")
 
-                if (isV4) {
-                    if ((dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber, currentKit.kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
-                        _currentAllMemory(_currentKitNumber) = kitV4Dump.self
-                        Console.println("Send KitChanged V4")
+                def doKit(getKit: => model.Kit[_ <: model.Pad]): Unit = {
+                    if ((kitV4Dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitV4Dump.auxType + 1, kitV4Dump.self.kitName))) {
+                        _currentAllMemory(_currentKitNumber) = getKit
+                        Console.println("Send KitChanged V3")
                         _currentType = model.DumpType.Kit
                         publish(new CurrentKitChanged(this))
                     }
                 }
-                else if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3"))) {
-                    if ((dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber, currentKit.kitName, kitV4Dump.auxType, kitV4Dump.self.kitName))) {
-                        _currentAllMemory(_currentKitNumber) = new model.KitV3(kitV4Dump.self)
-                        Console.println("Send KitChanged V4->V3")
-                        _currentType = model.DumpType.Kit
-                        publish(new CurrentKitChanged(this))
-                    }
-                }
+                doV3V4(if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3"))) doKit(new model.KitV3(kitV4Dump.self)), doKit(kitV4Dump.self))
 
             }
             case otherwise => {

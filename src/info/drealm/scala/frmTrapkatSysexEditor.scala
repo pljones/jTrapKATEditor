@@ -62,7 +62,7 @@ object frmTrapkatSysexEditor extends Frame {
     private[this] def getTitle = L.G("MainProgramTitle",
         L.G("ApplicationProductName"),
         if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
-        if (jTrapKATEditor.currentAllMemory.isInstanceOf[model.AllMemoryV3]) L.G("V3") else L.G("V4"),
+        jTrapKATEditor.doV3V4(L.G("V3"), L.G("V4")),
         if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
     )
 

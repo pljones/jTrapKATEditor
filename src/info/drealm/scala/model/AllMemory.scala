@@ -27,14 +27,11 @@ package info.drealm.scala.model
 import java.io.{ Console => _, _ }
 import collection.mutable
 
-//abstract class AllMemory[TKit <% Kit[_], TGlobal <% Global[_]](k: => Int => TKit, kn: (Int, TKit) => Unit, u: () => Array[Byte], g: => () => TGlobal)(implicit TKit: Manifest[TKit], TGlobal: Manifest[TGlobal])
-//    extends DataItem with mutable.Seq[TKit] {
 abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) => Unit, u: () => Array[Byte], g: => () => Global[_])
     extends DataItem with mutable.Seq[Kit[_ <: Pad]] {
 
     def iterator = _kits.iterator
     def length = _kits.length
-//    def update(idx: Int, value: TKit): Unit = {
     def update(idx: Int, value: Kit[_ <: Pad]): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Kit must not be null.")
@@ -45,7 +42,6 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
             dataItemChanged
         }
     }
-//    def apply(idx: Int): TKit = _kits.apply(idx)
     def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)
 
     def deserialize(in: FileInputStream): Unit = {
@@ -61,16 +57,12 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
         if (saving) _global.save(out) else _global.serialize(out, saving)
     }
 
-//    private[this] val _kits: Array[TKit] = ((0 to 23) map (x => k(x))).toArray
     private[this] val _kits: Array[Kit[_ <: Pad]] = ((0 to 23) map (x => k(x))).toArray
     (0 to 23) foreach (x => kn(x, _kits(x)))
 
     private[this] val _unused: Array[Byte] = u()
-//    private[this] var _global: TGlobal = g()
     private[this] var _global: Global[_] = g()
 
-//    def global: TGlobal = _global
-//    def global_=(value: TGlobal) = update(_global = value)
     def global: Global[_] = _global
     def global_=(value: Global[_]) = if (_global != value) update(_global = value)
 

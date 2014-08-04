@@ -359,13 +359,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         }
                     }
 
-                    onChange()
+                    jTrapKATEditor.doV3V4({}, onChange())
                 }
-
                 contents += (cbxLinkTo, "cell 1 0")
             }
             contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center,hidemode 0")
-            listenTo(pnLinkTo)
 
             val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
 

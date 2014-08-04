@@ -485,22 +485,29 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         margin = new Insets(0, 0, 0, 0)
                         horizontalTextPosition = Alignment.Center
                         verticalTextPosition = Alignment.Top
+
+                        private[this] def setDisplay(): Unit = this.selected = ((1 << flag) & jTrapKATEditor.currentPad.flags) != 0
+                        private[this] def setValue(): Unit = {
+                            deafTo(jTrapKATEditor)
+                            jTrapKATEditor.currentPad.flags = ((~(1 << flag) & jTrapKATEditor.currentPad.flags) | ((if (this.selected) 1 else 0) << flag)).toByte
+                            listenTo(jTrapKATEditor)
+                        }
+
+                        listenTo(jTrapKATEditor)
+
+                        reactions += {
+                            case e: CurrentPadChanged       => setDisplay()
+                            case e: CurrentKitChanged       => setDisplay()
+                            case e: CurrentAllMemoryChanged => setDisplay()
+                            case e: ButtonClicked           => setValue()
+                        }
+
+                        setDisplay()
                     }
                     contents += (ckbFlag, s"cell ${8 - flag} 1 1 2,alignx center")
-                    listenTo(ckbFlag)
                 }
-
-                reactions += {
-                    case e: ButtonClicked => {
-                        deafTo(this)
-                        publish(e)
-                        listenTo(this)
-                    }
-                }
-
             }
             contents += (pnFlags, "cell 9 0 1 3,growx,aligny top")
-            listenTo(pnFlags)
 
             private[this] val pnGlobalPadDynamics = new MigPanel("insets 0,gapx 2, gapy 0", "[4px:n][][][4px:n][][][4px:n][][][4px:n]", "[4px:n][][][4px:n]") {
                 name = "pnGlobalPadDynamics"

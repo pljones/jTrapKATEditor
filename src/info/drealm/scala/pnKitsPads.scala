@@ -395,7 +395,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate) {
                 private[this] def setDisplay(): Unit = selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
                 private[this] def setValue(): Unit = {
-                    Console.println(s"cbxPadGate ")
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
                     listenTo(jTrapKATEditor)

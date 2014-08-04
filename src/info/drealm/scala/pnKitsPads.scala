@@ -392,11 +392,29 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxPadCurve.cbxV4, "cell 5 0")
 
             val lblPadGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mnePadGate").charAt(0)) }
-            val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate)
+            val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate) {
+                private[this] def setDisplay(): Unit = selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
+                private[this] def setValue(): Unit = {
+                    Console.println(s"cbxPadGate ")
+                    deafTo(jTrapKATEditor)
+                    jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
+                    listenTo(jTrapKATEditor)
+                }
+
+                listenTo(jTrapKATEditor)
+                listenTo(selection)
+
+                reactions += {
+                    case e: CurrentPadChanged       => setDisplay()
+                    case e: CurrentKitChanged       => setDisplay()
+                    case e: CurrentAllMemoryChanged => setDisplay()
+                    case e: ValueChanged            => setValue()
+                }
+
+                setDisplay()
+            }
             contents += (lblPadGate, "cell 4 1,alignx right")
             contents += (cbxPadGate, "cell 5 1")
-            listenTo(cbxPadGate.selection)
-            listenTo(cbxPadGate)
 
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
             private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel)

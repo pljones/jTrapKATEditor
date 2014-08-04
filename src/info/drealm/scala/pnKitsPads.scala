@@ -444,24 +444,35 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min"), (1, "Max")) foreach { x =>
-                    val lbl = new Label(L.G(s"lbl${x._2}"))
-                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnPadVel${x._2}", lbl)
-                    contents += (lbl, s"cell ${x._1} 1,alignx center")
-                    contents += (spn, s"cell ${x._1} 2")
-                    listenTo(spn)
-                }
+                Seq(
+                    (0, "Min", () => jTrapKATEditor.currentPad.minVelocity, (value: Byte) => jTrapKATEditor.currentPad.minVelocity = value),
+                    (1, "Max", () => jTrapKATEditor.currentPad.maxVelocity, (value: Byte) => jTrapKATEditor.currentPad.maxVelocity = value)
+                ) foreach { x =>
+                        val lbl = new Label(L.G(s"lbl${x._2}"))
+                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnPadVel${x._2}", lbl) {
+                            private[this] def setDisplay(): Unit = value = x._3()
+                            private[this] def setValue(): Unit = {
+                                deafTo(jTrapKATEditor)
+                                x._4(value.asInstanceOf[java.lang.Number].byteValue())
+                                listenTo(jTrapKATEditor)
+                            }
 
-                reactions += {
-                    case e: ValueChanged => {
-                        deafTo(this)
-                        publish(e)
-                        listenTo(this)
+                            listenTo(jTrapKATEditor)
+
+                            reactions += {
+                                case e: CurrentPadChanged       => setDisplay()
+                                case e: CurrentKitChanged       => setDisplay()
+                                case e: CurrentAllMemoryChanged => setDisplay()
+                                case e: ValueChanged            => setValue()
+                            }
+
+                            setDisplay()
+                        }
+                        contents += (lbl, s"cell ${x._1} 1,alignx center")
+                        contents += (spn, s"cell ${x._1} 2")
                     }
-                }
             }
             contents += (pnPadVelocity, "cell 7 0 1 3,growx,aligny top")
-            listenTo(pnPadVelocity)
 
             private[this] val pnFlags: MigPanel = new MigPanel("insets 0, gap 0", "[][][][][][][][]", "[][][]") {
                 name = "pnFlags"

@@ -425,7 +425,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
 
                 listenTo(jTrapKATEditor)
-                listenTo(selection)
 
                 reactions += {
                     case e: CurrentPadChanged       => setDisplay()

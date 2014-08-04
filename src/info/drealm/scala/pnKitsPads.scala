@@ -537,28 +537,45 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnGlobalPadDynamics"
                 border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
-                Seq((0, 0, "lowLevel"), (1, 0, "thresholdManual"), (2, 0, "thresholdActual"),
-                    (0, 1, "highLevel"), (1, 1, "internalMargin"), (2, 1, "userMargin")) foreach (tuple => {
+                Seq(
+                    (0, 0, "lowLevel", (pd: model.PadDynamics) => pd.lowLevel, (pd: model.PadDynamics, value: Byte) => pd.lowLevel = value),
+                    (1, 0, "thresholdManual", (pd: model.PadDynamics) => pd.thresholdManual, (pd: model.PadDynamics, value: Byte) => pd.thresholdManual = value),
+                    (2, 0, "thresholdActual", (pd: model.PadDynamics) => pd.thresholdActual, (pd: model.PadDynamics, value: Byte) => pd.thresholdActual = value),
+                    (0, 1, "highLevel", (pd: model.PadDynamics) => pd.highLevel, (pd: model.PadDynamics, value: Byte) => pd.highLevel = value),
+                    (1, 1, "internalMargin", (pd: model.PadDynamics) => pd.internalMargin, (pd: model.PadDynamics, value: Byte) => pd.internalMargin = value),
+                    (2, 1, "userMargin", (pd: model.PadDynamics) => pd.userMargin, (pd: model.PadDynamics, value: Byte) => pd.userMargin = value)
+                ) foreach (tuple => {
                         val lbl = new Label(L.G(tuple._3))
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, null, 255, 1), s"spn${tuple._3.capitalize}", lbl)
+                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, null, 255, 1), s"spn${tuple._3.capitalize}", lbl) {
+                            private[this] def setDisplay(): Unit = {
+                                deafTo(this)
+                                value = 0x00ff + tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentKitNumber))
+                                listenTo(this)
+                            }
+                            private[this] def setValue(): Unit = {
+                                deafTo(jTrapKATEditor)
+                                tuple._5(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentKitNumber), value.asInstanceOf[java.lang.Number].byteValue())
+                                listenTo(jTrapKATEditor)
+                            }
+
+                            listenTo(jTrapKATEditor)
+
+                            reactions += {
+                                case e: CurrentPadChanged       => setDisplay()
+                                case e: CurrentKitChanged       => setDisplay()
+                                case e: CurrentAllMemoryChanged => setDisplay()
+                                case e: ValueChanged            => setValue()
+                            }
+
+                            setDisplay()
+                            enabled = false
+                        }
 
                         contents += (lbl, s"cell ${1 + 3 * tuple._1} ${1 + tuple._2},alignx right")
                         contents += (spn, s"cell ${2 + 3 * tuple._1} ${1 + tuple._2}")
-
-                        listenTo(spn)
                     })
-
-                reactions += {
-                    case e: ValueChanged => {
-                        deafTo(this)
-                        publish(e)
-                        listenTo(this)
-                    }
-                }
-
             }
             contents += (pnGlobalPadDynamics, "cell 4 3 6 4,aligny center")
-            listenTo(pnGlobalPadDynamics)
 
             private[this] val tabOrder = (2 to 6 map { slot => s"cbxSlot${slot}V3" }) ++ (2 to 6 map { slot => s"cbxSlot${slot}V4" }) ++
                 Seq("cbxLinkTo") ++

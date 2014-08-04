@@ -368,7 +368,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
 
             val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", lblPadCurve) {
-                private[this] def setDisplay(): Unit = selection.index = jTrapKATEditor.currentPad.curve
+                private[this] def setDisplay(): Unit = {
+                    deafTo(this)
+                    deafTo(selection)
+                    selection.index = jTrapKATEditor.currentPad.curve
+                    listenTo(selection)
+                    listenTo(this)
+                }
                 private[this] def setValue(): Unit = {
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.curve = selection.index.toByte
@@ -393,7 +399,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             val lblPadGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mnePadGate").charAt(0)) }
             val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate) {
-                private[this] def setDisplay(): Unit = selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
+                private[this] def setDisplay(): Unit = {
+                    deafTo(selection)
+                    deafTo(this)
+                    selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
+                    listenTo(selection)
+                    listenTo(this)
+                }
                 private[this] def setValue(): Unit = {
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
@@ -417,7 +429,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
             private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel) {
-                private[this] def setDisplay(): Unit = value = jTrapKATEditor.currentPad.channel + 1
+                private[this] def setDisplay(): Unit = {
+                    listenTo(this)
+                    value = jTrapKATEditor.currentPad.channel + 1
+                    listenTo(this)
+                }
                 private[this] def setValue(): Unit = {
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
@@ -450,7 +466,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 ) foreach { x =>
                         val lbl = new Label(L.G(s"lbl${x._2}"))
                         val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnPadVel${x._2}", lbl) {
-                            private[this] def setDisplay(): Unit = value = x._3()
+                            private[this] def setDisplay(): Unit = {
+                                deafTo(this)
+                                value = x._3()
+                                listenTo(this)
+                            }
                             private[this] def setValue(): Unit = {
                                 deafTo(jTrapKATEditor)
                                 x._4(value.asInstanceOf[java.lang.Number].byteValue())
@@ -486,7 +506,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         horizontalTextPosition = Alignment.Center
                         verticalTextPosition = Alignment.Top
 
-                        private[this] def setDisplay(): Unit = this.selected = ((1 << flag) & jTrapKATEditor.currentPad.flags) != 0
+                        private[this] def setDisplay(): Unit = {
+                            deafTo(this)
+                            this.selected = ((1 << flag) & jTrapKATEditor.currentPad.flags) != 0
+                            listenTo(this)
+                        }
                         private[this] def setValue(): Unit = {
                             deafTo(jTrapKATEditor)
                             jTrapKATEditor.currentPad.flags = ((~(1 << flag) & jTrapKATEditor.currentPad.flags) | ((if (this.selected) 1 else 0) << flag)).toByte

@@ -465,7 +465,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     (1, "Max", () => jTrapKATEditor.currentPad.maxVelocity, (value: Byte) => jTrapKATEditor.currentPad.maxVelocity = value)
                 ) foreach { x =>
                         val lbl = new Label(L.G(s"lbl${x._2}"))
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnPadVel${x._2}", lbl) {
+                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, 0, 127, 1), s"spnPadVel${x._2}", lbl) {
                             private[this] def setDisplay(): Unit = {
                                 deafTo(this)
                                 value = x._3()
@@ -546,7 +546,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     (2, 1, "userMargin", (pd: model.PadDynamics) => pd.userMargin, (pd: model.PadDynamics, value: Byte) => pd.userMargin = value)
                 ) foreach (tuple => {
                         val lbl = new Label(L.G(tuple._3))
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, null, 255, 1), s"spn${tuple._3.capitalize}", lbl) {
+                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${tuple._3.capitalize}", lbl) {
                             private[this] def setDisplay(): Unit = {
                                 deafTo(this)
                                 value = 0x00ff + tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentKitNumber))
@@ -728,7 +728,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 Seq((0, "Min"), (1, "Max")) foreach { x =>
                     val lbl = new Label(L.G(s"lbl${x._2}"))
-                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, null, 127, 1), s"spnKitVel${x._2}", lbl)
+                    val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, 0, 127, 1), s"spnKitVel${x._2}", lbl)
                     val ckb = new CheckBox(L.G("ckbVarVel")) {
                         name = s"ckbVarVel${x._2}"
                         background = new Color(228, 228, 228)

@@ -438,7 +438,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
             contents += (lblPadChannel, "cell 4 2,alignx right")
             contents += (spnPadChannel, "cell 5 2")
-            listenTo(spnPadChannel)
 
             private[this] val pnPadVelocity = new MigPanel("insets 3, gap 0", "[][]", "[][][]") {
                 name = "pnPadVelocity"

@@ -55,8 +55,6 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         listenTo(selectionV3)
         listenTo(selectionV4)
         reactions += {
-            // Yes, we will get two of these fired usually.
-            // Hopefully it will not be a problem...
             case e: event.SelectionChanged => publish(new eventX.V3V4SelectionChanged(V3V4ComboBox.this))
         }
     }

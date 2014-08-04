@@ -319,61 +319,52 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
                 name = "pnLinkTo"
 
-                private[this] object CbxLinkTo {
-                    def items(pad: Int) = (0 to 28) filter (x => x != pad + 1) map (x => x match {
-                        case 0           => L.G("cbxLinkToOff")
-                        case x if x < 25 => s"${x}"
-                        case x           => L.G(s"lb${x}")
-                    })
-                }
-                private[this] class CbxLinkTo(private[this] val pad: Int) extends RichComboBox(CbxLinkTo.items(pad), "cbxLinkTo", lblLinkTo) {
+                private[this] val lblLinkTo = new Label(L.G("lblLinkTo")) { peer.setDisplayedMnemonic(L.G("mneLinkTo").charAt(0)) }
+                contents += (lblLinkTo, "cell 0 0")
+
+                private[this] val linkTo: Array[String] = new Array[String](28)
+                private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", lblLinkTo) {
                     prototypeDisplayValue = Some("88 mmmm")
 
-                    listenTo(pnKitsPads)
+                    private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
+                        case 0           => L.G("cbxLinkToOff")
+                        case x if x < 25 => s"${x}"
+                        case x           => L.G(s"lbPad${x}")
+                    }) zip (0 to 27)) foreach (x => linkTo(x._2) = x._1)
+
+                    private[this] def getSelectionIndex(pad: Int): Int = pad match {
+                        case e if e == jTrapKATEditor.currentPadNumber => 0 // Equal means Off
+                        case e if e < jTrapKATEditor.currentPadNumber  => e + 1 // Before
+                        case e                                         => e // After
+                    }
+
+                    private[this] def onChange(): Unit = {
+                        setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)
+                        selection.index = getSelectionIndex(jTrapKATEditor.currentPadV4.linkTo - 1)
+                    }
+
                     listenTo(jTrapKATEditor)
+                    listenTo(selection)
 
                     reactions += {
-                        case e: PadSelectionChanged if e.newPad != pad => {
-                            deafTo(pnKitsPads)
-                            deafTo(this)
-                            publish(new ReplaceCbxLinkTo(e.newPad))
+                        case e: CurrentPadChanged       => jTrapKATEditor.doV3V4({}, onChange())
+                        case e: CurrentKitChanged       => jTrapKATEditor.doV3V4({}, onChange())
+                        case e: CurrentAllMemoryChanged => jTrapKATEditor.doV3V4({}, onChange())
+                        case e: SelectionChanged => {
+                            deafTo(jTrapKATEditor)
+                            jTrapKATEditor.currentPadV4.linkTo = (selection.index match {
+                                case 0 => jTrapKATEditor.currentPadNumber + 1
+                                case e if e + 1 < jTrapKATEditor.currentPadNumber => e
+                                case e => e + 1
+                            }).toByte
+                            listenTo(jTrapKATEditor)
                         }
                     }
+
+                    onChange()
                 }
-                private[pnPadDetails] class ReplaceCbxLinkTo(val pad: Int) extends Event
 
-                private[this] val lblLinkTo = new Label(L.G("lblLinkTo")) { peer.setDisplayedMnemonic(L.G("mneLinkTo").charAt(0)) }
-                private[this] val cbxLinkTo = new CbxLinkTo(-1)
-
-                contents += (lblLinkTo, "cell 0 0")
                 contents += (cbxLinkTo, "cell 1 0")
-                listenTo(cbxLinkTo.selection)
-                listenTo(cbxLinkTo)
-
-                reactions += {
-                    case e: SelectionChanged => {
-                        deafTo(this)
-                        publish(e)
-                        listenTo(this)
-                    }
-                    case e: ReplaceCbxLinkTo => {
-                        lblLinkTo.peer.setLabelFor(null)
-                        Focus.findInContainer(this, "cbxLinkTo") match {
-                            case Some(cp: ComboBox[_]) => {
-                                deafTo(cp)
-                                deafTo(cp.selection)
-                                contents -= cp
-                            }
-                            case _ => {}
-                        }
-
-                        val cbx = new CbxLinkTo(e.pad)
-                        contents += (cbx, "cell 1 0")
-                        cbx.revalidate()
-                        listenTo(cbx.selection)
-                        listenTo(cbx)
-                    }
-                }
             }
             contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center,hidemode 0")
             listenTo(pnLinkTo)

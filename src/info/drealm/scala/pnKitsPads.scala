@@ -311,8 +311,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     contents += (s.lblSlot, s"cell 1 ${slot - 2},alignx right")
                     contents += (s.cbxSlot.cbxV3, s"cell 2 ${slot - 2},gapy 2,grow")
                     contents += (s.cbxSlot.cbxV4, s"cell 2 ${slot - 2},gapy 2,grow")
-                    listenTo(s.cbxSlot.selection)
-                    listenTo(s.cbxSlot)
                 }
             }
 

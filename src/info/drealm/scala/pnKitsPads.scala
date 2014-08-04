@@ -549,12 +549,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${tuple._3.capitalize}", lbl) {
                             private[this] def setDisplay(): Unit = {
                                 deafTo(this)
-                                value = 0x00ff + tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentKitNumber))
+                                value = 0x000000ff & tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber))
                                 listenTo(this)
                             }
                             private[this] def setValue(): Unit = {
                                 deafTo(jTrapKATEditor)
-                                tuple._5(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentKitNumber), value.asInstanceOf[java.lang.Number].byteValue())
+                                tuple._5(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber), value.asInstanceOf[java.lang.Number].byteValue())
                                 listenTo(jTrapKATEditor)
                             }
 
@@ -568,7 +568,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             }
 
                             setDisplay()
-                            enabled = false
                         }
 
                         contents += (lbl, s"cell ${1 + 3 * tuple._1} ${1 + tuple._2},alignx right")

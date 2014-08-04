@@ -368,23 +368,24 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
 
             val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", lblPadCurve) {
-                private[this] def onChange(): Unit = selection.index = jTrapKATEditor.currentPad.curve
+                private[this] def setDisplay(): Unit = selection.index = jTrapKATEditor.currentPad.curve
+                private[this] def setValue(): Unit = {
+                    deafTo(jTrapKATEditor)
+                    jTrapKATEditor.currentPad.curve = selection.index.toByte
+                    listenTo(jTrapKATEditor)
+                }
 
                 listenTo(jTrapKATEditor)
                 listenTo(selection)
 
                 reactions += {
-                    case e: CurrentPadChanged       => onChange()
-                    case e: CurrentKitChanged       => onChange()
-                    case e: CurrentAllMemoryChanged => onChange()
-                    case e: V3V4SelectionChanged => {
-                        deafTo(jTrapKATEditor)
-                        jTrapKATEditor.currentPad.curve = selection.index.toByte
-                        listenTo(jTrapKATEditor)
-                    }
+                    case e: CurrentPadChanged       => setDisplay()
+                    case e: CurrentKitChanged       => setDisplay()
+                    case e: CurrentAllMemoryChanged => setDisplay()
+                    case e: V3V4SelectionChanged    => setValue()
                 }
 
-                onChange()
+                setDisplay()
             }
             contents += (lblPadCurve, "cell 4 0,alignx right")
             contents += (cbxPadCurve.cbxV3, "cell 5 0")

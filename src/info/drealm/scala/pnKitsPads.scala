@@ -416,7 +416,26 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxPadGate, "cell 5 1")
 
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
-            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel)
+            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel) {
+                private[this] def setDisplay(): Unit = value = jTrapKATEditor.currentPad.channel + 1
+                private[this] def setValue(): Unit = {
+                    deafTo(jTrapKATEditor)
+                    jTrapKATEditor.currentPad.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
+                    listenTo(jTrapKATEditor)
+                }
+
+                listenTo(jTrapKATEditor)
+                listenTo(selection)
+
+                reactions += {
+                    case e: CurrentPadChanged       => setDisplay()
+                    case e: CurrentKitChanged       => setDisplay()
+                    case e: CurrentAllMemoryChanged => setDisplay()
+                    case e: ValueChanged            => setValue()
+                }
+
+                setDisplay()
+            }
             contents += (lblPadChannel, "cell 4 2,alignx right")
             contents += (spnPadChannel, "cell 5 2")
             listenTo(spnPadChannel)

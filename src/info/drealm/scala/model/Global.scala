@@ -28,7 +28,6 @@ import java.io._
 import collection.mutable
 
 abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
-//abstract class Global protected (p: Pad) extends DataItem {
     // 21 bytes
     private[this] var _beeperStatus: Byte = 0
     private[this] var _bcFunction: Byte = 0
@@ -65,7 +64,6 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] var _noteNamesStatus: Byte = 0
 
     private[this] val _ttPadData: TPad = p
-    //private[this] val _ttPadData: Pad = p
 
     // 5 bytes
     private[this] var _hatNoteGate: Byte = 0 // HAT NOTE gate time index
@@ -76,18 +74,17 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 
     protected val _unused1: Array[Byte]
 
-    protected[Global] val _userMargin: Array[Byte] = new Array[Byte](25)
+    protected[Global] val _thresholdManual: Array[Byte] = new Array[Byte](25)
     protected[Global] val _unused2: Array[Byte] = new Array[Byte](231)
     protected[Global] val _internalMargin: Array[Byte] = new Array[Byte](25)
     protected[Global] val _unused3: Array[Byte] = new Array[Byte](231)
-    protected[Global] val _thresholdManual: Array[Byte] = new Array[Byte](25)
+    protected[Global] val _userMargin: Array[Byte] = new Array[Byte](25)
     protected[Global] val _unused4: Array[Byte] = new Array[Byte](231)
     protected[Global] val _thresholdActual: Array[Byte] = new Array[Byte](25)
 
     private[this] val _padDynamics: PadDynamicsContainer = new PadDynamicsContainer(_padLevels, _userMargin, _internalMargin, _thresholdManual, _thresholdActual)
 
     protected def from(global: Global[_]): Unit = {
-    //protected def from(global: Global): Unit = {
         _beeperStatus = global.beeperStatus
         _bcFunction = global.bcFunction
         _chokeFunction = global.chokeFunction
@@ -125,11 +122,11 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _ttMeter = global.ttMeter
         _hearSoundStatus = global.hearSoundStatus
         //_unused1 is left to the concrete class
-        global._userMargin.copyToArray(_userMargin)
+        global._thresholdManual.copyToArray(_thresholdManual)
         global._unused2.copyToArray(_unused2)
         global._internalMargin.copyToArray(_internalMargin)
         global._unused3.copyToArray(_unused3)
-        global._thresholdManual.copyToArray(_thresholdManual)
+        global._userMargin.copyToArray(_userMargin)
         global._unused4.copyToArray(_unused4)
         global._thresholdActual.copyToArray(_thresholdActual)
     }
@@ -177,11 +174,11 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _hearSoundStatus = in.read().toByte
 
         in.read(_unused1)
-        in.read(_userMargin)
+        in.read(_thresholdManual)
         in.read(_unused2)
         in.read(_internalMargin)
         in.read(_unused3)
-        in.read(_thresholdManual)
+        in.read(_userMargin)
         in.read(_unused4)
         in.read(_thresholdActual)
     }
@@ -228,11 +225,11 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         out.write(_hearSoundStatus)
 
         out.write(_unused1)
-        out.write(_userMargin)
+        out.write(_thresholdManual)
         out.write(_unused2)
         out.write(_internalMargin)
         out.write(_unused3)
-        out.write(_thresholdManual)
+        out.write(_userMargin)
         out.write(_unused4)
         out.write(_thresholdActual)
     }
@@ -307,7 +304,6 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     def hearSoundStatus_=(value: Byte): Unit = if (_hearSoundStatus != value) update(_hearSoundStatus = value) else {}
 
     def ttPadData: TPad = _ttPadData
-    //def ttPadData: Pad = _ttPadData
 
     def padDynamics: Seq[PadDynamics] = _padDynamics
 
@@ -316,7 +312,6 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 }
 
 class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
-//class GlobalV3 private(p: PadV3) extends Global(p) {
     def this() = this(new PadV3)
     def this(in: FileInputStream) = {
         this()
@@ -324,7 +319,6 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
     }
     def this(globalV4: GlobalV4) = {
         this(new PadV3(globalV4.ttPadData))
-        //this(new PadV3(globalV4.ttPadData.asInstanceOf[PadV4]))
         from(globalV4)
         //_unused1, _currentDefaults and _userDefaults left as default
     }
@@ -346,7 +340,6 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
 }
 
 class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
-//class GlobalV4 private(p: PadV4) extends Global(p) {
     def this() = this(new PadV4(0.toByte))
     def this(in: FileInputStream) = {
         this()
@@ -354,7 +347,6 @@ class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
     }
     def this(globalV3: GlobalV3) = {
         this(new PadV4(globalV3.ttPadData, 0))
-        //this(new PadV4(globalV3.ttPadData.asInstanceOf[PadV3], 0))
         from(globalV3)
         //_unused1 left as default
     }

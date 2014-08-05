@@ -169,7 +169,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
         }
 
         // set state to dirty if it isn't already
-        dataItemChanged
+        makeChanged()
     }
 
     protected var _bank: Byte = 128.toByte
@@ -246,7 +246,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         }
 
         // set state to dirty if it isn't already
-        dataItemChanged
+        makeChanged()
     }
 
     override def _deserializeKit(in: FileInputStream): Unit = {

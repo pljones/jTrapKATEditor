@@ -143,7 +143,7 @@ class PadV3 private (f: => Array[Byte]) extends Pad(f) {
         }
 
         // set state to dirty
-        dataItemChanged
+        makeChanged()
     }
 
     override def canEqual(that: Any): Boolean = that.isInstanceOf[PadV3]
@@ -177,7 +177,7 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
         }
 
         // set state to dirty
-        dataItemChanged
+        makeChanged()
     }
 
     override def deserialize(in: FileInputStream): Unit = {
@@ -238,7 +238,7 @@ class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
     def this(in: FileInputStream) = this(x => new PadV3(in))
     def this(padV4seq: Seq[PadV4]) = {
         this(x => new PadV3(padV4seq(x)))
-        dataItemChanged
+        makeChanged()
     }
 }
 
@@ -247,6 +247,6 @@ class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
     def this(in: FileInputStream) = this(x => new PadV4(in))
     def this(padV3seq: Seq[PadV3]) = {
         this(x => new PadV4(padV3seq(x), (x + 1).toByte))
-        dataItemChanged
+        makeChanged()
     }
 }

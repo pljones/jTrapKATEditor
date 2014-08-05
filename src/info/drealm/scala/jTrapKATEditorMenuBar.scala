@@ -198,6 +198,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
     }
 
+    // remember to use DataItem.~<= instead of "=" to get the listeners to follow correctly.
     object mnEdit extends RichMenu("Edit") {
 
         add(new RichMenuItem("EditUndo", x => Console.println("Edit Undo")) { visible = false })

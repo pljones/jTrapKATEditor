@@ -210,7 +210,7 @@ abstract class PadSeq[TPad <: Pad] protected (f: (Int => TPad))(implicit TPad: M
         if (_pads(idx) != value) {
             update({
                 deafTo(_pads.apply(idx))
-                _pads.update(idx, value)
+                _pads(idx) ~<= value
                 listenTo(_pads.apply(idx))
             })
         }

@@ -27,7 +27,7 @@ package info.drealm.scala.model
 import java.io.{ Console => _, _ }
 import collection.mutable
 
-abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) => Unit, u: () => Array[Byte], g: => () => Global[_])
+abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) => Unit, u: () => Array[Byte], g: => () => Global[_ <: Pad])
     extends DataItem with mutable.Seq[Kit[_ <: Pad]] {
 
     def iterator = _kits.iterator
@@ -38,7 +38,7 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
         if (_kits(idx) != value) {
             update({
                 deafTo(_kits.apply(idx))
-                _kits.update(idx, value)
+                _kits(idx) ~<= value
                 listenTo(_kits.apply(idx))
             })
         }
@@ -62,10 +62,10 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     (0 to 23) foreach (x => kn(x, _kits(x)))
 
     private[this] val _unused: Array[Byte] = u()
-    private[this] var _global: Global[_] = g()
+    private[this] var _global: Global[_ <: Pad] = g()
 
-    def global: Global[_] = _global
-    def global_=(value: Global[_]) = if (_global != value) update(_global = value)
+    def global: Global[_ <: Pad] = _global
+    def global_=(value: Global[_ <: Pad]) = if (_global != value) update(_global ~<= value)
 
     (0 to 23) foreach (x => listenTo(_kits(x)))
     listenTo(_global)

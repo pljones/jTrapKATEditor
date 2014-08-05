@@ -54,6 +54,7 @@ trait DataItem extends scala.swing.Publisher {
     // update with that block.)
     private[this] def dataItemChanged() = {
         _changed = true
+        scala.Console.println(s"Publishing new DataItemChanged for ${this.getClass().getName()}")
         publish(new info.drealm.scala.eventX.DataItemChanged(this, None))
     }
     protected def update(u: => Unit) = {
@@ -72,6 +73,14 @@ trait DataItem extends scala.swing.Publisher {
             publish(new info.drealm.scala.eventX.DataItemChanged(this, Some(e)))
             listenTo(this)
         }
+    }
+
+    // This is to allow "x = x.assign(y)"
+    def ~<[T <: DataItem](value: T): T = {
+        val reactors = listeners.toSeq
+        listeners.clear()
+        reactors foreach { x => value.listeners += x }
+        value
     }
 
     // In strange circumstances you may want to override this

@@ -110,6 +110,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def update(idx: Int, pad: TPad) = _pads.update(idx, pad)
     def apply(idx: Int): TPad = _pads.apply(idx)
 
+    // This, very naughtily, allows "soundControls(x) = y" to happen...
     def soundControls: Array[SoundControl] = _soundControls
 
     def curve: Byte = _curve

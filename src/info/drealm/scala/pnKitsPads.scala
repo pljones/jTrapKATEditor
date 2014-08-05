@@ -540,9 +540,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         val lbl = new Label(L.G(tuple._3))
                         val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${tuple._3.capitalize}", lbl) {
                             private[this] def setDisplay(): Unit = {
-                                deafTo(this)
-                                value = 0x000000ff & tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber))
-                                listenTo(this)
+                                if (jTrapKATEditor.currentPadNumber < 25) {
+                                    deafTo(this)
+                                    value = 0x000000ff & tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber))
+                                    listenTo(this)
+                                    enabled = true
+                                }
+                                else {
+                                    enabled = false
+                                }
                             }
                             private[this] def setValue(): Unit = {
                                 deafTo(jTrapKATEditor)

@@ -261,15 +261,15 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
 
     override def requestFocus() = cbxPad.requestFocus()
 
-    private[this] def displayPad(): Unit = {
-        val myPad: model.Pad = jTrapKATEditor.currentKit(pad - 1)
+    private[this] def myPad = jTrapKATEditor.currentKit(pad - 1)
+
+    private[this] def setDisplay(): Unit = {
         deafTo(cbxPad)
         cbxPad.value = myPad(0)
         listenTo(cbxPad)
     }
 
-    private[this] def updatePad(value: Byte): Unit = {
-        val myPad: model.Pad = jTrapKATEditor.currentKit(pad - 1)
+    private[this] def setValue(): Unit = {
         deafTo(jTrapKATEditor)
         myPad(0) = cbxPad.value
         listenTo(jTrapKATEditor)
@@ -280,14 +280,18 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
 
     reactions += {
         case e: eventX.CbxEditorFocused => {
+            deafTo(jTrapKATEditor)
             deafTo(this)
-            publish(e)
+            jTrapKATEditor.currentPadNumber = pad - 1
             listenTo(this)
+            listenTo(jTrapKATEditor)
         }
-        case e: ValueChanged                   => updatePad(cbxPad.value)
-        case e: eventX.CurrentKitChanged       => displayPad()
-        case e: eventX.CurrentAllMemoryChanged => displayPad()
+        case e: ValueChanged                   => setValue()
+        case e: eventX.CurrentKitChanged       => setDisplay()
+        case e: eventX.CurrentAllMemoryChanged => setDisplay()
     }
+    
+    setDisplay()
 }
 
 class Slot(slot: Int) extends Reactor {

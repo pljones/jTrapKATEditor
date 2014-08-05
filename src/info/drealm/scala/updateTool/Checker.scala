@@ -98,7 +98,7 @@ object Checker extends Publisher {
         publish(new eventX.AutoUpdateModeChanged(oldMode, _autoUpdateMode))
     }
 
-    def dailyCheck: Unit = {
+    def dailyCheck(): Unit = {
         if (autoUpdateMode == Automatically && prefs.lastUpdateTS != util.dateToDay(new Date())) {
             if (getUpdate(true).isDefined)
                 prefs.lastUpdateTS = new Date()

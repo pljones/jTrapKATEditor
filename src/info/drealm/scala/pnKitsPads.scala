@@ -56,7 +56,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 def updateKitName(idx: Int): Unit = kitNames(idx) = s"${idx + 1}: ${jTrapKATEditor.currentAllMemory(idx).kitName}"
                 def updateAllKitNames(): Unit = {
                     (0 to 23) foreach updateKitName _
-                    selectCurrentKit
+                    selectCurrentKit()
                 }
                 def selectCurrentKit(): Unit = {
                     deafTo(this)

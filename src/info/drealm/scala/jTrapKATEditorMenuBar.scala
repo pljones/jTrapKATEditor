@@ -276,7 +276,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
             reactions += {
                 case e: eventX.AutoUpdateModeChanged => {
                     selected = e.newMode == AutoUpdateMode.Automatically
-                    dailyCheck
+                    dailyCheck()
                 }
                 case ButtonClicked(_) if (selected) => autoUpdateMode = AutoUpdateMode.Automatically
                 case ButtonClicked(_)               => autoUpdateMode = AutoUpdateMode.Off

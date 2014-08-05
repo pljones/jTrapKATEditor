@@ -97,7 +97,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
-        _currentAllMemory.makeChanged
+        _currentAllMemory.makeChanged()
         Console.println("convertToV3: AllMemoryChanged")
         publish(new CurrentAllMemoryChanged(this))
     }
@@ -106,7 +106,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
-        _currentAllMemory.makeChanged
+        _currentAllMemory.makeChanged()
         Console.println("convertToV4: AllMemoryChanged")
         publish(new CurrentAllMemoryChanged(this))
     }
@@ -204,7 +204,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private[this] def _save(makeChanged: => Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: => Event) = {
         model.TrapKATSysexDump.toFile(file, thing)
-        if (makeChanged) thing.makeChanged
+        if (makeChanged) thing.makeChanged()
         Console.println(f"_currentType ${_currentType} | thingType ${thingType}")
         if (_currentType == model.DumpType.NotSet || thingType == model.DumpType.AllMemory) {
             _currentFile = file

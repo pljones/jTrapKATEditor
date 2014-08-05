@@ -200,7 +200,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         }
     }
 
-    def exitClose() = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) quit
+    def exitClose() = if (_currentType match {
+        case model.DumpType.Global => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global"))
+        case model.DumpType.Kit    => frmTrapkatSysexEditor.okayToSplat(currentKit, L.G("Kit"))
+        case _                     => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))
+    }) quit
 
     private[this] def _save(makeChanged: => Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: => Event) = {
         model.TrapKATSysexDump.toFile(file, thing)
@@ -217,6 +221,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def top = frmTrapkatSysexEditor
 
     // Need to alert contents of pnKitsPads before frmTrapkatSysexEditor gets instantiated 
+    // TODO: make it not so
     val sideEffect = pnKitsPads
     Console.println("Start up AllMemoryChanged")
     publish(new CurrentAllMemoryChanged(this))

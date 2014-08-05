@@ -43,7 +43,7 @@ object frmTrapkatSysexEditor extends Frame {
     }
 
     iconImage = (new javax.swing.ImageIcon(R.U("info/drealm/scala/tk_wild2-sq.png"))).getImage
-    title = getTitle
+    title = getTitle()
     resizable = false
 
     menuBar = jTrapKATEditorMenuBar
@@ -60,7 +60,7 @@ object frmTrapkatSysexEditor extends Frame {
     listenTo(jTrapKATEditor)
     listenTo(jTrapKATEditor.currentAllMemory)
 
-    private[this] def getTitle = L.G("MainProgramTitle",
+    private[this] def getTitle() = L.G("MainProgramTitle",
         L.G("ApplicationProductName"),
         if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
         jTrapKATEditor.doV3V4(L.G("V3"), L.G("V4")),
@@ -69,8 +69,8 @@ object frmTrapkatSysexEditor extends Frame {
 
     reactions += {
         case wo: WindowOpened             => Checker.autoUpdateMode = prefs.updateAutomatically
-        case amc: CurrentAllMemoryChanged => title = getTitle
-        case amdc: DataItemChanged        => title = getTitle
+        case amc: CurrentAllMemoryChanged => title = getTitle()
+        case amdc: DataItemChanged        => title = getTitle()
     }
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {

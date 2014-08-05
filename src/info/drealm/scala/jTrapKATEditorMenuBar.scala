@@ -181,18 +181,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
             listenTo(pnKitsPads)
             // Does this care about KitSelectionChanged?
             reactions += {
-                case e: WindowOpened => {
-                    Console.println(s"SaveAsMenuItemCurrentKit got WindowOpened from ${e.source}")
-                    enabled = jTrapKATEditor.currentKit != null
-                }
-                case e: eventX.CurrentKitChanged => {
-                    Console.println(s"SaveAsMenuItemCurrentKit got KitChanged from ${e.source}")
-                    enabled = jTrapKATEditor.currentKit != null
-                }
-                case e: eventX.CurrentAllMemoryChanged => {
-                    Console.println(s"CurrentKitSaveAsMenuItem got AllMemoryChanged from ${e.source} (has kit? ${jTrapKATEditor.currentKit != null})")
-                    enabled = jTrapKATEditor.currentKit != null
-                }
+                case e: WindowOpened                   => enabled = jTrapKATEditor.currentKit != null
+                case e: eventX.CurrentKitChanged       => enabled = jTrapKATEditor.currentKit != null
+                case e: eventX.CurrentAllMemoryChanged => enabled = jTrapKATEditor.currentKit != null
             }
             enabled = false
         })

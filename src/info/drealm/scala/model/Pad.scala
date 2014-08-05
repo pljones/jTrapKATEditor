@@ -208,10 +208,11 @@ abstract class PadSeq[TPad <: Pad] protected (f: (Int => TPad))(implicit TPad: M
         if (null == value)
             throw new IllegalArgumentException("Pad must not be null.")
         if (_pads(idx) != value) {
-            deafTo(_pads.apply(idx))
-            update(_pads.update(idx, value))
-            listenTo(_pads.apply(idx))
-            dataItemChanged
+            update({
+                deafTo(_pads.apply(idx))
+                _pads.update(idx, value)
+                listenTo(_pads.apply(idx))
+            })
         }
     }
     def apply(idx: Int): TPad = _pads.apply(idx)

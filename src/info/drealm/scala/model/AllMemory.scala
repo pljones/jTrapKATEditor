@@ -36,10 +36,11 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
         if (null == value)
             throw new IllegalArgumentException("Kit must not be null.")
         if (_kits(idx) != value) {
-            deafTo(_kits.apply(idx))
-            update(_kits.update(idx, value))
-            listenTo(_kits.apply(idx))
-            dataItemChanged
+            update({
+                deafTo(_kits.apply(idx))
+                _kits.update(idx, value)
+                listenTo(_kits.apply(idx))
+            })
         }
     }
     def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)

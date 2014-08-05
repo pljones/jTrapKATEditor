@@ -148,7 +148,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         add(new SaveMenuItem("AllMemory", model.DumpType.AllMemory) {
             listenTo(jTrapKATEditor.currentAllMemory)
             reactions += {
-                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory && jTrapKATEditor.currentType == model.DumpType.AllMemory => {
+                case e: eventX.DataItemChanged if e.contains(jTrapKATEditor.currentAllMemory) && jTrapKATEditor.currentType == model.DumpType.AllMemory => {
                     enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentAllMemory.changed
                 }
             }
@@ -159,7 +159,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         add(new SaveMenuItem("GlobalMemory", model.DumpType.Global) {
             listenTo(jTrapKATEditor.currentAllMemory.global)
             reactions += {
-                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentAllMemory.global && jTrapKATEditor.currentType == model.DumpType.Global => {
+                case e: eventX.DataItemChanged if e.contains(jTrapKATEditor.currentAllMemory.global) && jTrapKATEditor.currentType == model.DumpType.Global => {
                     enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentAllMemory.global.changed
                 }
             }
@@ -169,7 +169,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         add(new SaveMenuItem("CurrentKit", model.DumpType.Kit) {
             listenTo(jTrapKATEditor.currentKit)
             reactions += {
-                case e: eventX.DataItemChanged if e.dataItem == jTrapKATEditor.currentKit && jTrapKATEditor.currentType == model.DumpType.Kit => {
+                case e: eventX.DataItemChanged if e.contains(jTrapKATEditor.currentKit) && jTrapKATEditor.currentType == model.DumpType.Kit => {
                     enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentKit.changed
                 }
             }

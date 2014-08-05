@@ -68,6 +68,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 listenTo(selection)
                 listenTo(jTrapKATEditor)
+                listenTo(jTrapKATEditor.currentAllMemory)
 
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
@@ -76,50 +77,58 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         listenTo(jTrapKATEditor)
                     }
                     case e: CurrentAllMemoryChanged => updateAllKitNames()
-                    case e: CurrentKitChanged => selectCurrentKit
-                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => updateKitName(jTrapKATEditor.currentKitNumber)
+                    case e: CurrentKitChanged       => selectCurrentKit()
+                    case e: DataItemChanged if e.source == jTrapKATEditor.currentKit => {
+                        updateKitName(jTrapKATEditor.currentKitNumber)
+                        selectCurrentKit()
+                    }
                 }
+
+                selectCurrentKit()
             }
 
             private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
                 visible = jTrapKATEditor.currentKit.changed
 
                 listenTo(jTrapKATEditor)
+                listenTo(jTrapKATEditor.currentAllMemory)
+
                 reactions += {
-                    case e: CurrentKitChanged => visible = jTrapKATEditor.currentKit.changed
-                    case e: CurrentAllMemoryChanged => visible = jTrapKATEditor.currentKit.changed
-                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => visible = jTrapKATEditor.currentKit.changed
+                    case e: CurrentKitChanged                                        => visible = jTrapKATEditor.currentKit.changed
+                    case e: CurrentAllMemoryChanged                                  => visible = jTrapKATEditor.currentKit.changed
+                    case e: DataItemChanged if e.contains(jTrapKATEditor.currentKit) => visible = jTrapKATEditor.currentKit.changed
                 }
             }
 
             private[this] val lblKitName = new Label(L.G("lblKitName"))
 
             private[this] val txtKitName = new TextField {
-                def quietText(value: String): Unit = {
-                    pnSelector.deafTo(this)
+                private[this] def setDisplay(): Unit = {
                     deafTo(this)
-                    text = value
+                    text = jTrapKATEditor.currentKit.kitName.trim()
                     listenTo(this)
-                    pnSelector.listenTo(this)
+                }
+                private[this] def setValue(): Unit = {
+                    deafTo(jTrapKATEditor.currentAllMemory)
+                    jTrapKATEditor.currentKit.kitName = text
+                    listenTo(jTrapKATEditor.currentAllMemory)
                 }
 
                 lblKitName.peer.setLabelFor(peer)
                 name = "txtKitName"
                 columns = 16
 
-                quietText(jTrapKATEditor.currentKit.kitName.trim())
-
                 listenTo(jTrapKATEditor)
+                listenTo(jTrapKATEditor.currentAllMemory)
+
                 reactions += {
-                    case e: ValueChanged if e.source == this => {
-                        deafTo(jTrapKATEditor)
-                        jTrapKATEditor.currentKit.kitName = text
-                        listenTo(jTrapKATEditor)
-                    }
-                    case e: CurrentKitChanged => quietText(jTrapKATEditor.currentKit.kitName.trim())
-                    case e: CurrentAllMemoryChanged => quietText(jTrapKATEditor.currentKit.kitName.trim())
-                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentKit => quietText(jTrapKATEditor.currentKit.kitName.trim())
+                    case e: CurrentKitChanged => setDisplay()
+                    case e: CurrentAllMemoryChanged => setDisplay()
+                    case e: DataItemChanged if e.source == jTrapKATEditor.currentKit => setDisplay()
+                    case e: ValueChanged => setValue()
                 }
+
+                setDisplay()
             }
 
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
@@ -127,6 +136,18 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 case x if x < 25 => s"${x}"
                 case x           => L.G(s"lbPad${x}")
             }), "cbxSelectPad", lblSelectPad) {
+                private[this] def setDisplay(): Unit = {
+                    deafTo(this)
+                    deafTo(selection)
+                    selection.index = jTrapKATEditor.currentPadNumber
+                    listenTo(selection)
+                    listenTo(this)
+                }
+                private[this] def setValue(): Unit = {
+                    deafTo(jTrapKATEditor)
+                    jTrapKATEditor.currentPadNumber = selection.index
+                    listenTo(jTrapKATEditor)
+                }
 
                 peer.setMaximumRowCount(28)
                 prototypeDisplayValue = Some("88 mmmm")
@@ -135,34 +156,30 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: SelectionChanged if e.source == this => {
-                        deafTo(jTrapKATEditor)
-                        jTrapKATEditor.currentPadNumber = selection.index
-                        listenTo(jTrapKATEditor)
-                    }
-                    case e: CurrentPadChanged => {
-                        deafTo(this)
-                        deafTo(selection)
-                        selection.index = jTrapKATEditor.currentPadNumber
-                        listenTo(selection)
-                        listenTo(this)
-                    }
+                    case e: SelectionChanged  => setValue()
+                    case e: CurrentPadChanged => setDisplay()
                 }
+
+                setDisplay()
             }
 
             def selectedPad: Int = cbxSelectPad.selection.index
             def selectedPad_=(value: Int): Unit = cbxSelectPad.selection.index = value
 
             private[this] val lblPadEdited = new Label(L.G("lblXEdited")) {
-                visible = jTrapKATEditor.currentPad.changed
+                private[this] def setDisplay(): Unit = visible = jTrapKATEditor.currentPad.changed
 
                 listenTo(jTrapKATEditor)
+                listenTo(jTrapKATEditor.currentAllMemory)
+
                 reactions += {
-                    case e: CurrentPadChanged => visible = jTrapKATEditor.currentPad.changed
-                    case e: CurrentKitChanged => visible = jTrapKATEditor.currentPad.changed
-                    case e: CurrentAllMemoryChanged => visible = jTrapKATEditor.currentPad.changed
-                    case e: DataItemChanged if e.dataItem == jTrapKATEditor.currentPad => visible = jTrapKATEditor.currentPad.changed
+                    case e: CurrentPadChanged                                        => setDisplay()
+                    case e: CurrentKitChanged                                        => setDisplay()
+                    case e: CurrentAllMemoryChanged                                  => setDisplay()
+                    case e: DataItemChanged if e.contains(jTrapKATEditor.currentPad) => setDisplay()
                 }
+
+                setDisplay()
             }
 
             contents += (lblSelectKit, "cell 0 0,alignx right")
@@ -173,17 +190,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (lblSelectPad, "cell 7 0,alignx right")
             contents += (cbxSelectPad, "cell 8 0")
             contents += (lblPadEdited, "cell 9 0")
-
-            // TODO: txtKitName should set the current kit name
-            listenTo(txtKitName)
-
-            reactions += {
-                case e: ValueChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-            }
         }
 
         private[this] object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
@@ -203,21 +209,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250)
                 }
                 contents += (pn, pad._1 + ",grow")
-                listenTo(pn)
                 pn
-            }
-
-            reactions += {
-                case e: SelectionChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: CbxEditorFocused => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
             }
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((1 to 24) map { n => s"cbxPad${n}V3" }) ++ ((1 to 24) map { n => s"cbxPad${n}V4" })))

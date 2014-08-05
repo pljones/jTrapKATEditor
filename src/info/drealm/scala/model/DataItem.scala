@@ -47,29 +47,29 @@ trait DataItem extends scala.swing.Publisher {
 
     // The C# is a little different here
     // It has "OnDataChanged" which the subclasses call when they've done
-    // their own updating - no update(u) call.  There's also no check
-    // on _changed before notifying listeners.  I think this implementation
-    // is a little nicer, both for subclasses and listeners.
-    // (Don't use update(u) if you want to only send the DataItemChanged
-    // after a series of changes - do them (all the "u" functions) and then call
-    // dataItemChanged directly.)
-    protected def dataItemChanged = if (!_changed) {
+    // their own updating - no update(u) call.  I think this implementation
+    // is a little nicer.
+    // (If you want to send the DataItemChanged after a series of changes,
+    // put them (all the "u" functions) in a block and then call
+    // update with that block.)
+    private[this] def dataItemChanged() = {
         _changed = true
-        publish(new info.drealm.scala.eventX.DataItemChanged(this))
+        publish(new info.drealm.scala.eventX.DataItemChanged(this, None))
     }
     protected def update(u: => Unit) = {
         u
-        dataItemChanged
+        dataItemChanged()
     }
     // Not every subclass will need this but enough will that it makes
     // sense to do it here: catch any listened-to DataItemChanged,
-    // mark this as dirty and publish the change.
+    // mark this as dirty and publish the change, tracing where it came from.
     // This is also part of how the C# uses OnDataChanged - it
     // makes it the handler for the event from subclasses.
     reactions += {
         case e: info.drealm.scala.eventX.DataItemChanged => {
+            _changed = true
             deafTo(this)
-            dataItemChanged
+            publish(new info.drealm.scala.eventX.DataItemChanged(this, Some(e)))
             listenTo(this)
         }
     }

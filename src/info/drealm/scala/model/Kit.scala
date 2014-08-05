@@ -134,11 +134,8 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def fcCurve_=(value: Byte): Unit = if (_fcCurve != value) update(_fcCurve = value) else {}
     def kitName: String = new String(_kitName)
     def kitName_=(value: String): Unit = value.trim().padTo(12, ' ') match {
-        case update if update != _kitName => {
-            (0 to 11) zip update foreach (x => _kitName(x._1) = x._2)
-            dataItemChanged
-        }
-        case _ => {}
+        case newName if !newName.equals(kitName) => update(Array.copy(newName.toCharArray(), 0, _kitName, 0, _kitName.length))
+        case _                                   => {}
     }
 
     listenTo(_pads)

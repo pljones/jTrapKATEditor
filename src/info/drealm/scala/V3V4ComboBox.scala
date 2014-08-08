@@ -37,8 +37,8 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     protected def cbx = jTrapKATEditor.doV3V4(cbxV3, cbxV4)
     private[this] def peer = cbx.peer.asInstanceOf[javax.swing.JComboBox[_]]
 
-    def selectionV3 = cbxV3.selection
-    def selectionV4 = cbxV4.selection
+    private[this] def selectionV3 = cbxV3.selection
+    private[this] def selectionV4 = cbxV4.selection
     object selection extends Publisher {
         def index: Int = cbx.selection.index
         def index_=(n: Int) {
@@ -60,7 +60,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     }
 
     // What we are here for is to handle 
-    var _visible: Boolean = true
+    private[this] var _visible: Boolean = true
     def v3v4visible: Boolean = _visible && cbx.visible
     def v3v4visible_=(value: Boolean): Unit = {
         _visible = value

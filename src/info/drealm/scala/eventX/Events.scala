@@ -42,9 +42,6 @@ class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) e
 
 class V3V4SelectionChanged(val source: info.drealm.scala.V3V4ComboBox[_, _, _, _]) extends Event
 
-class KitSelectionChanged(override val source: Component, val oldKit: Int, val newKit: Int) extends SelectionChanged(source)
-class PadSelectionChanged(override val source: Component, val oldPad: Int, val newPad: Int) extends SelectionChanged(source)
-
 class CurrentAllMemoryChanged(val source: AnyRef) extends Event
 class GlobalChanged(val source: AnyRef) extends Event
 class CurrentKitChanged(val source: AnyRef) extends Event

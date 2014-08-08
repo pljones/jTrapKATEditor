@@ -179,7 +179,6 @@ object jTrapKATEditorMenuBar extends MenuBar {
             listenTo(frmTrapkatSysexEditor)
             listenTo(jTrapKATEditor)
             listenTo(pnKitsPads)
-            // Does this care about KitSelectionChanged?
             reactions += {
                 case e: WindowOpened                   => enabled = jTrapKATEditor.currentKit != null
                 case e: eventX.CurrentKitChanged       => enabled = jTrapKATEditor.currentKit != null

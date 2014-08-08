@@ -84,15 +84,12 @@ object jTrapKATEditorPreferences extends swing.Publisher {
         }
     }
     def lastUpdateTS_=(value: Date): Unit = {
-        val ts = f"${value}%TF"
-        Console.println(s"lastUpdateTS -> ${ts}")
-        userPreferences.put("lastUpdateTS", f"${value}%TF") //new SimpleDateFormat("YYYY-MM-DD").format(value)
+        userPreferences.put("lastUpdateTS", f"${value}%TF")
         publish(new LastUpdateTSPreferencChanged)
     }
 
     def lastIgnoredVersion: String = userPreferences.get("lastIgnoredVersion", "00-0101-0000")
     def lastIgnoredVersion_=(value: String): Unit = {
-        Console.println(s"lastIgnoredVersion -> ${value}")
         userPreferences.put("lastIgnoredVersion", value)
         publish(new LastIgnoredVersionPreferencChanged)
     }

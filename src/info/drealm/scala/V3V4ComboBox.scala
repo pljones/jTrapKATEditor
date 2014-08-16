@@ -68,6 +68,9 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         cbxV4.visible = jTrapKATEditor.doV3V4(false, _visible)
     }
 
+    def enabled: Boolean = cbx.enabled
+    def enabled_=(value: Boolean): Unit = { cbxV3.enabled = value; cbxV4.enabled = value }
+
     private[this] def allMemoryChanged(toVisible: CP, toHidden: CP): Unit = {
         toHidden.visible = false
         toVisible.visible = _visible

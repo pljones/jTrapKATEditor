@@ -202,9 +202,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         case _                     => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))
     }) quit
 
-    private[this] def _save(makeChanged: => Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: => Event) = {
-        model.TrapKATSysexDump.toFile(file, thing)
-        if (makeChanged) thing.makeChanged()
+    private[this] def _save(notSaving: => Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: => Event) = {
+        if (thingType == model.DumpType.Kit)
+            model.TrapKATSysexDump.toFile(file, thing, _currentKitNumber, !notSaving)
+        else
+            model.TrapKATSysexDump.toFile(file, thing, !notSaving)
         Console.println(f"_currentType ${_currentType} | thingType ${thingType}")
         if (_currentType == model.DumpType.NotSet || thingType == model.DumpType.AllMemory) {
             _currentFile = file

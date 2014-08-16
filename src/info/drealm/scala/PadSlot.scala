@@ -272,6 +272,7 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     private[this] def setValue(): Unit = {
         deafTo(jTrapKATEditor)
         myPad(0) = cbxPad.value
+        jTrapKATEditor.padChangedBy(this)
         listenTo(jTrapKATEditor)
     }
 
@@ -290,25 +291,24 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
         case e: eventX.CurrentKitChanged       => setDisplay()
         case e: eventX.CurrentAllMemoryChanged => setDisplay()
     }
-    
+
     setDisplay()
 }
 
 class Slot(slot: Int) extends Reactor {
-    val lblSlot = new Label("" + slot) { name = s"lblSlot${slot}" }
+    val lblSlot = new Label(s"${slot}") { name = s"lblSlot${slot}"; peer.setDisplayedMnemonic(s"${slot}".last) }
     val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot)
 
-    private[this] def displaySlot(): Unit = {
-        val myPad: model.Pad = jTrapKATEditor.currentPad
+    private[this] def setDisplay(): Unit = {
         deafTo(cbxSlot)
-        cbxSlot.value = myPad(slot - 1)
+        cbxSlot.value = jTrapKATEditor.currentPad(slot - 1)
         listenTo(cbxSlot)
     }
 
-    private[this] def updateSlot(value: Byte): Unit = {
-        val myPad: model.Pad = jTrapKATEditor.currentPad
+    private[this] def setValue(value: Byte): Unit = {
         deafTo(jTrapKATEditor)
-        myPad(slot - 1) = cbxSlot.value
+        jTrapKATEditor.currentPad(slot - 1) = cbxSlot.value
+        jTrapKATEditor.padChangedBy(jTrapKATEditor.doV3V4(cbxSlot.cbxV3,cbxSlot.cbxV4))
         listenTo(jTrapKATEditor)
     }
 
@@ -318,9 +318,9 @@ class Slot(slot: Int) extends Reactor {
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: ValueChanged                   => v3v4(updateSlot(cbxSlot.value))
-        case e: eventX.CurrentPadChanged       => v3v4(displaySlot())
-        case e: eventX.CurrentKitChanged       => v3v4(displaySlot())
-        case e: eventX.CurrentAllMemoryChanged => v3v4(displaySlot())
+        case e: ValueChanged                   => v3v4(setValue(cbxSlot.value))
+        case e: eventX.CurrentPadChanged       => v3v4(setDisplay())
+        case e: eventX.CurrentKitChanged       => v3v4(setDisplay())
+        case e: eventX.CurrentAllMemoryChanged => v3v4(setDisplay())
     }
 }

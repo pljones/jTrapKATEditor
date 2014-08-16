@@ -59,10 +59,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentKit: model.Kit[_ <: model.Pad] = currentAllMemory(_currentKitNumber)
     def currentKitV3: model.KitV3 = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3]
     def currentKitV4: model.KitV4 = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV4]
-
-    def isKitCurve: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].curve == currentKit.curve)
-    def isKitGate: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].gate == currentKit.gate)
-    def fcChanAsChick: Boolean = currentKit.fcChannel >= 16
     def kitChangedBy(source: Component) = {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
@@ -75,6 +71,16 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
     def currentSoundControl = currentKit.soundControls(_currentSoundControl)
 
+    def isKitCurve: Boolean = currentKit.forall(p => p.curve == currentKit.curve)
+    def toKitCurve(): Unit = currentKit foreach (p => p.curve = currentKit.curve)
+    def isKitGate: Boolean = currentKit.forall(p => p.gate == currentKit.gate)
+    def toKitGate(): Unit = currentKit foreach (p => p.gate = currentKit.gate)
+    def isKitChannel: Boolean = currentKit.forall(p => p.channel == currentKit.channel)
+    def toKitChannel(): Unit = currentKit foreach (p => p.channel = currentKit.channel)
+    def isKitMinVel: Boolean = currentKit.forall(p => p.minVelocity == currentKit.minVelocity)
+    def toKitMinVel(): Unit = currentKit foreach (p => p.minVelocity = currentKit.minVelocity)
+    def isKitMaxVel: Boolean = currentKit.forall(p => p.maxVelocity == currentKit.maxVelocity)
+    def toKitMaxVel(): Unit = currentKit foreach (p => p.maxVelocity = currentKit.maxVelocity)
     def isNoVolume: Boolean = currentSoundControl.volume >= 128
     def isNoPrgChg: Boolean = currentSoundControl.prgChg == 0
     def isNoBankMSB: Boolean = currentSoundControl.bankMSB >= 128

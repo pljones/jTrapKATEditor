@@ -97,6 +97,8 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
             _maxVelocity == thatPad.maxVelocity &&
             _flags == thatPad.flags
     }
+    
+    def changed = _changed
 }
 
 class PadV3 private (f: => Array[Byte]) extends Pad(f) {
@@ -143,7 +145,7 @@ class PadV3 private (f: => Array[Byte]) extends Pad(f) {
         }
 
         // set state to dirty
-        makeChanged()
+        _changed = true
     }
 
     override def canEqual(that: Any): Boolean = that.isInstanceOf[PadV3]
@@ -177,7 +179,7 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
         }
 
         // set state to dirty
-        makeChanged()
+        _changed = true
     }
 
     override def deserialize(in: FileInputStream): Unit = {
@@ -199,21 +201,15 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
     def linkTo_=(value: Byte): Unit = if (_linkTo != value) update(_linkTo = value) else {}
 }
 
-abstract class PadSeq[TPad <: Pad] protected (f: (Int => TPad))(implicit TPad: Manifest[TPad]) extends DataItem with mutable.Seq[TPad] {
-    private val _pads: Array[TPad] = new Array[TPad](28)
+abstract class PadSeq[TPad <: Pad] protected (f: Int => TPad)(implicit TPad: Manifest[TPad]) extends DataItem with mutable.Seq[TPad] {
+    private val _pads: Array[TPad] = ((0 to 27) map (f(_))).toArray
 
     def iterator = _pads.iterator
     def length = _pads.length
     def update(idx: Int, value: TPad): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Pad must not be null.")
-        if (_pads(idx) != value) {
-            update({
-                deafTo(_pads.apply(idx))
-                _pads(idx) ~<= value
-                listenTo(_pads.apply(idx))
-            })
-        }
+        if (_pads(idx) != value) update(_pads.update(idx, value))
     }
     def apply(idx: Int): TPad = _pads.apply(idx)
 
@@ -226,11 +222,7 @@ abstract class PadSeq[TPad <: Pad] protected (f: (Int => TPad))(implicit TPad: M
     // .. and I could not be asked to optimise the loop to put the "if" outside ...
     override def serialize(out: FileOutputStream, saving: Boolean): Unit = _pads foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
 
-    // Look, just one loop, not six! :)
-    (0 to 27) foreach (x => {
-        _pads(x) = f(x)
-        listenTo(_pads(x))
-    })
+    def changed = _pads.foldLeft(false)(_ || _.changed)
 }
 
 class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
@@ -238,7 +230,7 @@ class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
     def this(in: FileInputStream) = this(x => new PadV3(in))
     def this(padV4seq: Seq[PadV4]) = {
         this(x => new PadV3(padV4seq(x)))
-        makeChanged()
+        _changed = true
     }
 }
 
@@ -247,6 +239,6 @@ class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
     def this(in: FileInputStream) = this(x => new PadV4(in))
     def this(padV3seq: Seq[PadV3]) = {
         this(x => new PadV4(padV3seq(x), (x + 1).toByte))
-        makeChanged()
+        _changed = true
     }
 }

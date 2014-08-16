@@ -307,8 +307,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 
     def padDynamics: Seq[PadDynamics] = _padDynamics
 
-    listenTo(_ttPadData)
-    listenTo(_padDynamics)
+    def changed = _changed || _ttPadData.changed || _padDynamics.changed
 }
 
 class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {

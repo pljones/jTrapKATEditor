@@ -47,6 +47,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         case am: model.AllMemoryV3 => fV3
         case am: model.AllMemoryV4 => fV4
     }
+    def allMemoryChangedBy(source: Component) = publish(new CurrentAllMemoryChanged(source))
+    def globalMemoryChangedBy(source: Component) = publish(new GlobalChanged(source))
 
     private[this] var _currentKitNumber: Int = 0
     def currentKitNumber: Int = _currentKitNumber
@@ -61,6 +63,10 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def isKitCurve: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].curve == currentKit.curve)
     def isKitGate: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].gate == currentKit.gate)
     def fcChanAsChick: Boolean = currentKit.fcChannel >= 16
+    def kitChangedBy(source: Component) = {
+        publish(new CurrentKitChanged(source))
+        allMemoryChangedBy(source)
+    }
     private[this] var _currentSoundControl = 0
     def currentSoundControlNumber = _currentSoundControl
     def currentSoundControlNumber_=(value: Int) = {
@@ -84,34 +90,36 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentPad: model.Pad = currentKit(_currentPadNumber)
     def currentPadV3: model.PadV3 = currentKitV3(_currentPadNumber)
     def currentPadV4: model.PadV4 = currentKitV4(_currentPadNumber)
+    def padChangedBy(source: Component) = {
+        publish(new CurrentPadChanged(source))
+        kitChangedBy(source)
+    }
 
     def reinitV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        _currentAllMemory ~<= new model.AllMemoryV3
+        _currentAllMemory = new model.AllMemoryV3
         publish(new CurrentAllMemoryChanged(this))
     }
 
     def reinitV4(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        _currentAllMemory ~<= new model.AllMemoryV4
+        _currentAllMemory = new model.AllMemoryV4
         publish(new CurrentAllMemoryChanged(this))
     }
 
     def convertToV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.AllMemory
-        _currentAllMemory ~<= new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
-        _currentAllMemory.makeChanged()
+        _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
         publish(new CurrentAllMemoryChanged(this))
     }
 
     def convertToV4(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.AllMemory
-        _currentAllMemory ~<= new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
-        _currentAllMemory.makeChanged()
+        _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
         publish(new CurrentAllMemoryChanged(this))
     }
 
@@ -125,33 +133,33 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         dump match {
             case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
                 _currentType = model.DumpType.AllMemory
-                _currentAllMemory ~<= allMemoryV3Dump.self
+                _currentAllMemory = allMemoryV3Dump.self
                 publish(new CurrentAllMemoryChanged(this))
             }
             case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
                 _currentType = model.DumpType.AllMemory
-                _currentAllMemory ~<= allMemoryV4Dump.self
+                _currentAllMemory = allMemoryV4Dump.self
                 publish(new CurrentAllMemoryChanged(this))
             }
             case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 doV3V4({
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global ~<= globalV3Dump.self
+                    _currentAllMemory.global = globalV3Dump.self
                     publish(new GlobalChanged(this))
                 }, if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global ~<= new model.GlobalV4(globalV3Dump.self)
+                    _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
                     publish(new GlobalChanged(this))
                 })
             }
             case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 doV3V4(if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global ~<= new model.GlobalV3(globalV4Dump.self)
+                    _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
                     publish(new GlobalChanged(this))
                 }, {
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global ~<= globalV4Dump.self
+                    _currentAllMemory.global = globalV4Dump.self
                     publish(new GlobalChanged(this))
                 })
             }
@@ -161,7 +169,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 def doKit(getKit: => model.Kit[_ <: model.Pad]): Unit = {
                     if ((kitV3Dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitV3Dump.auxType + 1, kitV3Dump.self.kitName))) {
                         if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
-                        _currentAllMemory(_currentKitNumber) ~<= getKit
+                        _currentAllMemory(_currentKitNumber) = getKit
                         publish(new CurrentKitChanged(this))
                     }
                 }
@@ -173,7 +181,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 def doKit(getKit: => model.Kit[_ <: model.Pad]): Unit = {
                     if ((kitV4Dump.auxType == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitV4Dump.auxType + 1, kitV4Dump.self.kitName))) {
                         if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
-                        _currentAllMemory(_currentKitNumber) ~<= getKit
+                        _currentAllMemory(_currentKitNumber) = getKit
                         publish(new CurrentKitChanged(this))
                     }
                 }

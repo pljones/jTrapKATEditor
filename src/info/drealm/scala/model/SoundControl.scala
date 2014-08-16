@@ -71,4 +71,6 @@ protected class SoundControl(__prgChg: Byte, __prgChgTxnChn: Byte, __volume: Byt
     def bankMSB_=(value: Byte): Unit = if (_bankMSB != value) update(_bankMSB = value) else {}
     def bankLSB: Byte = _bankLSB
     def bankLSB_=(value: Byte): Unit = if (_bankLSB != value) update(_bankLSB = value) else {}
+    
+    def changed = _changed
 }

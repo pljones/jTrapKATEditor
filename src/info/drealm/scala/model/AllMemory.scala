@@ -35,13 +35,7 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     def update(idx: Int, value: Kit[_ <: Pad]): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Kit must not be null.")
-        if (_kits(idx) != value) {
-            update({
-                deafTo(_kits.apply(idx))
-                _kits(idx) ~<= value
-                listenTo(_kits.apply(idx))
-            })
-        }
+        if (_kits(idx) != value) update(_kits.update(idx, value))
     }
     def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)
 
@@ -65,10 +59,9 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     private[this] var _global: Global[_ <: Pad] = g()
 
     def global: Global[_ <: Pad] = _global
-    def global_=(value: Global[_ <: Pad]) = if (_global != value) update(_global ~<= value)
+    def global_=(value: Global[_ <: Pad]) = if (_global != value) update(_global = value)
 
-    (0 to 23) foreach (x => listenTo(_kits(x)))
-    listenTo(_global)
+    def changed = _changed || _kits.foldLeft(false)(_ || _.changed) || _global.changed
 }
 
 class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory(k, kn, u, g) {
@@ -78,7 +71,15 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(540).toArray,
         () => new GlobalV3(in))
-    def this(allMemoryV4: AllMemoryV4) = this(x => new KitV3(allMemoryV4(x).asInstanceOf[KitV4]), (i, x) => x.kitName = allMemoryV4(i).kitName, () => new Array(540), () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4]))
+    def this(allMemoryV4: AllMemoryV4) = {
+        this(
+            x => new KitV3(allMemoryV4(x).asInstanceOf[KitV4]),
+            (i, x) => x.kitName = allMemoryV4(i).kitName,
+            () => new Array(540),
+            () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4])
+        )
+        _changed = true
+    }
 }
 
 class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory(k, kn, u, g) {
@@ -88,5 +89,13 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(195).toArray,
         () => new GlobalV4(in))
-    def this(allMemoryV3: AllMemoryV3) = this(x => new KitV4(allMemoryV3(x).asInstanceOf[KitV3]), (i, x) => x.kitName = allMemoryV3(i).kitName, () => new Array(195), () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3]))
+    def this(allMemoryV3: AllMemoryV3) = {
+        this(
+            x => new KitV4(allMemoryV3(x).asInstanceOf[KitV3]),
+            (i, x) => x.kitName = allMemoryV3(i).kitName,
+            () => new Array(195),
+            () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3])
+        )
+        _changed = true
+    }
 }

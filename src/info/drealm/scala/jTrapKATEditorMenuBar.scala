@@ -31,8 +31,8 @@ import swing.event._
 import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
 
 object jTrapKATEditorMenuBar extends MenuBar {
-    class RichMenu(_name: String) extends Menu(L.G(s"mn${_name}")) {
 
+    class RichMenu(_name: String) extends Menu(L.G(s"mn${_name}")) {
         name = s"mn${_name}"
         L.G(s"mne${_name}") match {
             case x if x == s"<<mne${_name}>>" => {}
@@ -44,23 +44,15 @@ object jTrapKATEditorMenuBar extends MenuBar {
             contents += mi
         }
 
-        //reactions += {
-        //    case e: eventX.MenuCancelled  => Console.println(s"RichMenu traceMenu ${e.source.name} Canceled")
-        //    case e: eventX.MenuDeselected => Console.println(s"RichMenu traceMenu ${e.source.name} Deselected")
-        //    case e: eventX.MenuSelected   => Console.println(s"RichMenu traceMenu ${e.source.name} Selected")
-        //}
-
+        // Yet more scala.swing brokenness: these should just be there, really
         private[this] val menu = this
         peer.addMenuListener(new javax.swing.event.MenuListener {
-            def menuCanceled(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuCancelled(menu)) // not my choice of spelling on the interface...
-            def menuDeselected(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuDeselected(menu))
-            def menuSelected(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuSelected(menu))
+            def menuCanceled(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuCanceled(menu)) // not my choice of spelling - to match PopupMenuCanceled
+            def menuDeselected(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuWillBecomeInvisible(menu))
+            def menuSelected(e: javax.swing.event.MenuEvent) = publish(new eventX.MenuWillBecomeVisible(menu))
         })
     }
 
-    object RichMenuItem {
-        def traceMenuItem(mi: RichMenuItem): Unit = Console.println(s"RichMenuItem traceMenuItem ${mi.name} clicked")
-    }
     class RichMenuItem(protected val _name: String, miClick: RichMenuItem => Unit = null) extends MenuItem(L.G(s"mi${_name}")) {
         name = s"mi${_name}"
 
@@ -102,29 +94,22 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        object SaveMenuItem {
+        private[this] object SaveMenuItem {
             var currentItem: SaveMenuItem = null
-        }
-        class SaveMenuItem(_name: String, dumpType: model.DumpType.DumpType) extends RichMenuItem(s"FileSave${_name}", x => jTrapKATEditor.saveFileAs(jTrapKATEditor.currentType, jTrapKATEditor.currentFile)) {
-            protected def saveAction: Action = {
-                if (SaveMenuItem.currentItem != null) {
-                    SaveMenuItem.currentItem.action = Action.NoAction
-                    SaveMenuItem.currentItem.text = L.G(s"mi${SaveMenuItem.currentItem._name}")
+            def saveAction(mi: SaveMenuItem): Action = {
+                if (currentItem != null) {
+                    currentItem.action = Action.NoAction
+                    currentItem.text = L.G(s"mi${currentItem._name}")
                 }
-                SaveMenuItem.currentItem = this
-                new Action(L.G(s"miFileSave${_name}")) {
+                currentItem = mi
+                new Action(L.G(s"mi${mi._name}")) {
                     accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_MASK))
                     override def apply = {}
                 }
             }
-
-            listenTo(frmTrapkatSysexEditor)
-            listenTo(jTrapKATEditor)
-            reactions += {
-                case e: WindowOpened if jTrapKATEditor.currentType == dumpType                   => action = saveAction
-                case e: eventX.CurrentAllMemoryChanged if jTrapKATEditor.currentType == dumpType => action = saveAction
-            }
         }
+        class SaveMenuItem(_name: String, dumpType: model.DumpType.DumpType) extends RichMenuItem(s"FileSave${_name}", x => jTrapKATEditor.saveFileAs(jTrapKATEditor.currentType, jTrapKATEditor.currentFile))
+
         object SaveAsMenuItem {
             protected def saveAs(dumpType: model.DumpType.DumpType): Unit = {
                 SaveFileChooser.selectedFile = if (dumpType == jTrapKATEditor.currentType)
@@ -145,47 +130,18 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
         class SaveAsMenuItem(_name: String, dumpType: model.DumpType.DumpType) extends RichMenuItem(s"FileSave${_name}As", x => SaveAsMenuItem.saveAs(dumpType))
 
-        add(new SaveMenuItem("AllMemory", model.DumpType.AllMemory) {
-            listenTo(jTrapKATEditor.currentAllMemory)
-            reactions += {
-                case e: eventX.DataItemChanged if e.contains(jTrapKATEditor.currentAllMemory) && jTrapKATEditor.currentType == model.DumpType.AllMemory => {
-                    enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentAllMemory.changed
-                }
-            }
-            action = saveAction
-            enabled = false
-        })
+        private[this] val SaveAllMemoryMenuItem = new SaveMenuItem("AllMemory", model.DumpType.AllMemory) { enabled = false }
+        add(SaveAllMemoryMenuItem)
         add(new SaveAsMenuItem("AllMemory", model.DumpType.AllMemory))
-        add(new SaveMenuItem("GlobalMemory", model.DumpType.Global) {
-            listenTo(jTrapKATEditor.currentAllMemory.global)
-            reactions += {
-                case e: eventX.DataItemChanged if e.contains(jTrapKATEditor.currentAllMemory.global) && jTrapKATEditor.currentType == model.DumpType.Global => {
-                    enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentAllMemory.global.changed
-                }
-            }
-            enabled = false
-        })
+
+        private[this] val SaveGlobalMemoryMenuItem = new SaveMenuItem("GlobalMemory", model.DumpType.Global) { enabled = false }
+        add(SaveGlobalMemoryMenuItem)
         add(new SaveAsMenuItem("GlobalMemory", model.DumpType.Global))
-        add(new SaveMenuItem("CurrentKit", model.DumpType.Kit) {
-            listenTo(jTrapKATEditor.currentKit)
-            reactions += {
-                case e: eventX.DataItemChanged if e.contains(jTrapKATEditor.currentKit) && jTrapKATEditor.currentType == model.DumpType.Kit => {
-                    enabled = jTrapKATEditor.currentFile.isFile() && jTrapKATEditor.currentKit.changed
-                }
-            }
-            enabled = false
-        })
-        add(new SaveAsMenuItem("CurrentKit", model.DumpType.Kit) {
-            listenTo(frmTrapkatSysexEditor)
-            listenTo(jTrapKATEditor)
-            listenTo(pnKitsPads)
-            reactions += {
-                case e: WindowOpened                   => enabled = jTrapKATEditor.currentKit != null
-                case e: eventX.CurrentKitChanged       => enabled = jTrapKATEditor.currentKit != null
-                case e: eventX.CurrentAllMemoryChanged => enabled = jTrapKATEditor.currentKit != null
-            }
-            enabled = false
-        })
+
+        private[this] val SaveCurrentKitMenuItem = new SaveMenuItem("CurrentKit", model.DumpType.Kit) { enabled = false }
+        add(SaveCurrentKitMenuItem)
+        private[this] val SaveCurrentKitAsMenuItem = new SaveAsMenuItem("CurrentKit", model.DumpType.Kit) { enabled = false }
+        add(SaveCurrentKitAsMenuItem)
 
         contents += new Separator()
 
@@ -195,9 +151,23 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         add(new RichMenuItem("FileExit", x => jTrapKATEditor.exitClose))
 
+        reactions += {
+            case e: eventX.MenuWillBecomeVisible => {
+                jTrapKATEditor.currentType match {
+                    case model.DumpType.Global => SaveGlobalMemoryMenuItem.action = SaveMenuItem.saveAction(SaveGlobalMemoryMenuItem)
+                    case model.DumpType.Kit    => SaveCurrentKitMenuItem.action = SaveMenuItem.saveAction(SaveCurrentKitMenuItem)
+                    case _                     => SaveAllMemoryMenuItem.action = SaveMenuItem.saveAction(SaveAllMemoryMenuItem)
+                }
+
+                val isFile = jTrapKATEditor.currentFile.isFile()
+                SaveAllMemoryMenuItem.enabled = isFile && jTrapKATEditor.currentType == model.DumpType.AllMemory && jTrapKATEditor.currentAllMemory.changed
+                SaveGlobalMemoryMenuItem.enabled = isFile && jTrapKATEditor.currentType == model.DumpType.Global && jTrapKATEditor.currentAllMemory.global.changed
+                SaveCurrentKitMenuItem.enabled = isFile && jTrapKATEditor.currentType == model.DumpType.Kit && jTrapKATEditor.currentKit.changed
+                SaveCurrentKitAsMenuItem.enabled = jTrapKATEditor.currentKit != null
+            }
+        }
     }
 
-    // remember to use DataItem.~<= instead of "=" to get the listeners to follow correctly.
     object mnEdit extends RichMenu("Edit") {
 
         add(new RichMenuItem("EditUndo", x => Console.println("Edit Undo")) { visible = false })

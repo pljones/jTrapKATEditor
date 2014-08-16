@@ -58,7 +58,6 @@ object frmTrapkatSysexEditor extends Frame {
     centerOnScreen
 
     listenTo(jTrapKATEditor)
-    listenTo(jTrapKATEditor.currentAllMemory)
 
     private[this] def getTitle() = L.G("MainProgramTitle",
         L.G("ApplicationProductName"),
@@ -70,7 +69,6 @@ object frmTrapkatSysexEditor extends Frame {
     reactions += {
         case wo: WindowOpened             => Checker.autoUpdateMode = prefs.updateAutomatically
         case amc: CurrentAllMemoryChanged => title = getTitle()
-        case amdc: DataItemChanged        => title = getTitle()
     }
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {

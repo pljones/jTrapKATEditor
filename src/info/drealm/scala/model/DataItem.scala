@@ -27,7 +27,7 @@ package info.drealm.scala.model
 import java.io._
 import scala.io._
 
-trait DataItem extends scala.swing.Publisher {
+trait DataItem {
     // The C# has this as protected
     def deserialize(in: FileInputStream): Unit
 
@@ -43,44 +43,14 @@ trait DataItem extends scala.swing.Publisher {
 
     // The C# has this as private
     // _changed tracks whether update has been called on this DataItem
-    private[this] var _changed: Boolean = false
+    protected[DataItem] var _changed: Boolean = false
 
-    // The C# is a little different here
-    // It has "OnDataChanged" which the subclasses call when they've done
-    // their own updating - no update(u) call.  I think this implementation
-    // is a little nicer.
-    // (If you want to send the DataItemChanged after a series of changes,
-    // put them (all the "u" functions) in a block and then call
-    // update with that block.)
-    private[this] def dataItemChanged() = {
-        _changed = true
-        scala.Console.println(s"Publishing new DataItemChanged for ${this.getClass().getName()}")
-        publish(new info.drealm.scala.eventX.DataItemChanged(this, None))
-    }
+    // Require data items to explain this (hence _changed being protected not private)
+    def changed: Boolean
+
     protected def update(u: => Unit) = {
         u
-        dataItemChanged()
-    }
-    // Not every subclass will need this but enough will that it makes
-    // sense to do it here: catch any listened-to DataItemChanged,
-    // mark this as dirty and publish the change, tracing where it came from.
-    // This is also part of how the C# uses OnDataChanged - it
-    // makes it the handler for the event from subclasses.
-    reactions += {
-        case e: info.drealm.scala.eventX.DataItemChanged => {
-            _changed = true
-            deafTo(this)
-            publish(new info.drealm.scala.eventX.DataItemChanged(this, Some(e)))
-            listenTo(this)
-        }
-    }
-
-    // This is to allow "x = x.assign(y)"
-    def ~<[T <: DataItem](value: T): T = {
-        val reactors = listeners.toSeq
-        listeners.clear()
-        reactors foreach { x => value.listeners += x }
-        value
+        _changed = true
     }
 
     // In strange circumstances you may want to override this
@@ -88,9 +58,4 @@ trait DataItem extends scala.swing.Publisher {
         serialize(out, true)
         _changed = false
     }
-    // The C# has this as public
-    def changed = _changed
-
-    // Hm, need a public way to make the data item appear dirty without needing to update it
-    def makeChanged() = _changed = true
 }

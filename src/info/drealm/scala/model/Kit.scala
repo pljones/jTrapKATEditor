@@ -77,14 +77,8 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         _fcCurve = in.read().toByte
     }
     override def deserialize(in: FileInputStream): Unit = {
-        deafTo(_pads)
-        _soundControls foreach (x => if (x != null) deafTo(x))
-
         _pads.deserialize(in)
         _deserializeKit(in)
-
-        listenTo(_pads)
-        _soundControls foreach (x => if (x != null) listenTo(x))
     }
     def deserializeKitName(in: FileInputStream) = (0 to 11) foreach (x => _kitName(x) = in.read().toByte.toChar)
 
@@ -138,9 +132,8 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         case newName if !newName.equals(kitName) => update(Array.copy(newName.toCharArray(), 0, _kitName, 0, _kitName.length))
         case _                                   => {}
     }
-
-    listenTo(_pads)
-    _soundControls foreach (x => if (x != null) listenTo(x))
+    
+    def changed = _changed || _pads.changed || _soundControls.foldLeft(false)(_ || _.changed)
 }
 
 class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV3](f, g) {
@@ -170,7 +163,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
         }
 
         // set state to dirty if it isn't already
-        makeChanged()
+        _changed = true
     }
 
     protected var _bank: Byte = 128.toByte
@@ -247,7 +240,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         }
 
         // set state to dirty if it isn't already
-        makeChanged()
+        _changed = true
     }
 
     override def _deserializeKit(in: FileInputStream): Unit = {

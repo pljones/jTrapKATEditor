@@ -64,6 +64,8 @@ protected class CompanyId private[CompanyId] (value: Int) extends DataItem {
         }
         out.write((_companyId & 0xff).toByte)
     }
+    
+    def changed = false
 }
 
 protected object SysexDump {
@@ -193,7 +195,7 @@ object TrapKATSysexDump {
         }
     }
 
-    def toFile(file: File, data: DataItem): Unit = {
+    def toFile(file: File, data: DataItem, saving: Boolean): Unit = {
         val trapKATSysexDump: TrapKATSysexDump[_] = data match {
             case allMemoryV3: AllMemoryV3 => new AllMemoryV3Dump(allMemoryV3)
             case allMemoryV4: AllMemoryV4 => new AllMemoryV4Dump(allMemoryV4)
@@ -204,14 +206,14 @@ object TrapKATSysexDump {
         }
         val out = new FileOutputStream(file)
         try {
-            trapKATSysexDump.save(out)
+            trapKATSysexDump.serialize(out, saving)
         }
         finally {
             out.close()
         }
     }
 
-    def toFile(file: File, data: DataItem, kitNumber: Int): Unit = {
+    def toFile(file: File, data: DataItem, kitNumber: Int, saving: Boolean): Unit = {
         val trapKATSysexDump: TrapKATSysexDump[_] = data match {
             case kitV3: KitV3 => new KitV3Dump(kitV3, kitNumber.toByte)
             case kitV4: KitV4 => new KitV4Dump(kitV4, kitNumber.toByte)
@@ -220,7 +222,7 @@ object TrapKATSysexDump {
         }
         val out = new FileOutputStream(file)
         try {
-            trapKATSysexDump.save(out)
+            trapKATSysexDump.serialize(out, saving)
         }
         finally {
             out.close()

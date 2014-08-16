@@ -27,9 +27,10 @@ package info.drealm.scala.eventX
 import scala.swing._
 import scala.swing.event._
 
-case class MenuCancelled(override val source: Menu) extends ComponentEvent
-case class MenuDeselected(override val source: Menu) extends ComponentEvent
-case class MenuSelected(override val source: Menu) extends ComponentEvent
+abstract class MenuEvent extends ComponentEvent
+case class MenuCanceled(override val source: Menu) extends MenuEvent
+case class MenuWillBecomeInvisible(override val source: Menu) extends MenuEvent
+case class MenuWillBecomeVisible(override val source: Menu) extends MenuEvent
 
 class TabChangeEvent(val source: TabbedPane.Page) extends Event
 
@@ -47,28 +48,5 @@ class GlobalChanged(val source: AnyRef) extends Event
 class CurrentKitChanged(val source: AnyRef) extends Event
 class CurrentSoundControlChanged(val source: AnyRef) extends Event
 class CurrentPadChanged(val source: AnyRef) extends Event
-
-class DataItemChanged(val dataItem: info.drealm.scala.model.DataItem, val inner: Option[DataItemChanged]) extends Event {
-    def source: info.drealm.scala.model.DataItem = inner match {
-        case None                  => dataItem
-        case Some(dataItemChanged) => dataItemChanged.source
-    }
-
-    def contains(lookFor: info.drealm.scala.model.DataItem): Boolean = dataItem match {
-        case found if found eq lookFor => true
-        case _ => inner match {
-            case None                  => false
-            case Some(dataItemChanged) => dataItemChanged.contains(lookFor)
-        }
-    }
-
-    def ofType[T <: info.drealm.scala.model.DataItem](lookFor: java.lang.Class[T])(implicit manifest: Manifest[T]): Option[T] = dataItem match {
-        case found: T => Some(found)
-        case _ => inner match {
-            case None                  => None
-            case Some(dataItemChanged) => dataItemChanged.ofType(lookFor)
-        }
-    }
-}
 
 class AutoUpdateModeChanged(val oldMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode, val newMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode) extends Event

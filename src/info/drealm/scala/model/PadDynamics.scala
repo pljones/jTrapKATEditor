@@ -66,5 +66,7 @@ protected[model] class PadDynamicsContainer(_padLevels: Array[Byte], _userMargin
     def serialize(out: FileOutputStream, saving: Boolean): Unit = throw new UnsupportedOperationException("This should never happen")
 
     private[this] val _padDynamics: Seq[PadDynamics] = (0 to 24) map (x => new PadDynamics(x, this))
+    
+    def changed = _changed
 
 }

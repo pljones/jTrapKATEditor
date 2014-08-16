@@ -68,7 +68,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 listenTo(selection)
                 listenTo(jTrapKATEditor)
-                listenTo(jTrapKATEditor.currentAllMemory)
 
                 reactions += {
                     case e: SelectionChanged if e.source == this => {
@@ -78,13 +77,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                     case e: CurrentAllMemoryChanged => updateAllKitNames()
                     case e: CurrentKitChanged       => selectCurrentKit()
-                    case e: DataItemChanged if e.source == jTrapKATEditor.currentKit => {
-                        updateKitName(jTrapKATEditor.currentKitNumber)
-                        selectCurrentKit()
-                    }
                 }
 
-                selectCurrentKit()
             }
 
             private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
@@ -96,7 +90,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 reactions += {
                     case e: CurrentKitChanged                                        => visible = jTrapKATEditor.currentKit.changed
                     case e: CurrentAllMemoryChanged                                  => visible = jTrapKATEditor.currentKit.changed
-                    case e: DataItemChanged if e.contains(jTrapKATEditor.currentKit) => visible = jTrapKATEditor.currentKit.changed
                 }
             }
 
@@ -109,9 +102,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     listenTo(this)
                 }
                 private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor.currentAllMemory)
+                    deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentKit.kitName = text
-                    listenTo(jTrapKATEditor.currentAllMemory)
+                    jTrapKATEditor.kitChangedBy(this)
+                    listenTo(jTrapKATEditor)
                 }
 
                 lblKitName.peer.setLabelFor(peer)
@@ -119,13 +113,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 columns = 16
 
                 listenTo(jTrapKATEditor)
-                listenTo(jTrapKATEditor.currentAllMemory)
 
                 reactions += {
-                    case e: CurrentKitChanged => setDisplay()
+                    case e: CurrentKitChanged       => setDisplay()
                     case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: DataItemChanged if e.source == jTrapKATEditor.currentKit => setDisplay()
-                    case e: ValueChanged => setValue()
+                    case e: ValueChanged            => setValue()
                 }
 
                 setDisplay()
@@ -170,13 +162,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] def setDisplay(): Unit = visible = jTrapKATEditor.currentPad.changed
 
                 listenTo(jTrapKATEditor)
-                listenTo(jTrapKATEditor.currentAllMemory)
 
                 reactions += {
-                    case e: CurrentPadChanged                                        => setDisplay()
-                    case e: CurrentKitChanged                                        => setDisplay()
-                    case e: CurrentAllMemoryChanged                                  => setDisplay()
-                    case e: DataItemChanged if e.contains(jTrapKATEditor.currentPad) => setDisplay()
+                    case e: CurrentPadChanged       => setDisplay()
+                    case e: CurrentKitChanged       => setDisplay()
+                    case e: CurrentAllMemoryChanged => setDisplay()
                 }
 
                 setDisplay()
@@ -370,6 +360,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] def setValue(): Unit = {
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.curve = selection.index.toByte
+                    jTrapKATEditor.padChangedBy(cbx)
                     listenTo(jTrapKATEditor)
                 }
 
@@ -401,6 +392,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] def setValue(): Unit = {
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
+                    jTrapKATEditor.padChangedBy(this)
                     listenTo(jTrapKATEditor)
                 }
 
@@ -422,13 +414,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
             private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel) {
                 private[this] def setDisplay(): Unit = {
-                    listenTo(this)
+                    deafTo(this)
                     value = jTrapKATEditor.currentPad.channel + 1
                     listenTo(this)
                 }
                 private[this] def setValue(): Unit = {
                     deafTo(jTrapKATEditor)
                     jTrapKATEditor.currentPad.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
+                    jTrapKATEditor.padChangedBy(this)
                     listenTo(jTrapKATEditor)
                 }
 
@@ -466,6 +459,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             private[this] def setValue(): Unit = {
                                 deafTo(jTrapKATEditor)
                                 x._4(value.asInstanceOf[java.lang.Number].byteValue())
+                                jTrapKATEditor.padChangedBy(this)
                                 listenTo(jTrapKATEditor)
                             }
 
@@ -506,6 +500,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         private[this] def setValue(): Unit = {
                             deafTo(jTrapKATEditor)
                             jTrapKATEditor.currentPad.flags = ((~(1 << flag) & jTrapKATEditor.currentPad.flags) | ((if (this.selected) 1 else 0) << flag)).toByte
+                            jTrapKATEditor.padChangedBy(this)
                             listenTo(jTrapKATEditor)
                         }
 
@@ -553,6 +548,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             private[this] def setValue(): Unit = {
                                 deafTo(jTrapKATEditor)
                                 tuple._5(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber), value.asInstanceOf[java.lang.Number].byteValue())
+                                jTrapKATEditor.globalMemoryChangedBy(this)
                                 listenTo(jTrapKATEditor)
                             }
 
@@ -580,31 +576,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 Seq("spnPadVelMin", "spnPadVelMax") ++
                 (7 to 0 by -1 map { flag => s"ckbFlag${flag}" }) ++
                 Seq("spnLowLevel", "spnHighLevel", "spnThresholdManual", "spnInternalMargin", "spnThresholdActual", "spnUserMargin")
-
-            listenTo(jTrapKATEditor)
-            reactions += {
-                case e: SelectionChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: CbxEditorFocused => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: ValueChanged => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: ButtonClicked => {
-                    deafTo(this)
-                    publish(e)
-                    listenTo(this)
-                }
-                case e: CurrentAllMemoryChanged => pnLinkTo.visible = jTrapKATEditor.doV3V4(false, true)
-            }
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
             peer.setFocusTraversalPolicyProvider(true)

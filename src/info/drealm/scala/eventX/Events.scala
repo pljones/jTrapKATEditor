@@ -45,6 +45,7 @@ class V3V4SelectionChanged(val source: info.drealm.scala.V3V4ComboBox[_, _, _, _
 class CurrentAllMemoryChanged(val source: AnyRef) extends Event
 class GlobalChanged(val source: AnyRef) extends Event
 class CurrentKitChanged(val source: AnyRef) extends Event
+class CurrentSoundControlChanged(val source: AnyRef) extends Event
 class CurrentPadChanged(val source: AnyRef) extends Event
 
 class DataItemChanged(val dataItem: info.drealm.scala.model.DataItem, val inner: Option[DataItemChanged]) extends Event {

@@ -61,10 +61,18 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def isKitCurve: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].curve == currentKit.curve)
     def isKitGate: Boolean = currentKit.forall(p => p.asInstanceOf[model.Pad].gate == currentKit.gate)
     def fcChanAsChick: Boolean = currentKit.fcChannel >= 16
-    def isNoVolume(sc: Int): Boolean = currentKit.soundControls(sc).volume >= 128
-    def isNoPrgChg(sc: Int): Boolean = currentKit.soundControls(sc).prgChg == 0
-    def isNoBankMSB(sc: Int): Boolean = currentKit.soundControls(sc).bankMSB >= 128
-    def isNoBankLSB(sc: Int): Boolean = currentKit.soundControls(sc).bankLSB >= 128
+    private[this] var _currentSoundControl = 0
+    def currentSoundControlNumber = _currentSoundControl
+    def currentSoundControlNumber_=(value: Int) = {
+        _currentSoundControl = doV3V4(0, value)
+        publish(new CurrentSoundControlChanged(this))
+    }
+    def currentSoundControl = currentKit.soundControls(_currentSoundControl)
+
+    def isNoVolume: Boolean = currentSoundControl.volume >= 128
+    def isNoPrgChg: Boolean = currentSoundControl.prgChg == 0
+    def isNoBankMSB: Boolean = currentSoundControl.bankMSB >= 128
+    def isNoBankLSB: Boolean = currentSoundControl.bankLSB >= 128
     def isNoBank: Boolean = currentKitV3.bank >= 128
 
     private[this] var _currentPadNumber: Int = 0

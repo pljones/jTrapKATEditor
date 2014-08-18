@@ -27,10 +27,10 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-protected class SoundControl(__prgChg: Byte, __prgChgTxnChn: Byte, __volume: Byte, __bankMSB: Byte, __bankLSB: Byte) extends DataItem with Cloneable {
-    def this() = this(0, 9, 128.toByte, 128.toByte, 128.toByte)
-    def this(soundControl: SoundControl) = this(soundControl.prgChg, soundControl.prgChgTxnChn, soundControl.volume, soundControl.bankMSB, soundControl.bankLSB)
-    def this(in: FileInputStream) = this(in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte)
+class SoundControl protected[model] (__prgChg: Byte, __prgChgTxmChn: Byte, __volume: Byte, __bankMSB: Byte, __bankLSB: Byte) extends DataItem with Cloneable {
+    protected[model] def this() = this(0, 9, 128.toByte, 128.toByte, 128.toByte)
+    protected[model] def this(soundControl: SoundControl) = this(soundControl.prgChg, soundControl.prgChgTxmChn, soundControl.volume, soundControl.bankMSB, soundControl.bankLSB)
+    protected[model] def this(in: FileInputStream) = this(in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte)
 
     private[this] var _prgChg: Byte = __prgChg // 1-128, 0=off
     private[this] var _prgChgTxnChn: Byte = __prgChgTxnChn // 0-15, no off; displayed as value + 1

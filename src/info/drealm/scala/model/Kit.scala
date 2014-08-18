@@ -43,7 +43,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     private[this] var _fcCurve: Byte = 0
     // V3 has bankMSB, bankLSB, unused here
     // V4 has Sound Control 1 to 4 here
-    private[this] val _soundControls: Array[SoundControl] = g
+    protected val _soundControls: Array[SoundControl] = g
     // Strictly this is an array of bytes; C# just uses String...
     private[this] val _kitName: Array[Char] = "New kit     ".toCharArray()
 
@@ -104,8 +104,10 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def update(idx: Int, pad: TPad) = _pads.update(idx, pad)
     def apply(idx: Int): TPad = _pads.apply(idx)
 
-    // This, very naughtily, allows "soundControls(x) = y" to happen...
-    def soundControls: Array[SoundControl] = _soundControls
+    // Prevent "soundControls(x) = y"...
+    object soundControls {
+        def apply(index: Int) = _soundControls(index)
+    }
 
     def curve: Byte = _curve
     def curve_=(value: Byte): Unit = if (_curve != value) update(_curve = value) else {}
@@ -132,7 +134,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         case newName if !newName.equals(kitName) => update(Array.copy(newName.toCharArray(), 0, _kitName, 0, _kitName.length))
         case _                                   => {}
     }
-    
+
     def changed = _changed || _pads.changed || _soundControls.foldLeft(false)(_ || _.changed)
 }
 
@@ -219,14 +221,14 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 }
 
 class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
-    def this() = this(new PadV4Seq, Seq[SoundControl]().padTo(4, new SoundControl).toArray)
+    def this() = this(new PadV4Seq, (Stream.continually(new SoundControl).take(4)).toArray)
     def this(in: FileInputStream) = {
         this(new PadV4Seq(in), new Array[SoundControl](4))
         _deserializeKit(in)
     }
 
     def this(kitV3: KitV3) = {
-        this(new PadV4Seq(kitV3), Seq(kitV3.soundControls(0).clone).padTo(4, new SoundControl).toArray)
+        this(new PadV4Seq(kitV3), (Seq(kitV3.soundControls(0).clone) ++ (Stream.continually(new SoundControl).take(3))).toArray)
         from(kitV3)
 
         // Curve needs fixing - pads can sort the details
@@ -248,7 +250,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         _deserializeHH(in)
         _deserializeFC(in)
 
-        (0 to 3) foreach (x => soundControls(x) = new SoundControl(in))
+        (0 to 3) foreach (x => _soundControls(x) = new SoundControl(in))
     }
 
     override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
@@ -256,6 +258,6 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         _serializeHH(out)
         _serializeFC(out)
 
-        soundControls foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
+        _soundControls foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
     }
 }

@@ -100,6 +100,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentPadChanged(source))
         kitChangedBy(source)
     }
+    
+    def pd = currentAllMemory.global.padDynamics(_currentPadNumber)
 
     def reinitV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile

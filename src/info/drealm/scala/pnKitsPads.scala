@@ -520,47 +520,49 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
                 Seq(
-                    (0, 0, "lowLevel", (pd: model.PadDynamics) => pd.lowLevel, (pd: model.PadDynamics, value: Byte) => pd.lowLevel = value),
-                    (1, 0, "thresholdManual", (pd: model.PadDynamics) => pd.thresholdManual, (pd: model.PadDynamics, value: Byte) => pd.thresholdManual = value),
-                    (2, 0, "internalMargin", (pd: model.PadDynamics) => pd.internalMargin, (pd: model.PadDynamics, value: Byte) => pd.internalMargin = value),
-                    (0, 1, "highLevel", (pd: model.PadDynamics) => pd.highLevel, (pd: model.PadDynamics, value: Byte) => pd.highLevel = value),
-                    (1, 1, "thresholdActual", (pd: model.PadDynamics) => pd.thresholdActual, (pd: model.PadDynamics, value: Byte) => pd.thresholdActual = value),
-                    (2, 1, "userMargin", (pd: model.PadDynamics) => pd.userMargin, (pd: model.PadDynamics, value: Byte) => pd.userMargin = value)
-                ) foreach (tuple => {
-                        val lbl = new Label(L.G(tuple._3))
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${tuple._3.capitalize}", lbl) {
-                            private[this] def setDisplay(): Unit = {
-                                if (jTrapKATEditor.currentPadNumber < 25) {
-                                    deafTo(this)
-                                    value = 0x000000ff & tuple._4(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber))
-                                    listenTo(this)
-                                    enabled = true
+                    (0, 0, "lowLevel", () => jTrapKATEditor.pd.lowLevel, (value: Byte) => jTrapKATEditor.pd.lowLevel = value),
+                    (1, 0, "thresholdManual", () => jTrapKATEditor.pd.thresholdManual, (value: Byte) => jTrapKATEditor.pd.thresholdManual = value),
+                    (2, 0, "internalMargin", () => jTrapKATEditor.pd.internalMargin, (value: Byte) => jTrapKATEditor.pd.internalMargin = value),
+                    (0, 1, "highLevel", () => jTrapKATEditor.pd.highLevel, (value: Byte) => jTrapKATEditor.pd.highLevel = value),
+                    (1, 1, "thresholdActual", () => jTrapKATEditor.pd.thresholdActual, (value: Byte) => jTrapKATEditor.pd.thresholdActual = value),
+                    (2, 1, "userMargin", () => jTrapKATEditor.pd.userMargin, (value: Byte) => jTrapKATEditor.pd.userMargin = value)
+                ) foreach (tuple => (tuple._1, tuple._2, tuple._3, tuple._4, tuple._5) match {
+                        case (_x, _y, _name, _get, _set) => {
+                            val lbl = new Label(L.G(_name))
+                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", lbl) {
+                                private[this] def setDisplay(): Unit = {
+                                    if (jTrapKATEditor.currentPadNumber < 25) {
+                                        deafTo(this)
+                                        value = 0x000000ff & _get()
+                                        listenTo(this)
+                                        enabled = true
+                                    }
+                                    else {
+                                        enabled = false
+                                    }
                                 }
-                                else {
-                                    enabled = false
+                                private[this] def setValue(): Unit = {
+                                    deafTo(jTrapKATEditor)
+                                    _set(value.asInstanceOf[java.lang.Number].byteValue())
+                                    jTrapKATEditor.globalMemoryChangedBy(this)
+                                    listenTo(jTrapKATEditor)
                                 }
-                            }
-                            private[this] def setValue(): Unit = {
-                                deafTo(jTrapKATEditor)
-                                tuple._5(jTrapKATEditor.currentAllMemory.global.padDynamics(jTrapKATEditor.currentPadNumber), value.asInstanceOf[java.lang.Number].byteValue())
-                                jTrapKATEditor.globalMemoryChangedBy(this)
+
                                 listenTo(jTrapKATEditor)
+
+                                reactions += {
+                                    case e: CurrentPadChanged       => setDisplay()
+                                    case e: CurrentKitChanged       => setDisplay()
+                                    case e: CurrentAllMemoryChanged => setDisplay()
+                                    case e: ValueChanged            => setValue()
+                                }
+
+                                setDisplay()
                             }
 
-                            listenTo(jTrapKATEditor)
-
-                            reactions += {
-                                case e: CurrentPadChanged       => setDisplay()
-                                case e: CurrentKitChanged       => setDisplay()
-                                case e: CurrentAllMemoryChanged => setDisplay()
-                                case e: ValueChanged            => setValue()
-                            }
-
-                            setDisplay()
+                            contents += (lbl, s"cell ${1 + 3 * _x} ${1 + _y},alignx right")
+                            contents += (spn, s"cell ${2 + 3 * _x} ${1 + _y}")
                         }
-
-                        contents += (lbl, s"cell ${1 + 3 * tuple._1} ${1 + tuple._2},alignx right")
-                        contents += (spn, s"cell ${2 + 3 * tuple._1} ${1 + tuple._2}")
                     })
             }
             contents += (pnGlobalPadDynamics, "cell 4 3 6 4,aligny center")

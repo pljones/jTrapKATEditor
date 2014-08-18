@@ -33,14 +33,14 @@ class SoundControl protected[model] (__prgChg: Byte, __prgChgTxmChn: Byte, __vol
     protected[model] def this(in: FileInputStream) = this(in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte)
 
     private[this] var _prgChg: Byte = __prgChg // 1-128, 0=off
-    private[this] var _prgChgTxnChn: Byte = __prgChgTxnChn // 0-15, no off; displayed as value + 1
+    private[this] var _prgChgTxmChn: Byte = __prgChgTxmChn // 0-15, no off; displayed as value + 1
     private[this] var _volume: Byte = __volume // 0-127, 128=off
     private[this] var _bankMSB: Byte = __bankMSB // 0-127, 128=off
     private[this] var _bankLSB: Byte = __bankLSB // 0-127, 128=off
 
     override def deserialize(in: FileInputStream): Unit = {
         _prgChg = in.read().toByte
-        _prgChgTxnChn = in.read().toByte
+        _prgChgTxmChn = in.read().toByte
         _volume = in.read().toByte
         _bankMSB = in.read().toByte
         _bankLSB = in.read().toByte
@@ -52,7 +52,7 @@ class SoundControl protected[model] (__prgChg: Byte, __prgChgTxmChn: Byte, __vol
         }
         else {
             out.write(_prgChg)
-            out.write(_prgChgTxnChn)
+            out.write(_prgChgTxmChn)
             out.write(_volume)
             out.write(_bankMSB)
             out.write(_bankLSB)
@@ -63,14 +63,14 @@ class SoundControl protected[model] (__prgChg: Byte, __prgChgTxmChn: Byte, __vol
 
     def prgChg: Byte = _prgChg
     def prgChg_=(value: Byte): Unit = if (_prgChg != value) update(_prgChg = value) else {}
-    def prgChgTxnChn: Byte = _prgChgTxnChn
-    def prgChgTxnChn_=(value: Byte): Unit = if (_prgChgTxnChn != value) update(_prgChgTxnChn = value) else {}
+    def prgChgTxmChn: Byte = _prgChgTxmChn
+    def prgChgTxmChn_=(value: Byte): Unit = if (_prgChgTxmChn != value) update(_prgChgTxmChn = value) else {}
     def volume: Byte = _volume
     def volume_=(value: Byte): Unit = if (_volume != value) update(_volume = value) else {}
     def bankMSB: Byte = _bankMSB
     def bankMSB_=(value: Byte): Unit = if (_bankMSB != value) update(_bankMSB = value) else {}
     def bankLSB: Byte = _bankLSB
     def bankLSB_=(value: Byte): Unit = if (_bankLSB != value) update(_bankLSB = value) else {}
-    
+
     def changed = _changed
 }

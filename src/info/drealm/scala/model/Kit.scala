@@ -175,7 +175,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
         _deserialize(in)
 
         val prgChg = in.read().toByte
-        val prgChgTxnChn = in.read().toByte
+        val prgChgTxmChn = in.read().toByte
         val volume = in.read().toByte
 
         _deserializeHH(in)
@@ -189,14 +189,14 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 
         _unused = in.read().toByte
 
-        soundControls(0) = new SoundControl(prgChg, prgChgTxnChn, volume, bankMSB, bankLSB)
+        _soundControls(0) = new SoundControl(prgChg, prgChgTxmChn, volume, bankMSB, bankLSB)
     }
 
     override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
         _serialize(out, saving)
 
         out.write(soundControls(0).prgChg)
-        out.write(soundControls(0).prgChgTxnChn)
+        out.write(soundControls(0).prgChgTxmChn)
         out.write(soundControls(0).volume)
 
         _serializeHH(out)

@@ -287,9 +287,9 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
             listenTo(this)
             listenTo(jTrapKATEditor)
         }
-        case e: ValueChanged                   => setValue()
-        case e: eventX.CurrentKitChanged       => setDisplay()
-        case e: eventX.CurrentAllMemoryChanged => setDisplay()
+        case e: ValueChanged if (myPad(0) != cbxPad.value) => { Console.println(s"${name} got ValueChanged from ${e.source.name}"); setValue() }
+        case e: eventX.CurrentKitChanged                   => setDisplay()
+        case e: eventX.CurrentAllMemoryChanged             => setDisplay()
     }
 
     setDisplay()
@@ -308,7 +308,7 @@ class Slot(slot: Int) extends Reactor {
     private[this] def setValue(value: Byte): Unit = {
         deafTo(jTrapKATEditor)
         jTrapKATEditor.currentPad(slot - 1) = cbxSlot.value
-        jTrapKATEditor.padChangedBy(jTrapKATEditor.doV3V4(cbxSlot.cbxV3,cbxSlot.cbxV4))
+        jTrapKATEditor.padChangedBy(jTrapKATEditor.doV3V4(cbxSlot.cbxV3, cbxSlot.cbxV4))
         listenTo(jTrapKATEditor)
     }
 
@@ -318,9 +318,9 @@ class Slot(slot: Int) extends Reactor {
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: ValueChanged                   => v3v4(setValue(cbxSlot.value))
-        case e: eventX.CurrentPadChanged       => v3v4(setDisplay())
-        case e: eventX.CurrentKitChanged       => v3v4(setDisplay())
+        case e: ValueChanged if (jTrapKATEditor.currentPad(slot - 1) != cbxSlot.value) => v3v4(setValue(cbxSlot.value))
+        case e: eventX.CurrentPadChanged => v3v4(setDisplay())
+        case e: eventX.CurrentKitChanged => v3v4(setDisplay())
         case e: eventX.CurrentAllMemoryChanged => v3v4(setDisplay())
     }
 }

@@ -63,13 +63,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
     }
-    private[this] var _currentSoundControl = 0
-    def currentSoundControlNumber = _currentSoundControl
-    def currentSoundControlNumber_=(value: Int) = {
-        _currentSoundControl = doV3V4(0, value)
-        publish(new CurrentSoundControlChanged(this))
-    }
-    def currentSoundControl = currentKit.soundControls(_currentSoundControl)
 
     def isKitCurve: Boolean = currentKit.forall(p => p.curve == currentKit.curve)
     def toKitCurve(): Unit = currentKit foreach (p => p.curve = currentKit.curve)
@@ -81,11 +74,18 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def toKitMinVel(): Unit = currentKit foreach (p => p.minVelocity = currentKit.minVelocity)
     def isKitMaxVel: Boolean = currentKit.forall(p => p.maxVelocity == currentKit.maxVelocity)
     def toKitMaxVel(): Unit = currentKit foreach (p => p.maxVelocity = currentKit.maxVelocity)
-    def isNoVolume: Boolean = currentSoundControl.volume >= 128
-    def isNoPrgChg: Boolean = currentSoundControl.prgChg == 0
-    def isNoBankMSB: Boolean = currentSoundControl.bankMSB >= 128
-    def isNoBankLSB: Boolean = currentSoundControl.bankLSB >= 128
-    def isNoBank: Boolean = currentKitV3.bank >= 128
+
+    private[this] var _currentSoundControl = 0
+    def currentSoundControlNumber = _currentSoundControl
+    def currentSoundControlNumber_=(value: Int) = doV3V4({}, if (_currentSoundControl != value) {
+        _currentSoundControl = value
+        publish(new CurrentSoundControlChanged(this))
+        Console.println(s"currentSoundControlNumber set to ${value}.")
+    })
+    def sc = currentKit.soundControls(_currentSoundControl)
+    
+    def scBank: Byte = currentKitV3.bank
+    def scBank_=(value: Byte) = currentKitV3.bank = value
 
     private[this] var _currentPadNumber: Int = 0
     def currentPadNumber: Int = _currentPadNumber
@@ -107,6 +107,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV3
+        _currentSoundControl = 0
         publish(new CurrentAllMemoryChanged(this))
     }
 

@@ -287,9 +287,9 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
             listenTo(this)
             listenTo(jTrapKATEditor)
         }
-        case e: ValueChanged if (myPad(0) != cbxPad.value) => { Console.println(s"${name} got ValueChanged from ${e.source.name}"); setValue() }
-        case e: eventX.CurrentKitChanged                   => setDisplay()
-        case e: eventX.CurrentAllMemoryChanged             => setDisplay()
+        case e: ValueChanged if (myPad(0) != cbxPad.value)                   => setValue()
+        case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
     }
 
     setDisplay()
@@ -319,8 +319,8 @@ class Slot(slot: Int) extends Reactor {
 
     reactions += {
         case e: ValueChanged if (jTrapKATEditor.currentPad(slot - 1) != cbxSlot.value) => v3v4(setValue(cbxSlot.value))
-        case e: eventX.CurrentPadChanged => v3v4(setDisplay())
-        case e: eventX.CurrentKitChanged => v3v4(setDisplay())
-        case e: eventX.CurrentAllMemoryChanged => v3v4(setDisplay())
+        case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
+        case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
+        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor           => v3v4(setDisplay())
     }
 }

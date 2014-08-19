@@ -83,7 +83,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         Console.println(s"currentSoundControlNumber set to ${value}.")
     })
     def sc = currentKit.soundControls(_currentSoundControl)
-    
+
     def scBank: Byte = currentKitV3.bank
     def scBank_=(value: Byte) = currentKitV3.bank = value
 
@@ -100,7 +100,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentPadChanged(source))
         kitChangedBy(source)
     }
-    
+
     def pd = currentAllMemory.global.padDynamics(_currentPadNumber)
 
     def reinitV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {

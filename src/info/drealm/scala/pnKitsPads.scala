@@ -33,11 +33,31 @@ import info.drealm.scala.eventX._
 import info.drealm.scala.layout._
 import info.drealm.scala.{ Localization => L }
 
+trait Bindings extends Publisher {
+    protected val _get: () => Unit
+    protected val _set: () => Unit
+
+    protected def setDisplay(): Unit = {
+        deafTo(this)
+        _get()
+        listenTo(this)
+    }
+    protected def setValue(): Unit = {
+        deafTo(jTrapKATEditor)
+        _set()
+        listenTo(jTrapKATEditor)
+    }
+}
+trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
+    protected override def setDisplay(): Unit = {
+        deafTo(selection)
+        super.setDisplay()
+        listenTo(selection)
+    }
+}
+
 object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     name = "pnKitsPads"
-
-    private[this] val fcFunctions = L.G("fcFunctions").split("\n").toSeq
-    private[this] val fcCurves = L.G("fcCurves").split("\n").toSeq
 
     private[this] object pnKitsPadsTop extends MigPanel("insets 0", "[grow]", "[][][grow]") {
         name = "pnKitsPadsTop"
@@ -46,27 +66,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             name = "pnSelector"
 
             private[this] val lblSelectKit = new Label(L.G("lblSelectKit")) { peer.setDisplayedMnemonic(L.G("mneSelectKit").charAt(0)) }
+            contents += (lblSelectKit, "cell 0 0,alignx right")
 
-            private[this] val kitNames: Array[String] = new Array(24)
-            private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", lblSelectKit) {
+            private[this] val kitNames = new Array[String](24)
+            private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", lblSelectKit) with ComboBoxBindings[String] {
                 peer.setMaximumRowCount(24)
                 prototypeDisplayValue = Some("WWWWWWWWWWWW")
 
                 private[this] def updateKitName(idx: Int): Unit = kitNames(idx) = s"${idx + 1}: ${jTrapKATEditor.currentAllMemory(idx).kitName}"
                 private[this] def updateAllKitNames(): Unit = (0 to 23) foreach updateKitName _
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    deafTo(selection)
-                    selection.index = jTrapKATEditor.currentKitNumber
-                    listenTo(selection)
-                    listenTo(this)
-                }
-
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    jTrapKATEditor.currentKitNumber = selection.index
-                    listenTo(jTrapKATEditor)
-                }
+                override protected val _get = () => selection.index = jTrapKATEditor.currentKitNumber
+                override protected val _set = () => jTrapKATEditor.currentKitNumber = selection.index
 
                 listenTo(selection)
                 listenTo(jTrapKATEditor)
@@ -81,6 +91,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 updateAllKitNames()
                 setDisplay()
             }
+            contents += (cbxSelectKit, "cell 1 0")
 
             private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
                 private[this] def setDisplay() = visible = jTrapKATEditor.currentKit.changed
@@ -94,20 +105,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 setDisplay()
             }
+            contents += (lblKitEdited, "cell 2 0")
 
             private[this] val lblKitName = new Label(L.G("lblKitName"))
+            contents += (lblKitName, "cell 4 0,alignx right")
 
-            private[this] val txtKitName = new TextField {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    text = jTrapKATEditor.currentKit.kitName.trim()
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
+            private[this] val txtKitName = new TextField with Bindings {
+                override protected val _get = () => text = jTrapKATEditor.currentKit.kitName.trim()
+                override protected val _set = () => {
                     jTrapKATEditor.currentKit.kitName = text
                     jTrapKATEditor.kitChangedBy(this)
-                    listenTo(jTrapKATEditor)
                 }
 
                 lblKitName.peer.setLabelFor(peer)
@@ -124,27 +131,19 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 setDisplay()
             }
+            contents += (txtKitName, "cell 5 0")
 
             private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
+            contents += (lblSelectPad, "cell 7 0,alignx right")
+
             private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
                 case x if x < 25 => s"${x}"
                 case x           => L.G(s"lbPad${x}")
-            }), "cbxSelectPad", lblSelectPad) {
+            }), "cbxSelectPad", lblSelectPad) with ComboBoxBindings[String] {
                 peer.setMaximumRowCount(28)
                 prototypeDisplayValue = Some("88 mmmm")
-
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    deafTo(selection)
-                    selection.index = jTrapKATEditor.currentPadNumber
-                    listenTo(selection)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    jTrapKATEditor.currentPadNumber = selection.index
-                    listenTo(jTrapKATEditor)
-                }
+                override protected val _get = () => selection.index = jTrapKATEditor.currentPadNumber
+                override protected val _set = () => jTrapKATEditor.currentPadNumber = selection.index
 
                 listenTo(selection)
                 listenTo(jTrapKATEditor)
@@ -156,9 +155,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 setDisplay()
             }
-
-            def selectedPad: Int = cbxSelectPad.selection.index
-            def selectedPad_=(value: Int): Unit = cbxSelectPad.selection.index = value
+            contents += (cbxSelectPad, "cell 8 0")
 
             private[this] val lblPadEdited = new Label(L.G("lblXEdited")) {
                 private[this] def setDisplay(): Unit = visible = jTrapKATEditor.currentPad.changed
@@ -173,14 +170,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 setDisplay()
             }
-
-            contents += (lblSelectKit, "cell 0 0,alignx right")
-            contents += (cbxSelectKit, "cell 1 0")
-            contents += (lblKitEdited, "cell 2 0")
-            contents += (lblKitName, "cell 4 0,alignx right")
-            contents += (txtKitName, "cell 5 0")
-            contents += (lblSelectPad, "cell 7 0,alignx right")
-            contents += (cbxSelectPad, "cell 8 0")
             contents += (lblPadEdited, "cell 9 0")
         }
 
@@ -225,21 +214,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] val lblHH = new Label(L.G("lblHH")) { peer.setDisplayedMnemonic(L.G("mneHH").charAt(0)) }
                 contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
                 (1 to 4) foreach { x =>
-                    val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", if (x == 1) lblHH else null) {
+                    val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", if (x == 1) lblHH else null) with ComboBoxBindings[String] {
                         peer.setMaximumRowCount(25)
 
-                        private[this] def setDisplay(): Unit = {
-                            deafTo(this)
-                            deafTo(this.selection)
-                            this.selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
-                            listenTo(this.selection)
-                            listenTo(this)
-                        }
-                        private[this] def setValue(): Unit = {
-                            deafTo(jTrapKATEditor)
+                        protected override val _get = () => selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
+                        protected override val _set = () => {
                             jTrapKATEditor.currentKit.hhPads(x - 1, this.selection.index.toByte)
                             jTrapKATEditor.kitChangedBy(this)
-                            listenTo(jTrapKATEditor)
                         }
 
                         listenTo(jTrapKATEditor)
@@ -266,6 +247,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     private[this] object tpnKitPadsDetails extends TabbedPane() {
         name = "tpnKitPadsDetails"
 
+        private[this] def isSourceComponent(o: Any, name: String, source: Component): Boolean = o match {
+            case target: Component if target.name == name => Focus.findInComponent(source, target == _).isDefined
+            case _                                        => false
+        }
+
         private[this] object pnPadDetails extends MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]") {
             name = "pnPadDetails"
 
@@ -287,7 +273,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 contents += (lblLinkTo, "cell 0 0")
 
                 private[this] val linkTo: Array[String] = new Array[String](28)
-                private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", lblLinkTo) {
+                private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", lblLinkTo) with ComboBoxBindings[String] {
                     prototypeDisplayValue = Some("88 mmmm")
 
                     private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
@@ -302,33 +288,27 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         case e                                         => e // After
                     }
 
-                    private[this] def setDisplay(): Unit = {
-                        deafTo(this)
-                        deafTo(selection)
+                    protected override val _get = () => {
                         setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)
                         selection.index = getSelectionIndex(jTrapKATEditor.currentPadV4.linkTo - 1)
-                        listenTo(selection)
-                        listenTo(this)
                     }
-                    private[this] def setValue(): Unit = {
-                        deafTo(jTrapKATEditor)
+                    protected override val _set = () => {
                         jTrapKATEditor.currentPadV4.linkTo = (selection.index match {
                             case 0 => jTrapKATEditor.currentPadNumber + 1
                             case e if e + 1 < jTrapKATEditor.currentPadNumber => e
                             case e => e + 1
                         }).toByte
                         jTrapKATEditor.padChangedBy(this)
-                        listenTo(jTrapKATEditor)
                     }
 
                     listenTo(jTrapKATEditor)
                     listenTo(selection)
 
                     reactions += {
-                        case e: CurrentPadChanged       => jTrapKATEditor.doV3V4({}, setDisplay())
-                        case e: CurrentKitChanged       => jTrapKATEditor.doV3V4({}, setDisplay())
-                        case e: CurrentAllMemoryChanged => jTrapKATEditor.doV3V4({}, setDisplay())
-                        case e: SelectionChanged        => setValue()
+                        case e: CurrentPadChanged if e.source == jTrapKATEditor       => jTrapKATEditor.doV3V4({}, setDisplay())
+                        case e: CurrentKitChanged if e.source == jTrapKATEditor       => jTrapKATEditor.doV3V4({}, setDisplay())
+                        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => jTrapKATEditor.doV3V4({}, setDisplay())
+                        case e: SelectionChanged                                      => setValue()
                     }
 
                     jTrapKATEditor.doV3V4({}, setDisplay())
@@ -344,29 +324,29 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
 
-            val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", lblPadCurve) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
+            val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", lblPadCurve) with Bindings {
+                protected override val _get = () => {
                     deafTo(selection)
                     selection.index = jTrapKATEditor.currentPad.curve
                     listenTo(selection)
-                    listenTo(this)
                 }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
+                protected override val _set = () => {
                     jTrapKATEditor.currentPad.curve = selection.index.toByte
                     jTrapKATEditor.padChangedBy(cbx)
-                    listenTo(jTrapKATEditor)
                 }
 
                 listenTo(jTrapKATEditor)
                 listenTo(selection)
 
                 reactions += {
-                    case e: CurrentPadChanged       => setDisplay()
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: V3V4SelectionChanged    => setValue()
+                    case e: CurrentPadChanged if e.source == jTrapKATEditor
+                        || isSourceComponent(e.source, "cbxKitCurveV3", tpnKitPadsDetails)
+                        || isSourceComponent(e.source, "cbxKitCurveV4", tpnKitPadsDetails)
+                        || isSourceComponent(e.source, "ckbVarCurveV3", tpnKitPadsDetails)
+                        || isSourceComponent(e.source, "ckbVarCurveV4", tpnKitPadsDetails) => setDisplay()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: V3V4SelectionChanged                                  => setValue()
                 }
 
                 setDisplay()
@@ -376,29 +356,23 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxPadCurve.cbxV4, "cell 5 0")
 
             val lblPadGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mnePadGate").charAt(0)) }
-            val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    deafTo(selection)
-                    selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
-                    listenTo(selection)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
+            val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate) with ComboBoxBindings[String] {
+                protected override val _get = () => selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
+                protected override val _set = () => {
                     jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
                     jTrapKATEditor.padChangedBy(this)
-                    listenTo(jTrapKATEditor)
                 }
 
                 listenTo(jTrapKATEditor)
                 listenTo(selection)
 
                 reactions += {
-                    case e: CurrentPadChanged       => setDisplay()
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentPadChanged if e.source == jTrapKATEditor
+                        || isSourceComponent(e.source, "cbxKitGate", tpnKitPadsDetails)
+                        || isSourceComponent(e.source, "ckbVarGate", tpnKitPadsDetails) => setDisplay()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ValueChanged => setValue()
                 }
 
                 setDisplay()
@@ -407,26 +381,22 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxPadGate, "cell 5 1")
 
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
-            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    value = jTrapKATEditor.currentPad.channel + 1
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
+            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel) with Bindings {
+                protected override val _get = () => value = jTrapKATEditor.currentPad.channel + 1
+                protected override val _set = () => {
                     jTrapKATEditor.currentPad.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
                     jTrapKATEditor.padChangedBy(this)
-                    listenTo(jTrapKATEditor)
                 }
 
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: CurrentPadChanged       => setDisplay()
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentPadChanged if e.source == jTrapKATEditor
+                        || isSourceComponent(e.source, "spnKitChannel", tpnKitPadsDetails)
+                        || isSourceComponent(e.source, "ckbVarChannel", tpnKitPadsDetails) => setDisplay()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ValueChanged => setValue()
                 }
 
                 setDisplay()
@@ -441,36 +411,36 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
                 Seq(
-                    (0, "Min", () => jTrapKATEditor.currentPad.minVelocity, (value: Byte) => jTrapKATEditor.currentPad.minVelocity = value),
-                    (1, "Max", () => jTrapKATEditor.currentPad.maxVelocity, (value: Byte) => jTrapKATEditor.currentPad.maxVelocity = value)
+                    (0, "Min", 1, () => jTrapKATEditor.currentPad.minVelocity, (value: Byte) => jTrapKATEditor.currentPad.minVelocity = value),
+                    (1, "Max", 127, () => jTrapKATEditor.currentPad.maxVelocity, (value: Byte) => jTrapKATEditor.currentPad.maxVelocity = value)
                 ) foreach { x =>
-                        val lbl = new Label(L.G(s"lbl${x._2}"))
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, 0, 127, 1), s"spnPadVel${x._2}", lbl) {
-                            private[this] def setDisplay(): Unit = {
-                                deafTo(this)
-                                value = x._3()
-                                listenTo(this)
-                            }
-                            private[this] def setValue(): Unit = {
-                                deafTo(jTrapKATEditor)
-                                x._4(value.asInstanceOf[java.lang.Number].byteValue())
-                                jTrapKATEditor.padChangedBy(this)
-                                listenTo(jTrapKATEditor)
-                            }
+                        (x._1, x._2, x._3, x._4, x._5) match {
+                            case (_x, _name, _ini, _getVel, _setVel) => {
+                                val lbl = new Label(L.G(s"lbl${_name}"))
+                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnPadVel${_name}", lbl) with Bindings {
+                                    protected override val _get = () => value = _getVel()
+                                    protected override val _set = () => {
+                                        _setVel(value.asInstanceOf[java.lang.Number].byteValue())
+                                        jTrapKATEditor.padChangedBy(this)
+                                    }
 
-                            listenTo(jTrapKATEditor)
+                                    listenTo(jTrapKATEditor)
 
-                            reactions += {
-                                case e: CurrentPadChanged       => setDisplay()
-                                case e: CurrentKitChanged       => setDisplay()
-                                case e: CurrentAllMemoryChanged => setDisplay()
-                                case e: ValueChanged            => setValue()
+                                    reactions += {
+                                        case e: CurrentPadChanged if e.source == jTrapKATEditor
+                                            || isSourceComponent(e.source, s"spnKitVel${_name}", tpnKitPadsDetails)
+                                            || isSourceComponent(e.source, s"ckbVarVel${_name}", tpnKitPadsDetails) => setDisplay()
+                                        case e: CurrentKitChanged if e.source == jTrapKATEditor => setDisplay()
+                                        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                                        case e: ValueChanged => setValue()
+                                    }
+
+                                    setDisplay()
+                                }
+                                contents += (lbl, s"cell ${_x} 1,alignx center")
+                                contents += (spn, s"cell ${_x} 2")
                             }
-
-                            setDisplay()
                         }
-                        contents += (lbl, s"cell ${x._1} 1,alignx center")
-                        contents += (spn, s"cell ${x._1} 2")
                     }
             }
             contents += (pnPadVelocity, "cell 7 0 1 3,growx,aligny top")
@@ -481,31 +451,25 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 contents += (new Label(L.G("lblFlags")), "cell 0 0 9 1,alignx center")
 
                 (7 to 0 by -1) foreach { flag =>
-                    val ckbFlag = new CheckBox(s"${flag}") {
+                    val ckbFlag = new CheckBox(s"${flag}") with Bindings {
                         name = s"ckbFlag${flag}"
                         margin = new Insets(0, 0, 0, 0)
                         horizontalTextPosition = Alignment.Center
                         verticalTextPosition = Alignment.Top
 
-                        private[this] def setDisplay(): Unit = {
-                            deafTo(this)
-                            this.selected = ((1 << flag) & jTrapKATEditor.currentPad.flags) != 0
-                            listenTo(this)
-                        }
-                        private[this] def setValue(): Unit = {
-                            deafTo(jTrapKATEditor)
+                        protected override val _get = () => this.selected = ((1 << flag) & jTrapKATEditor.currentPad.flags) != 0
+                        protected override val _set = () => {
                             jTrapKATEditor.currentPad.flags = ((~(1 << flag) & jTrapKATEditor.currentPad.flags) | ((if (this.selected) 1 else 0) << flag)).toByte
                             jTrapKATEditor.padChangedBy(this)
-                            listenTo(jTrapKATEditor)
                         }
 
                         listenTo(jTrapKATEditor)
 
                         reactions += {
-                            case e: CurrentPadChanged       => setDisplay()
-                            case e: CurrentKitChanged       => setDisplay()
-                            case e: CurrentAllMemoryChanged => setDisplay()
-                            case e: ButtonClicked           => setValue()
+                            case e: CurrentPadChanged if e.source == jTrapKATEditor       => setDisplay()
+                            case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                            case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                            case e: ButtonClicked                                         => setValue()
                         }
 
                         setDisplay()
@@ -527,34 +491,25 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     (1, 1, "thresholdActual", () => jTrapKATEditor.pd.thresholdActual, (value: Byte) => jTrapKATEditor.pd.thresholdActual = value),
                     (2, 1, "userMargin", () => jTrapKATEditor.pd.userMargin, (value: Byte) => jTrapKATEditor.pd.userMargin = value)
                 ) foreach (tuple => (tuple._1, tuple._2, tuple._3, tuple._4, tuple._5) match {
-                        case (_x, _y, _name, _get, _set) => {
+                        case (_x, _y, _name, _getPD, _setPD) => {
                             val lbl = new Label(L.G(_name))
-                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", lbl) {
-                                private[this] def setDisplay(): Unit = {
-                                    if (jTrapKATEditor.currentPadNumber < 25) {
-                                        deafTo(this)
-                                        value = 0x000000ff & _get()
-                                        listenTo(this)
-                                        enabled = true
-                                    }
-                                    else {
-                                        enabled = false
-                                    }
+                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", lbl) with Bindings {
+                                protected override val _get = () => {
+                                    enabled = jTrapKATEditor.currentPadNumber < 25
+                                    value = if (enabled) 0x000000ff & _getPD() else 0
                                 }
-                                private[this] def setValue(): Unit = {
-                                    deafTo(jTrapKATEditor)
-                                    _set(value.asInstanceOf[java.lang.Number].byteValue())
+                                protected override val _set = () => {
+                                    _setPD(value.asInstanceOf[java.lang.Number].byteValue())
                                     jTrapKATEditor.globalMemoryChangedBy(this)
-                                    listenTo(jTrapKATEditor)
                                 }
 
                                 listenTo(jTrapKATEditor)
 
                                 reactions += {
-                                    case e: CurrentPadChanged       => setDisplay()
-                                    case e: CurrentKitChanged       => setDisplay()
-                                    case e: CurrentAllMemoryChanged => setDisplay()
-                                    case e: ValueChanged            => setValue()
+                                    case e: CurrentPadChanged if e.source == jTrapKATEditor => setDisplay()
+                                    case e: CurrentKitChanged if e.source == jTrapKATEditor => setDisplay()
+                                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                                    case e: ValueChanged => setValue()
                                 }
 
                                 setDisplay()
@@ -578,7 +533,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        private[this] val pnMoreSlots = new MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
+        private[this] object pnMoreSlots extends MigPanel("insets 5, gapx 2, gapy 0", "[][16px:n,right][][16px:n][16px:n,right][]", "[][][][][]") {
             name = "pnMoreSlots"
 
             contents += (new Label(L.G("lblSlots")), "cell 0 0")
@@ -603,15 +558,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        private[this] val pnKitDetails = new MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][][][16px:n,grow][][16px:n,grow][][][][4px:n][][][]", "[][][][][][][]") {
+        private[this] object pnKitDetails extends MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][][][16px:n,grow][][16px:n,grow][][][][4px:n][][][]", "[][][][][][][]") {
             name = "pnKitDetails"
 
             private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
             private[this] def okToGoKit(name: String): Boolean = {
-                Console.println(s"okToGoKit ${name}")
                 Dialog.showConfirmation(null,
-                    L.G(s"ToKit${name}"),
+                    L.G("ToKit", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
             }
@@ -622,9 +576,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
             private[this] def okToGoSCOff(name: String): Boolean = {
-                Console.println(s"okToGoSCOff ${name}")
                 Dialog.showConfirmation(null,
-                    L.G(s"ToSCOff${name}"),
+                    L.G("ToSCOff", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
             }
@@ -632,28 +585,29 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblKitCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mneKitCurve").charAt(0)) }
             contents += (lblKitCurve, "cell 0 0,alignx right")
 
-            private[this] val cbxKitCurve = new CurveComboBoxV3V4("cbxKitCurve", lblKitCurve) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
+            private[this] val cbxKitCurve: CurveComboBoxV3V4 = new CurveComboBoxV3V4("cbxKitCurve", lblKitCurve) with Bindings {
+                protected override val _get = () => {
                     deafTo(selection)
                     selection.index = jTrapKATEditor.currentKit.curve
                     listenTo(selection)
-                    listenTo(this)
                 }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
+                protected override val _set = () => {
+                    val isKit = jTrapKATEditor.isKitCurve
                     jTrapKATEditor.currentKit.curve = selection.index.toByte
-                    jTrapKATEditor.padChangedBy(cbx)
-                    listenTo(jTrapKATEditor)
+                    jTrapKATEditor.kitChangedBy(cbx)
+                    if (isKit) {
+                        jTrapKATEditor.toKitCurve()
+                        jTrapKATEditor.padChangedBy(cbx)
+                    }
                 }
 
                 listenTo(jTrapKATEditor)
                 listenTo(selection)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: V3V4SelectionChanged    => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor || e.source == ckbVarCurve => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: V3V4SelectionChanged => setValue()
                 }
 
                 setDisplay()
@@ -663,18 +617,26 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             order += cbxKitCurve.cbxV3.name
             order += cbxKitCurve.cbxV4.name
 
-            private[this] val ckbVarCurve = new CheckBox(L.G("lblXVarious")) {
-                name = "ckbVarCurve"
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    selected = !jTrapKATEditor.isKitCurve
-                    listenTo(this)
-                    setPadEnabled("cbxPadCurveV3", selected)
-                    setPadEnabled("cbxPadCurveV4", selected)
-                    cbxKitCurve.enabled = !selected
+            trait CanBeEnabled {
+                def enabled: Boolean
+                def enabled_=(value: Boolean): Unit
+            }
+            implicit def maybeItCanBeEnabled(o: AnyRef): CanBeEnabled = o match {
+                case cp: Component                => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value }
+                case cp: V3V4ComboBox[_, _, _, _] => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value }
+                case _                            => throw new ClassCastException(s"Class ${o.getClass().getName()} cannot be cast to CanBeEnabled")
+            }
+            private[this] class VarXCheckBox(_name: String, _cp: CanBeEnabled, _isKit: () => Boolean, _toKit: () => Unit, padCpName: String*) extends CheckBox(L.G("lblXVarious")) with Bindings {
+                name = s"ckbVar${_name}"
+                protected override val _get = () => {
+                    val isKit = _isKit()
+                    Console.println(s"VarXCheckBox ${name} _get set selected to !${isKit}")
+                    selected = !_isKit()
+                    padCpName foreach (n => setPadEnabled(n, selected))
+                    _cp.enabled = !selected
                 }
-                private[this] def setValue(): Unit = {
-                    if (!selected && !jTrapKATEditor.isKitCurve && !okToGoKit("Curve")) {
+                protected override val _set = () => {
+                    if (!selected && !_isKit() && !okToGoKit(_name)) {
                         // was checked -> various, now unchecked -> kit
                         // currently various pad values
                         // not okay to splat, so revert the checkbox (yuck!)
@@ -683,17 +645,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         listenTo(this)
                     }
                     else {
-                        setPadEnabled("cbxPadCurveV3", selected)
-                        setPadEnabled("cbxPadCurveV4", selected)
-                        cbxKitCurve.enabled = !selected
-                        if (!selected && !jTrapKATEditor.isKitCurve) {
+                        padCpName foreach (n => setPadEnabled(n, selected))
+                        _cp.enabled = !selected
+                        if (!selected && !_isKit()) {
                             // was checked -> various, now unchecked -> kit
                             // currently various pad values
                             // we got the okay to splat, so splat!
-                            deafTo(jTrapKATEditor)
-                            jTrapKATEditor.toKitCurve()
+                            _toKit()
                             jTrapKATEditor.padChangedBy(this)
-                            listenTo(jTrapKATEditor)
                         }
                     }
                 }
@@ -701,41 +660,40 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: CurrentPadChanged if (e.source == jTrapKATEditor) => setDisplay()
-                    case e: CurrentKitChanged                                 => setDisplay()
-                    case e: CurrentAllMemoryChanged                           => setDisplay()
-                    case e: ButtonClicked                                     => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ButtonClicked                                         => setValue()
                 }
 
                 setDisplay()
             }
+
+            private[this] val ckbVarCurve = new VarXCheckBox("Curve", cbxKitCurve, () => jTrapKATEditor.isKitCurve, () => jTrapKATEditor.toKitCurve(), "cbxPadCurveV3", "cbxPadCurveV4")
             contents += (ckbVarCurve, "cell 2 0")
             order += ckbVarCurve.name
 
             private[this] val lblKitGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mneKitGate").charAt(0)) }
             contents += (lblKitGate, "cell 0 1,alignx right")
 
-            private[this] val cbxKitGate = new GateTimeComboBox("cbxKitGate", lblKitGate) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    deafTo(selection)
-                    selection.item = GateTime.toString(jTrapKATEditor.currentKit.gate)
-                    listenTo(selection)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
+            private[this] val cbxKitGate: GateTimeComboBox = new GateTimeComboBox("cbxKitGate", lblKitGate) with ComboBoxBindings[String] {
+                protected override val _get = () => selection.item = GateTime.toString(jTrapKATEditor.currentKit.gate)
+                protected override val _set = () => {
+                    val isKit = jTrapKATEditor.isKitGate
                     jTrapKATEditor.currentKit.gate = GateTime.toGateTime(selection.item)
-                    jTrapKATEditor.padChangedBy(this)
-                    listenTo(jTrapKATEditor)
+                    jTrapKATEditor.kitChangedBy(this)
+                    if (isKit) {
+                        jTrapKATEditor.toKitGate()
+                        jTrapKATEditor.padChangedBy(this)
+                    }
                 }
 
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor
+                        || e.source == ckbVarGate => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ValueChanged => setValue()
                 }
 
                 setDisplay()
@@ -743,73 +701,32 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxKitGate, "cell 1 1,spanx 2")
             order += cbxKitGate.name
 
-            private[this] val ckbVarGate = new CheckBox(L.G("lblXVarious")) {
-                name = "ckbVarGate"
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    selected = !jTrapKATEditor.isKitGate
-                    listenTo(this)
-                    setPadEnabled("cbxPadGate", selected)
-                    cbxKitGate.enabled = !selected
-                }
-                private[this] def setValue(): Unit = {
-                    if (!selected && !jTrapKATEditor.isKitGate && !okToGoKit("Gate")) {
-                        // was checked -> various, now unchecked -> kit
-                        // currently various pad values
-                        // not okay to splat, so revert the checkbox (yuck!)
-                        deafTo(this)
-                        selected = true
-                        listenTo(this)
-                    }
-                    else {
-                        setPadEnabled("cbxPadGate", selected)
-                        cbxKitGate.enabled = !selected
-                        if (!selected && !jTrapKATEditor.isKitGate) {
-                            // was checked -> various, now unchecked -> kit
-                            // currently various pad values
-                            // we got the okay to splat, so splat!
-                            deafTo(jTrapKATEditor)
-                            jTrapKATEditor.toKitGate()
-                            jTrapKATEditor.padChangedBy(this)
-                            listenTo(jTrapKATEditor)
-                        }
-                    }
-                }
-
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: CurrentPadChanged if (e.source == jTrapKATEditor) => setDisplay()
-                    case e: CurrentKitChanged                                 => setDisplay()
-                    case e: CurrentAllMemoryChanged                           => setDisplay()
-                    case e: ButtonClicked                                     => setValue()
-                }
-
-                setDisplay()
-
-            }
+            private[this] val ckbVarGate = new VarXCheckBox("Gate", cbxKitGate, () => jTrapKATEditor.isKitGate, () => jTrapKATEditor.toKitGate(), "cbxPadGate")
             contents += (ckbVarGate, "cell 1 1")
             order += ckbVarGate.name
 
             private[this] val lblKitChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mneKitChannel").charAt(0)) }
             contents += (lblKitChannel, "cell 0 2,alignx right")
 
-            private[this] val spnKitChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", lblKitChannel) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    listenTo(jTrapKATEditor)
+            private[this] val spnKitChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", lblKitChannel) with Bindings {
+                protected override val _get = () => value = jTrapKATEditor.currentKit.channel + 1
+                protected override val _set = () => {
+                    val isKit = jTrapKATEditor.isKitChannel
+                    jTrapKATEditor.currentKit.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
+                    jTrapKATEditor.kitChangedBy(this)
+                    if (isKit) {
+                        jTrapKATEditor.toKitChannel()
+                        jTrapKATEditor.padChangedBy(this)
+                    }
                 }
 
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor
+                        || e.source == ckbVarChannel => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ValueChanged => setValue()
                 }
 
                 setDisplay()
@@ -817,50 +734,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (spnKitChannel, "cell 1 2,spanx 2")
             order += spnKitChannel.name
 
-            private[this] val ckbVarChannel = new CheckBox(L.G("lblXVarious")) {
-                name = "ckbVarChannel"
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    selected = !jTrapKATEditor.isKitChannel
-                    listenTo(this)
-                    setPadEnabled("spnPadChannel", selected)
-                    spnKitChannel.enabled = !selected
-                }
-                private[this] def setValue(): Unit = {
-                    if (!selected && !jTrapKATEditor.isKitCurve && !okToGoKit("Gate")) {
-                        // was checked -> various, now unchecked -> kit
-                        // currently various pad values
-                        // not okay to splat, so revert the checkbox (yuck!)
-                        deafTo(this)
-                        selected = true
-                        listenTo(this)
-                    }
-                    else {
-                        setPadEnabled("spnPadChannel", selected)
-                        spnKitChannel.enabled = !selected
-                        if (!selected && !jTrapKATEditor.isKitCurve) {
-                            // was checked -> various, now unchecked -> kit
-                            // currently various pad values
-                            // we got the okay to splat, so splat!
-                            deafTo(jTrapKATEditor)
-                            jTrapKATEditor.toKitChannel()
-                            jTrapKATEditor.padChangedBy(this)
-                            listenTo(jTrapKATEditor)
-                        }
-                    }
-                }
-
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: CurrentPadChanged if (e.source == jTrapKATEditor) => setDisplay()
-                    case e: CurrentKitChanged                                 => setDisplay()
-                    case e: CurrentAllMemoryChanged                           => setDisplay()
-                    case e: ButtonClicked                                     => setValue()
-                }
-
-                setDisplay()
-            }
+            private[this] val ckbVarChannel = new VarXCheckBox("Channel", spnKitChannel, () => jTrapKATEditor.isKitChannel, () => jTrapKATEditor.toKitChannel(), "spnPadChannel")
             contents += (ckbVarChannel, "cell 1 2")
             order += ckbVarChannel.name
 
@@ -869,22 +743,20 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblFCFunction = new Label(L.G("lblFCFunction")) { peer.setDisplayedMnemonic(L.G("mneFCFunction").charAt(0)) }
             contents += (lblFCFunction, "cell 0 4,alignx right")
 
-            val cbxFCFunction = new RichComboBox(fcFunctions, "cbxFCFunction", lblFCFunction) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    listenTo(jTrapKATEditor)
+            val cbxFCFunction = new RichComboBox(L.G("fcFunctions").split("\n"), "cbxFCFunction", lblFCFunction) with ComboBoxBindings[String] {
+                protected override val _get = () => selection.index = jTrapKATEditor.currentKit.fcFunction
+                protected override val _set = () => {
+                    jTrapKATEditor.currentKit.fcFunction = selection.index.toByte
+                    jTrapKATEditor.kitChangedBy(this)
                 }
 
                 listenTo(jTrapKATEditor)
+                listenTo(selection)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: SelectionChanged                                      => setValue()
                 }
 
                 setDisplay()
@@ -895,22 +767,20 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblFCCurve = new Label(L.G("lblFCCurve")) { peer.setDisplayedMnemonic(L.G("mneFCCurve").charAt(0)) }
             contents += (lblFCCurve, "cell 0 6,alignx right")
 
-            val cbxFCCurve = new RichComboBox(fcCurves, "cbxFCCurve", lblFCCurve) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    listenTo(jTrapKATEditor)
+            val cbxFCCurve = new RichComboBox(L.G("fcCurves").split("\n"), "cbxFCCurve", lblFCCurve) with ComboBoxBindings[String] {
+                protected override val _get = () => selection.index = jTrapKATEditor.currentKit.fcCurve
+                protected override val _set = () => {
+                    jTrapKATEditor.currentKit.fcCurve = selection.index.toByte
+                    jTrapKATEditor.kitChangedBy(this)
                 }
 
                 listenTo(jTrapKATEditor)
+                listenTo(selection)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: SelectionChanged                                      => setValue()
                 }
 
                 setDisplay()
@@ -921,22 +791,23 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblFCChannel = new Label(L.G("lblFCChannel")) { peer.setDisplayedMnemonic(L.G("mneFCChannel").charAt(0)) }
             contents += (lblFCChannel, "cell 0 5,alignx right")
 
-            private[this] val spnFCChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", lblFCChannel) {
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
-                    listenTo(this)
-                }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    listenTo(jTrapKATEditor)
+            private[this] val spnFCChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", lblFCChannel) with Bindings {
+                protected override val _get = () => value = (if (enabled) jTrapKATEditor.currentKit.fcChannel else jTrapKATEditor.currentKit(25).channel) + 1
+                protected override val _set = () => {
+                    jTrapKATEditor.currentKit.fcChannel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
+                    jTrapKATEditor.kitChangedBy(this)
                 }
 
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
+                    case e: CurrentPadChanged if !enabled
+                        && (isSourceComponent(e.source, "spnPadChannel", tpnKitPadsDetails)
+                            || e.source == spnKitChannel
+                            || e.source == ckbVarChannel) => setDisplay()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor || e.source == ckbAsChick => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ValueChanged => setValue()
                 }
 
                 setDisplay()
@@ -944,28 +815,24 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (spnFCChannel, "cell 1 5,spanx 2")
             order += "spnFCChannel"
 
-            private[this] val ckbAsChick = new CheckBox(L.G("ckbAsChick")) {
+            private[this] val ckbAsChick = new CheckBox(L.G("ckbAsChick")) with Bindings {
                 name = "ckbAsChick"
-                private[this] def setDisplay(): Unit = {
-                    deafTo(this)
+                protected override val _get = () => {
                     selected = jTrapKATEditor.currentKit.fcChannel >= 16
-                    listenTo(this)
                     spnFCChannel.enabled = !selected
                 }
-                private[this] def setValue(): Unit = {
-                    deafTo(jTrapKATEditor)
-                    jTrapKATEditor.currentKit.fcChannel = if (selected) 16 else jTrapKATEditor.currentKit(26).channel
-                    jTrapKATEditor.kitChangedBy(this)
-                    listenTo(jTrapKATEditor)
+                protected override val _set = () => {
                     spnFCChannel.enabled = !selected
+                    jTrapKATEditor.currentKit.fcChannel = if (selected) 16 else jTrapKATEditor.currentKit(25).channel
+                    jTrapKATEditor.kitChangedBy(this)
                 }
 
                 listenTo(jTrapKATEditor)
 
                 reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ButtonClicked           => setValue()
+                    case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                    case e: ButtonClicked                                         => setValue()
                 }
 
                 setDisplay()
@@ -979,87 +846,44 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min", () => jTrapKATEditor.currentKit.minVelocity, (value: Byte) => jTrapKATEditor.currentKit.minVelocity = value, () => !jTrapKATEditor.isKitMinVel, () => jTrapKATEditor.toKitMinVel()),
-                    (1, "Max", () => jTrapKATEditor.currentKit.maxVelocity, (value: Byte) => jTrapKATEditor.currentKit.maxVelocity = value, () => !jTrapKATEditor.isKitMaxVel, () => jTrapKATEditor.toKitMaxVel())
+                Seq((0, "Min", 1, () => jTrapKATEditor.currentKit.minVelocity, (value: Byte) => jTrapKATEditor.currentKit.minVelocity = value, () => jTrapKATEditor.isKitMinVel, () => jTrapKATEditor.toKitMinVel()),
+                    (1, "Max", 127, () => jTrapKATEditor.currentKit.maxVelocity, (value: Byte) => jTrapKATEditor.currentKit.maxVelocity = value, () => jTrapKATEditor.isKitMaxVel, () => jTrapKATEditor.toKitMaxVel())
                 ) foreach { x =>
-                        val lbl = new Label(L.G(s"lbl${x._2}"))
-                        contents += (lbl, s"cell ${x._1} 1,alignx center")
+                        (x._1, x._2, x._3, x._4, x._5, x._6, x._7) match {
+                            case (_x, _name, _ini, _getVel, _setVel, _isKit, _toKit) => {
 
-                        val spn = new Spinner(new javax.swing.SpinnerNumberModel(127, 0, 127, 1), s"spnKitVel${x._2}", lbl) {
-                            private[this] def setDisplay(): Unit = {
-                                deafTo(this)
-                                value = x._3()
-                                listenTo(this)
-                            }
-                            private[this] def setValue(): Unit = {
-                                deafTo(jTrapKATEditor)
-                                x._4(value.asInstanceOf[java.lang.Number].intValue().toByte)
-                                jTrapKATEditor.kitChangedBy(this)
-                                listenTo(jTrapKATEditor)
-                            }
+                                val lbl = new Label(L.G(s"lbl${_name}"))
+                                contents += (lbl, s"cell ${_x} 1,alignx center")
 
-                            listenTo(jTrapKATEditor)
-
-                            reactions += {
-                                case e: CurrentKitChanged       => setDisplay()
-                                case e: CurrentAllMemoryChanged => setDisplay()
-                                case e: ValueChanged            => setValue()
-                            }
-
-                            setDisplay()
-                        }
-                        contents += (spn, s"cell ${x._1} 2")
-                        order += spn.name
-
-                        val ckb = new CheckBox(L.G("ckbVarVel")) {
-                            name = s"ckbVarVel${x._2}"
-                            background = new Color(228, 228, 228)
-
-                            private[this] def setDisplay(): Unit = {
-                                deafTo(this)
-                                selected = x._5()
-                                listenTo(this)
-                                setPadEnabled(s"spnPadVel${x._2}", selected)
-                                spn.enabled = !selected
-                            }
-                            private[this] def setValue(): Unit = {
-                                if (!selected && x._5() && !okToGoKit(s"Vel${x._2}")) {
-                                    // was checked -> various, now unchecked -> kit
-                                    // currently various pad values
-                                    // not okay to splat, so revert the checkbox (yuck!)
-                                    deafTo(this)
-                                    selected = true
-                                    listenTo(this)
-                                }
-                                else {
-                                    setPadEnabled(s"spnPadVel${x._2}", selected)
-                                    spn.enabled = !selected
-                                    if (!selected && x._5()) {
-                                        // was checked -> various, now unchecked -> kit
-                                        // currently various pad values
-                                        // we got the okay to splat, so splat!
-                                        deafTo(jTrapKATEditor)
-                                        x._6()
-                                        jTrapKATEditor.padChangedBy(this)
-                                        listenTo(jTrapKATEditor)
+                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnKitVel${_name}", lbl) with Bindings {
+                                    protected override val _get = () => value = _getVel()
+                                    protected override val _set = () => {
+                                        val isKit = _isKit()
+                                        _setVel(value.asInstanceOf[java.lang.Number].intValue().toByte)
+                                        if (isKit) { _toKit(); jTrapKATEditor.padChangedBy(this) }
+                                        jTrapKATEditor.kitChangedBy(this)
                                     }
+
+                                    listenTo(jTrapKATEditor)
+
+                                    reactions += {
+                                        case e: CurrentKitChanged if e.source == jTrapKATEditor => setDisplay()
+                                        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                                        case e: ValueChanged => setValue()
+                                    }
+
+                                    setDisplay()
                                 }
+                                contents += (spn, s"cell ${_x} 2")
+                                order += spn.name
+
+                                val ckb = new VarXCheckBox(s"Vel${_name}", spn, _isKit, _toKit, s"spnPadVel${_name}") {
+                                    background = new Color(228, 228, 228)
+                                }
+                                contents += (ckb, s"cell ${_x} 3")
+                                order += ckb.name
                             }
-
-                            listenTo(jTrapKATEditor)
-
-                            reactions += {
-                                case e: CurrentPadChanged       => setDisplay()
-                                case e: CurrentKitChanged       => setDisplay()
-                                case e: CurrentAllMemoryChanged => setDisplay()
-                                case e: ButtonClicked           => setValue()
-                            }
-
-                            setDisplay()
-
                         }
-                        contents += (ckb, s"cell ${x._1} 3")
-                        order += ckb.name
                     }
 
             }
@@ -1121,7 +945,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     jTrapKATEditor.doV3V4(Some((value: Boolean) => jTrapKATEditor.scBank = (if (value) 128 else 0).toByte), None))
             ) map { t =>
                     (t._1, t._2, t._3, t._4, t._5, t._6) match {
-                        case (_name, _ini, _min, _max, _get, _set) => {
+                        case (_name, _ini, _min, _max, _getVal, _setVal) => {
 
                             val lbl = new Label(L.G(s"lbl${_name}")) {
                                 name = s"lbl${_name}"
@@ -1130,45 +954,35 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                     case _                  => {}
                                 }
                             }
-                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", lbl) {
-
-                                private[this] def setDisplay(): Unit = {
-                                    deafTo(this)
-                                    value = if (t._7.isDefined && t._7.get()) _ini else getInt(_get())
-                                    listenTo(this)
-                                }
-                                private[this] def setValue(): Unit = {
-                                    deafTo(jTrapKATEditor)
-                                    _set(value.asInstanceOf[java.lang.Number].intValue().toByte)
+                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", lbl) with Bindings {
+                                protected override val _get = () => value = if (t._7.isDefined && t._7.get()) _ini else getInt(_getVal())
+                                protected override val _set = () => {
+                                    _setVal(value.asInstanceOf[java.lang.Number].intValue().toByte)
                                     jTrapKATEditor.kitChangedBy(this)
-                                    listenTo(jTrapKATEditor)
                                 }
 
                                 listenTo(jTrapKATEditor)
 
                                 reactions += {
-                                    case e: CurrentSoundControlChanged => { Console.println(s"${name} got CurrentSoundControlChanged from ${e.source}"); setDisplay() }
-                                    case e: CurrentKitChanged if e.source == jTrapKATEditor ||
-                                        (e.source match { case Some(ckb: CheckBox) if ckb.name == s"ckb${_name}" => true; case _ => false }) =>
-                                        { Console.println(s"${name} got CurrentKitChanged from ${e.source}"); setDisplay() }
-                                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => { Console.println(s"${name} got CurrentAllMemoryChanged from ${e.source}"); setDisplay() }
-                                    case e: ValueChanged => { Console.println(s"${name} got ValueChanged from ${e.source}"); setValue() }
+                                    case e: CurrentSoundControlChanged => setDisplay()
+                                    case e: CurrentKitChanged if e.source == jTrapKATEditor || isSourceComponent(e.source, s"ckb${_name}", pnKitDetails) => setDisplay()
+                                    case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                                    case e: ValueChanged => setValue()
                                 }
                             }
                             val ckb: Option[CheckBox] = (t._7, t._8) match {
-                                case (Some(_getIsOff), Some(_setIsOff)) => Some(new CheckBox(L.G("ckbSCOff")) {
+                                // Very similar to VarXCheckBox - maybe abstract to a supertype?
+                                case (Some(_isOff), Some(_toOff)) => Some(new CheckBox(L.G("ckbSCOff")) {
                                     name = s"ckb${_name}"
 
                                     private[this] def setDisplay(): Unit = {
-                                        //Console.println(s"${_name}: _getIsOff ${_getIsOff()}")
                                         deafTo(this)
-                                        selected = _getIsOff()
+                                        selected = _isOff()
                                         listenTo(this)
                                         spn.enabled = !selected
                                     }
                                     private[this] def setValue(): Unit = {
-                                        //Console.println(s"${name}: selected ${selected} && _getIsOff() ${_getIsOff()} => ask? ${selected && !_getIsOff()}")
-                                        if (selected && !_getIsOff() && !okToGoSCOff(_name)) {
+                                        if (selected && !_isOff() && !okToGoSCOff(_name)) {
                                             // changed to Off, was !Off, not OK, abort...
                                             deafTo(this)
                                             selected = true
@@ -1177,7 +991,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                         else {
                                             spn.enabled = !selected
                                             deafTo(jTrapKATEditor)
-                                            _setIsOff(selected)
+                                            _toOff(selected)
                                             jTrapKATEditor.kitChangedBy(this)
                                             listenTo(jTrapKATEditor)
                                         }
@@ -1186,10 +1000,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                     listenTo(jTrapKATEditor)
 
                                     reactions += {
-                                        case e: CurrentSoundControlChanged                            => { Console.println(s"${name} got CurrentSoundControlChanged from ${e.source}"); setDisplay() }
-                                        case e: CurrentKitChanged if e.source == jTrapKATEditor       => { Console.println(s"${name} got CurrentKitChanged from ${e.source}"); setDisplay() }
-                                        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => { Console.println(s"${name} got CurrentAllMemoryChanged from ${e.source}"); setDisplay() }
-                                        case e: ButtonClicked                                         => { Console.println(s"${name} got ButtonClicked from ${e.source}"); setValue() }
+                                        case e: CurrentSoundControlChanged                            => setDisplay()
+                                        case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+                                        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+                                        case e: ButtonClicked                                         => setValue()
                                     }
 
                                     setDisplay()

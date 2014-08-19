@@ -251,7 +251,7 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
     init()
 }
 
-class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {
+class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") with Bindings {
     name = s"pnPad${pad}"
     private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) { name = s"lblPad${pad}" }
     private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true)
@@ -261,19 +261,10 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
 
     override def requestFocus() = cbxPad.requestFocus()
 
-    private[this] def myPad = jTrapKATEditor.currentKit(pad - 1)
-
-    private[this] def setDisplay(): Unit = {
-        deafTo(cbxPad)
-        cbxPad.value = myPad(0)
-        listenTo(cbxPad)
-    }
-
-    private[this] def setValue(): Unit = {
-        deafTo(jTrapKATEditor)
-        myPad(0) = cbxPad.value
+    protected override val _get = () => cbxPad.value = jTrapKATEditor.currentKit(pad - 1)(0)
+    protected override val _set = () => {
+        jTrapKATEditor.currentKit(pad - 1)(0) = cbxPad.value
         jTrapKATEditor.padChangedBy(this)
-        listenTo(jTrapKATEditor)
     }
 
     listenTo(cbxPad)
@@ -287,9 +278,9 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
             listenTo(this)
             listenTo(jTrapKATEditor)
         }
-        case e: ValueChanged if (myPad(0) != cbxPad.value)                   => setValue()
-        case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
-        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+        case e: ValueChanged if (jTrapKATEditor.currentKit(pad - 1) != cbxPad.value) => setValue()
+        case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor               => setDisplay()
+        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor         => setDisplay()
     }
 
     setDisplay()
@@ -297,30 +288,21 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
 
 class Slot(slot: Int) extends Reactor {
     val lblSlot = new Label(s"${slot}") { name = s"lblSlot${slot}"; peer.setDisplayedMnemonic(s"${slot}".last) }
-    val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot)
+    final object cbxSlot extends PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot) with Bindings {
+        private[this] def v3v4(f: => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f, f)
+        protected override val _get = () => cbxSlot.value = jTrapKATEditor.currentPad(slot - 1)
+        protected override val _set = () => {
+            jTrapKATEditor.currentPad(slot - 1) = cbxSlot.value
+            jTrapKATEditor.padChangedBy(cbx)
+        }
 
-    private[this] def setDisplay(): Unit = {
-        deafTo(cbxSlot)
-        cbxSlot.value = jTrapKATEditor.currentPad(slot - 1)
-        listenTo(cbxSlot)
-    }
-
-    private[this] def setValue(value: Byte): Unit = {
-        deafTo(jTrapKATEditor)
-        jTrapKATEditor.currentPad(slot - 1) = cbxSlot.value
-        jTrapKATEditor.padChangedBy(jTrapKATEditor.doV3V4(cbxSlot.cbxV3, cbxSlot.cbxV4))
         listenTo(jTrapKATEditor)
-    }
 
-    private[this] def v3v4(f: => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f, f)
-
-    listenTo(cbxSlot)
-    listenTo(jTrapKATEditor)
-
-    reactions += {
-        case e: ValueChanged if (jTrapKATEditor.currentPad(slot - 1) != cbxSlot.value) => v3v4(setValue(cbxSlot.value))
-        case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
-        case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
-        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor           => v3v4(setDisplay())
+        reactions += {
+            case e: ValueChanged if (jTrapKATEditor.currentPad(slot - 1) != cbxSlot.value) => v3v4(setValue())
+            case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
+            case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
+            case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor           => v3v4(setDisplay())
+        }
     }
 }

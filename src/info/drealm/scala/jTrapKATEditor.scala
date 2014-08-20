@@ -35,6 +35,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     UIManager.put("swing.boldMetal", false)
     UIManager.setLookAndFeel(ui)
 
+    def top = frmTrapkatSysexEditor
+
     private[this] var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType
 
@@ -232,13 +234,5 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         Console.println("_save thingChanged")
         publish(thingChanged)
     }
-
-    def top = frmTrapkatSysexEditor
-
-    // Need to alert contents of pnKitsPads before frmTrapkatSysexEditor gets instantiated 
-    // TODO: make it not so
-    val sideEffect = pnKitsPads
-    Console.println("Start up AllMemoryChanged")
-    publish(new CurrentAllMemoryChanged(this))
 
 }

@@ -1063,6 +1063,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
         }
 
+        pages += tpnPadDetails
+        jTrapKATEditor.doV3V4({}, pages += tpnMoreSlots)
+        pages += tpnKitDetails
+
     }
 
     contents += (pnKitsPadsTop, "cell 0 0,grow")

@@ -39,187 +39,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     private[this] object pnKitsPadsTop extends MigPanel("insets 0", "[grow]", "[][][grow]") {
         name = "pnKitsPadsTop"
 
-        private[this] object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill][][][]", "[]") {
-            name = "pnSelector"
-
-            private[this] val lblSelectKit = new Label(L.G("lblSelectKit")) { peer.setDisplayedMnemonic(L.G("mneSelectKit").charAt(0)) }
-            contents += (lblSelectKit, "cell 0 0,alignx right")
-
-            private[this] val kitNames = new Array[String](24)
-            private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", lblSelectKit) with ComboBoxBindings[String] {
-                peer.setMaximumRowCount(24)
-                prototypeDisplayValue = Some("WWWWWWWWWWWW")
-
-                private[this] def updateKitName(idx: Int): Unit = kitNames(idx) = s"${idx + 1}: ${jTrapKATEditor.currentAllMemory(idx).kitName}"
-                private[this] def updateAllKitNames(): Unit = (0 to 23) foreach updateKitName _
-                override protected val _get = () => selection.index = jTrapKATEditor.currentKitNumber
-                override protected val _set = () => jTrapKATEditor.currentKitNumber = selection.index
-
-                listenTo(selection)
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: SelectionChanged if e.source == this        => setValue()
-                    case e: CurrentKitChanged if e.source == txtKitName => { updateKitName(jTrapKATEditor.currentKitNumber); setDisplay() }
-                    case e: CurrentKitChanged                           => setDisplay() //?? will this happen?
-                    case e: CurrentAllMemoryChanged                     => { updateAllKitNames(); setDisplay() }
-                }
-
-                updateAllKitNames()
-                setDisplay()
-            }
-            contents += (cbxSelectKit, "cell 1 0")
-
-            private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
-                private[this] def setDisplay() = visible = jTrapKATEditor.currentKit.changed
-
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                }
-
-                setDisplay()
-            }
-            contents += (lblKitEdited, "cell 2 0")
-
-            private[this] val lblKitName = new Label(L.G("lblKitName"))
-            contents += (lblKitName, "cell 4 0,alignx right")
-
-            private[this] val txtKitName = new TextField with Bindings {
-                override protected val _get = () => text = jTrapKATEditor.currentKit.kitName.trim()
-                override protected val _set = () => {
-                    jTrapKATEditor.currentKit.kitName = text
-                    jTrapKATEditor.kitChangedBy(this)
-                }
-
-                lblKitName.peer.setLabelFor(peer)
-                name = "txtKitName"
-                columns = 16
-
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                    case e: ValueChanged            => setValue()
-                }
-
-                setDisplay()
-            }
-            contents += (txtKitName, "cell 5 0")
-
-            private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
-            contents += (lblSelectPad, "cell 7 0,alignx right")
-
-            private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
-                case x if x < 25 => s"${x}"
-                case x           => L.G(s"lbPad${x}")
-            }), "cbxSelectPad", lblSelectPad) with ComboBoxBindings[String] {
-                peer.setMaximumRowCount(28)
-                prototypeDisplayValue = Some("88 mmmm")
-                override protected val _get = () => selection.index = jTrapKATEditor.currentPadNumber
-                override protected val _set = () => jTrapKATEditor.currentPadNumber = selection.index
-
-                listenTo(selection)
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: SelectionChanged  => setValue()
-                    case e: CurrentPadChanged => setDisplay()
-                }
-
-                setDisplay()
-            }
-            contents += (cbxSelectPad, "cell 8 0")
-
-            private[this] val lblPadEdited = new Label(L.G("lblXEdited")) {
-                private[this] def setDisplay(): Unit = visible = jTrapKATEditor.currentPad.changed
-
-                listenTo(jTrapKATEditor)
-
-                reactions += {
-                    case e: CurrentPadChanged       => setDisplay()
-                    case e: CurrentKitChanged       => setDisplay()
-                    case e: CurrentAllMemoryChanged => setDisplay()
-                }
-
-                setDisplay()
-            }
-            contents += (lblPadEdited, "cell 9 0")
-        }
-
-        private[this] object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
-            name = "pnPads"
-
-            (for {
-                row <- (0 to 3) zip Seq(
-                    List(0, 0, 18, 19, 20, 21, 0, 0),
-                    List(0, 17, 6, 7, 8, 9, 22, 0),
-                    List(16, 5, 1, 2, 3, 4, 10, 23),
-                    List(15, 0, 11, 12, 13, 14, 0, 24)
-                );
-                col <- (0 to 7) zip row._2;
-                if col._2 != 0
-            } yield (s"cell ${col._1} ${row._1}", col._2)) foreach { pad =>
-                val pn = new Pad(pad._2) {
-                    background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250)
-                }
-                contents += (pn, pad._1 + ",grow")
-                pn
-            }
-
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((1 to 24) map { n => s"cbxPad${n}V3" }) ++ ((1 to 24) map { n => s"cbxPad${n}V4" })))
-            peer.setFocusTraversalPolicyProvider(true)
-        }
-
-        private[this] object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][grow,fill][][][grow,trailing]", "[]") {
-            name = "pnPedals"
-
-            Seq(("cell 1 0", 25), ("cell 2 0", 26), ("cell 6 0", 27), ("cell 7 0", 28)) foreach (pad => {
-                val pn = new Pad(pad._2) { background = new Color(228, 228, 228) }
-                contents += (pn, pad._1 + ",gapx 1, pad 0 -1 0 1,grow")
-                listenTo(pn)
-                pn
-            })
-
-            private[this] val pnHH = new MigPanel("insets 2, gap 0", "[grow,right][left,fill]", "[]") {
-                name = "pnHH"
-                border = new LineBorder(java.awt.Color.BLACK)
-
-                private[this] val lblHH = new Label(L.G("lblHH")) { peer.setDisplayedMnemonic(L.G("mneHH").charAt(0)) }
-                contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
-                (1 to 4) foreach { x =>
-                    val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", if (x == 1) lblHH else null) with ComboBoxBindings[String] {
-                        peer.setMaximumRowCount(25)
-
-                        protected override val _get = () => selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
-                        protected override val _set = () => {
-                            jTrapKATEditor.currentKit.hhPads(x - 1, this.selection.index.toByte)
-                            jTrapKATEditor.kitChangedBy(this)
-                        }
-
-                        listenTo(jTrapKATEditor)
-
-                        reactions += {
-                            case e: CurrentKitChanged       => setDisplay()
-                            case e: CurrentAllMemoryChanged => setDisplay()
-                            case e: SelectionChanged        => setValue()
-                        }
-
-                        setDisplay()
-                    }
-                    contents += (cbxHH, s"cell ${x} 0, grow")
-                }
-            }
-            contents += (pnHH, "cell 4 0")
-        }
-
         contents += (pnSelector, "cell 0 0,growx,aligny baseline")
         contents += (pnPads, "cell 0 1, grow")
         contents += (pnPedals, "cell 0 2,grow")
+
     }
+    contents += (pnKitsPadsTop, "cell 0 0,grow")
 
     private[this] object tpnKitPadsDetails extends TabbedPane() {
         name = "tpnKitPadsDetails"
@@ -1045,8 +870,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         pages += tpnKitDetails
 
     }
-
-    contents += (pnKitsPadsTop, "cell 0 0,grow")
     contents += (tpnKitPadsDetails, "cell 0 1,grow")
 
 }

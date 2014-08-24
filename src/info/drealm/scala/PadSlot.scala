@@ -228,8 +228,6 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
     val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, stepped)
     val lbl: Label = label
 
-    def requestFocus(): Unit = cbx.peer.getEditor().getEditorComponent().requestFocus()
-
     def value: Byte = cbx.value
     def value_=(value: Byte): Unit = cbx.value = value
 

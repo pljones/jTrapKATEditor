@@ -68,60 +68,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            private[this] object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
-                name = "pnLinkTo"
-
-                private[this] val lblLinkTo = new Label(L.G("lblLinkTo")) { peer.setDisplayedMnemonic(L.G("mneLinkTo").charAt(0)) }
-                contents += (lblLinkTo, "cell 0 0")
-
-                private[this] val linkTo: Array[String] = new Array[String](28)
-                private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", lblLinkTo) with ComboBoxBindings[String] {
-                    prototypeDisplayValue = Some("88 mmmm")
-
-                    private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
-                        case 0           => L.G("cbxLinkToOff")
-                        case x if x < 25 => s"${x}"
-                        case x           => L.G(s"lbPad${x}")
-                    }) zip (0 to 27)) foreach (x => linkTo(x._2) = x._1)
-
-                    private[this] def getSelectionIndex(pad: Int): Int = pad match {
-                        case e if e == jTrapKATEditor.currentPadNumber => 0 // Equal means Off
-                        case e if e < jTrapKATEditor.currentPadNumber  => e + 1 // Before
-                        case e                                         => e // After
-                    }
-
-                    protected override val _get = () => {
-                        setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)
-                        selection.index = getSelectionIndex(jTrapKATEditor.currentPadV4.linkTo - 1)
-                    }
-                    protected override val _set = () => {
-                        jTrapKATEditor.currentPadV4.linkTo = (selection.index match {
-                            case 0 => jTrapKATEditor.currentPadNumber + 1
-                            case e if e + 1 < jTrapKATEditor.currentPadNumber => e
-                            case e => e + 1
-                        }).toByte
-                        jTrapKATEditor.padChangedBy(this)
-                    }
-
-                    listenTo(jTrapKATEditor)
-                    listenTo(selection)
-
-                    reactions += {
-                        case e: CurrentPadChanged if e.source == jTrapKATEditor       => jTrapKATEditor.doV3V4({}, setDisplay())
-                        case e: CurrentKitChanged if e.source == jTrapKATEditor       => jTrapKATEditor.doV3V4({}, setDisplay())
-                        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => jTrapKATEditor.doV3V4({}, setDisplay())
-                        case e: SelectionChanged                                      => setValue()
-                    }
-
-                    jTrapKATEditor.doV3V4({}, setDisplay())
-                }
-                contents += (cbxLinkTo, "cell 1 0")
-
-                listenTo(jTrapKATEditor)
-                reactions += {
-                    case e: CurrentAllMemoryChanged => visible = jTrapKATEditor.doV3V4(false, true)
-                }
-            }
             contents += (pnLinkTo, "cell 0 5 4 1,gapy 5,alignx left,aligny center,hidemode 0")
 
             private[this] val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }

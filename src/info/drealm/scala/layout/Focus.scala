@@ -73,29 +73,22 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
     def this(container: Container, order: Seq[String], first: String) = this(container, order, first, order.last, first, first)
     def this(container: Container, order: Seq[String]) = this(container, order, order.head, order.last)
 
-    private[this] lazy val firstCp = peer(first)
-    private[this] lazy val lastCp = peer(last)
-    private[this] lazy val defaultCp = peer(default)
-    private[this] lazy val initialCp = peer(initial)
+    private[this] lazy val firstCp = getPeer(first)
+    private[this] lazy val lastCp = getPeer(last)
+    private[this] lazy val defaultCp = getPeer(default)
+    private[this] lazy val initialCp = getPeer(initial)
 
-    private[this] def getParents(pn: java.awt.Component, a: java.awt.Component): Seq[java.awt.Component] =
-        if (a == pn) Seq()
-        else if (a.isInstanceOf[javax.swing.JLabel]) {
-            if (a.asInstanceOf[javax.swing.JLabel].getLabelFor() != null)
-                getParents(pn, a.getParent()) ++ Seq(a.asInstanceOf[javax.swing.JLabel].getLabelFor())
-            else
-                getParents(pn, a.getParent())
+    private[this] def getParents(pn: java.awt.Component, a: java.awt.Component): Seq[java.awt.Component] = a match {
+        case cp if cp == pn        => Seq() //{ Console.print("!");  }
+        case l: javax.swing.JLabel => getParents(pn, a.getParent()) ++ (if (l.getLabelFor() == null) Seq(l.getLabelFor()) else Seq()) //{ Console.print("L "); }
+        case otherwise => a.getName() match {
+            case skip if skip == null || skip.length() == 0 || skip == "Spinner.formattedTextField" => getParents(pn, a.getParent()) //{ Console.print("_ "); }
+            case otherwise => getParents(pn, a.getParent()) ++ Seq(a) //{ Console.print("A "); }
         }
-        else if (a.getName() == null || a.getName().length() == 0 || a.getName() == "Spinner.formattedTextField") getParents(pn, a.getParent())
-        else getParents(pn, a.getParent()) ++ Seq(a)
-
-    private[this] def getPos(a: java.awt.Component) = {
-        val hier = getParents(container.peer, a)
-        if (hier.isEmpty) -1 else order.indexOf(hier.last.getName())
     }
 
-    private[this] def peer(item: String): java.awt.Component = {
-        //Console.println("peer: " + item)
+    private[this] def getPeer(item: String): java.awt.Component = {
+        //Console.println(s"getPeer item ${item} in ${container match { case cp: Component => cp.name; case c => c.getClass().getName() }}")
         Focus.findInContainer(container, item) match {
             case None => null
             case Some(cp) => cp match {
@@ -106,41 +99,100 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
         }
     }
 
-    //def fn(pn: java.awt.Container) = "" +
+    private[this] def getJSwingCp(cp: java.awt.Component) = getParents(container.peer, cp) match {
+        case x if x.length == 0 => None
+        case cps                => Some(cps.last)
+    }
+
+    private[this] def getSSwingCp(oCp: Option[java.awt.Component]) = oCp match {
+        case None     => None
+        case Some(cp) => Focus.findInContainer(container, cp.getName())
+    }
+
+    private[this] def getCpPos(cp: Option[Component]) = cp match {
+        case None => None
+        case Some(_cp) => order.indexOf(_cp.name) match {
+            case -1    => None
+            case found => Some((_cp, found))
+        }
+    }
+
+    private[this] def isFocusable(cp: Component) = cp.enabled && cp.visible //{ Console.println(s"isFocusable: cp ${cp.name} enabled ${cp.enabled} visible ${cp.visible}"); }
+
+    private[this] def nextBy(i: Int, d: (Int) => Int, ith: Boolean = false): Option[(Component, Int)] = {
+        //Console.println(s"nextBy from ${i} (${order(i)}) by ${d(0)}, ith ${ith}")
+        Focus.findInContainer(container, order(i)) match {
+            case Some(_cp) if ith && isFocusable(_cp) => Some((_cp, i))
+            case _ => d(i) match {
+                case _i if _i >= 0 && _i < order.length => nextBy(_i, d, true)
+                case _                                  => None
+            }
+        }
+    }
+
+    private[this] def stepBy(cp: java.awt.Component, nthFrom: (Int) => Int, ith: Boolean = false): java.awt.Component = {
+        if (cp == null) null
+        else {
+            //Console.println(s"stepBy cp ${cp.getName()} by ${nthFrom(0)}, ith ${ith}")
+            getCpPos(getSSwingCp(getJSwingCp(cp))) match {
+                case None => null
+                case Some((cp, pos)) => nextBy(pos, nthFrom, ith) match {
+                    case Some((cp, pos)) => getPeer(cp.name)
+                    case _               => null
+                }
+            }
+        }
+    }
+    
+    private[this] def containerValid(pn: java.awt.Container): Boolean =
+        pn == container.peer && pn.isShowing() && pn.isFocusTraversalPolicyProvider() && pn.isFocusTraversalPolicySet()
+
+    //private[this] def fn(pn: java.awt.Container) = "Container " +
     //    (if (pn.isFocusCycleRoot()) "isRoot " else "") +
     //    (if (pn.isFocusTraversalPolicyProvider() && pn.isFocusTraversalPolicySet()) "isPolicy " else "") +
     //    (if (pn == container.peer) "isSelf " else "") +
-    //    pn
+    //    (if (pn.isShowing()) "isShowing " else "") +
+    //    s"${pn.getName()} (${pn.getClass().getName()})"
 
     override def getComponentAfter(pn: java.awt.Container, cp: java.awt.Component): java.awt.Component = {
-        //Console.println("getComponentAfter: " + fn(pn))
-        val pos = getPos(cp)
-        if (pos < order.length - 1) peer(order(pos + 1)) else null
+        //Console.println(s"getComponentAfter: ${fn(pn)} cp ${if (cp == null) "null" else s"${cp.getName()} (${cp.getClass().getName()})"}")
+        val peer = if (containerValid(pn)) { if (cp != null) stepBy(cp, _ + 1) else getFirstComponent(pn) } else null
+        //Console.println(s"getComponentAfter => ${if (peer == null) "is null!" else s"${peer.getName()} (${peer.getClass().getName()})"}")
+        peer
     }
 
     override def getComponentBefore(pn: java.awt.Container, cp: java.awt.Component): java.awt.Component = {
-        //Console.println("getComponentBefore: " + fn(pn))
-        val pos = getPos(cp)
-        if (pos > 0) peer(order(pos - 1)) else null
+        //Console.println(s"getComponentBefore: ${fn(pn)} cp ${if (cp == null) "null" else s"${cp.getName()} (${cp.getClass().getName()})"}")
+        val peer = if (containerValid(pn)) { if (cp != null) stepBy(cp, _ - 1) else getLastComponent(pn) } else null
+        //Console.println(s"getComponentBefore => ${if (peer == null) "is null!" else s"${peer.getName()} (${peer.getClass().getName()})"}")
+        peer
     }
 
     override def getFirstComponent(pn: java.awt.Container): java.awt.Component = {
-        //Console.println("getFirstComponent: %s -> %s".format(fn(pn), first))
-        if (pn == container.peer) firstCp else null
+        //Console.println(s"getFirstComponent: ${fn(pn)} -> first (${first}) ${if (firstCp == null) "null" else s"${firstCp.getName()} (${firstCp.getClass().getName()})"}")
+        val peer = if (containerValid(pn)) stepBy(firstCp, _ + 1, true) else null
+        //Console.println(s"getFirstComponent => ${if (peer == null) "is null!" else s"${peer.getName()} (${peer.getClass().getName()})"}")
+        peer
     }
 
     override def getLastComponent(pn: java.awt.Container): java.awt.Component = {
-        //Console.println("getLastComponent: %s -> %s".format(fn(pn), last))
-        if (pn == container.peer) lastCp else null
+        //Console.println(s"getLastComponent: ${fn(pn)} -> last (${last}) ${if (lastCp == null) "null" else s"${lastCp.getName()} (${lastCp.getClass().getName()})"}")
+        val peer = if (containerValid(pn)) stepBy(lastCp, _ - 1, true) else null
+        //Console.println(s"getLastComponent => ${if (peer == null) "is null!" else s"${peer.getName()} (${peer.getClass().getName()})"}")
+        peer
     }
 
     override def getDefaultComponent(pn: java.awt.Container): java.awt.Component = {
-        //Console.println("getDefaultComponent: %s -> %s".format(fn(pn), default))
-        if (pn == container.peer) defaultCp else null
+        val peer = if (containerValid(pn)) stepBy(defaultCp, _ + 1, true) else null
+        //Console.println(s"getDefaultComponent: ${fn(pn)} -> default (${default}) ${if (defaultCp == null) "null" else s"${defaultCp.getName()} (${defaultCp.getClass().getName()})"} => ${if (peer == null) "is null!" else s"${peer.getName()} (${peer.getClass().getName()})"}")
+        peer
     }
 
     override def getInitialComponent(w: java.awt.Window): java.awt.Component = {
-        //Console.println("getInitialComponent: %s -> %s".format(w, initial))
-        initialCp
+        val peer = stepBy(initialCp, _ + 1, true)
+        //Console.println(s"getInitialComponent: ${w} -> initial (${initial}) ${if (initialCp == null) "null" else s"${initialCp.getName()} (${initialCp.getClass().getName()})"} => ${if (peer == null) "is null!" else s"${peer.getName()} (${peer.getClass().getName()})"}")
+        peer
     }
+
+    //Console.println(s"NameSeqOrderTraversalPolicy ${container match { case cp: Component => cp.name; case c => c.getClass().getName() }}; default ${default} ; order ${order}")
 }

@@ -776,6 +776,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
 
+            // This is only needed the once at start up... bit of a hack, though.
+            // spnPrgChgTxmChn is just that little bit too different...
+            Focus.findInComponent(this, "ckbPrgChg") match {
+                case Some(ckb: CheckBox) => Focus.findInComponent(this, "spnPrgChgTxmChn") match {
+                    case Some(cp: Spinner) => cp.enabled = !ckb.selected
+                    case _                 => Console.println("spnPrgChgTxmChn not found")
+                }
+                case _ => Console.println("ckbPrgChg not found")
+            }
+
             listenTo(jTrapKATEditor)
             reactions += {
                 case e: CurrentAllMemoryChanged => {

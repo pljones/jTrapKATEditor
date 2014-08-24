@@ -33,29 +33,6 @@ import info.drealm.scala.eventX._
 import info.drealm.scala.layout._
 import info.drealm.scala.{ Localization => L }
 
-trait Bindings extends Publisher {
-    protected val _get: () => Unit
-    protected val _set: () => Unit
-
-    protected def setDisplay(): Unit = {
-        deafTo(this)
-        _get()
-        listenTo(this)
-    }
-    protected def setValue(): Unit = {
-        deafTo(jTrapKATEditor)
-        _set()
-        listenTo(jTrapKATEditor)
-    }
-}
-trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
-    protected override def setDisplay(): Unit = {
-        deafTo(selection)
-        super.setDisplay()
-        listenTo(selection)
-    }
-}
-
 object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
     name = "pnKitsPads"
 

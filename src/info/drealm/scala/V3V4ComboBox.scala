@@ -74,8 +74,10 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     def requestFocus() = cbx.requestFocus()
 
     private[this] def allMemoryChanged(toVisible: CP, toHidden: CP): Unit = {
-        toHidden.visible = false
+        // Need to avoid creeping focus when this control disappears from the UI
         toVisible.visible = _visible
+        if (toHidden.hasFocus || (toHidden.editable && toHidden.peer.getEditor().getEditorComponent().hasFocus())) toVisible.requestFocus()
+        toHidden.visible = false
         // Uhhhhh, right...
         if (lbl != null) lbl.peer.setLabelFor(toVisible.peer.asInstanceOf[java.awt.Component])
     }

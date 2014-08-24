@@ -221,7 +221,9 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
 class PadSlotComboBoxV3(name: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV3, name + "V3", stepped)
 class PadSlotComboBoxV4(name: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", stepped)
 
-class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = false) extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+abstract class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = false)
+    extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+
     def this(name: String) = this(name, null)
 
     val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name, stepped)
@@ -246,61 +248,50 @@ class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = f
             listenTo(this)
         }
     }
+
     init()
 }
 
-class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") with Bindings {
+class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {
     name = s"pnPad${pad}"
+
     private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) { name = s"lblPad${pad}" }
-    private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true)
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
+
+    private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true) with Bindings {
+        protected override def _get() = value = jTrapKATEditor.currentKit(pad - 1)(0)
+        protected override def _set() = jTrapKATEditor.currentKit(pad - 1)(0) = value
+        protected override def _chg() = jTrapKATEditor.padChangedBy(cbx)
+
+        reactions += {
+            case e: eventX.CbxEditorFocused if jTrapKATEditor.currentPadNumber != pad - 1 => jTrapKATEditor.currentPadNumber = pad - 1
+            case e: ValueChanged if e.source == cbx && jTrapKATEditor.currentKit(pad - 1)(0) != value => setValue()
+        }
+
+        setDisplay()
+    }
     contents += (cbxPad.cbxV3, "cell 1 0,grow")
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
 
     override def requestFocus() = cbxPad.requestFocus()
-
-    protected override val _get = () => cbxPad.value = jTrapKATEditor.currentKit(pad - 1)(0)
-    protected override val _set = () => {
-        jTrapKATEditor.currentKit(pad - 1)(0) = cbxPad.value
-        jTrapKATEditor.padChangedBy(this)
-    }
-
-    listenTo(cbxPad)
-    listenTo(jTrapKATEditor)
-
-    reactions += {
-        case e: eventX.CbxEditorFocused => {
-            deafTo(jTrapKATEditor)
-            deafTo(this)
-            jTrapKATEditor.currentPadNumber = pad - 1
-            listenTo(this)
-            listenTo(jTrapKATEditor)
-        }
-        case e: ValueChanged if (jTrapKATEditor.currentKit(pad - 1) != cbxPad.value) => setValue()
-        case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor               => setDisplay()
-        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor         => setDisplay()
-    }
-
-    setDisplay()
 }
 
-class Slot(slot: Int) extends Reactor {
+class Slot(slot: Int) {
     val lblSlot = new Label(s"${slot}") { name = s"lblSlot${slot}"; peer.setDisplayedMnemonic(s"${slot}".last) }
-    final object cbxSlot extends PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot) with Bindings {
-        private[this] def v3v4(f: => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f, f)
-        protected override val _get = () => cbxSlot.value = jTrapKATEditor.currentPad(slot - 1)
-        protected override val _set = () => {
-            jTrapKATEditor.currentPad(slot - 1) = cbxSlot.value
-            jTrapKATEditor.padChangedBy(cbx)
-        }
+    val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot) with Bindings {
+        protected override def _get() = value = jTrapKATEditor.currentPad(slot - 1)
+        protected override def _set() = jTrapKATEditor.currentPad(slot - 1) = value
+        protected override def _chg() = jTrapKATEditor.padChangedBy(cbx)
 
-        listenTo(jTrapKATEditor)
+        private[this] def v3v4(f: => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f, f)
+        override def setValue = v3v4(super.setValue())
+        override def setDisplay = v3v4(super.setDisplay())
 
         reactions += {
-            case e: ValueChanged if (jTrapKATEditor.currentPad(slot - 1) != cbxSlot.value) => v3v4(setValue())
-            case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
-            case e: eventX.CurrentKitChanged if e.source == jTrapKATEditor                 => v3v4(setDisplay())
-            case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor           => v3v4(setDisplay())
+            case e: ValueChanged if (jTrapKATEditor.currentPad(slot - 1) != value) => setValue()
+            case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor         => setDisplay()
         }
+
+        setDisplay()
     }
 }

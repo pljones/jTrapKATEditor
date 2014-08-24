@@ -25,6 +25,7 @@
 package info.drealm.scala
 
 import swing.Label
+import info.drealm.scala.eventX._
 import info.drealm.scala.{ Localization => L }
 
 trait Curve {
@@ -43,11 +44,25 @@ abstract class CurveComboBoxParent(seq: Seq[String], _name: String) extends Rich
 class CurveComboBoxV3(_name: String) extends CurveComboBoxParent(CurveV3.curveSelection, _name + "V3")
 class CurveComboBoxV4(_name: String) extends CurveComboBoxParent(CurveV4.curveSelection, _name + "V4")
 
-class CurveComboBoxV3V4(_name: String, label: Label) extends V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] {
-    def this(_name: String) = this(_name, null)
+class CurveComboBoxV3V4(_name: String, label: Label, _getVal: () => Byte, _setVal: Byte => Unit, _chgBy: CurveComboBoxParent => Unit)
+    extends V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] with Bindings {
+
     val cbxV3: CurveComboBoxV3 = new CurveComboBoxV3(_name)
     val cbxV4: CurveComboBoxV4 = new CurveComboBoxV4(_name)
     val lbl: Label = label
+    protected override def _get() = {
+        deafTo(selection)
+        selection.index = _getVal()
+        listenTo(selection)
+    }
+    protected override def _set() = _setVal(selection.index.toByte)
+    protected override def _chg() = _chgBy(cbx)
+
+    listenTo(selection)
+
+    reactions += {
+        case e: V3V4SelectionChanged => setValue()
+    }
 
     init()
 }

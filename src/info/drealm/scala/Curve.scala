@@ -49,7 +49,5 @@ class CurveComboBoxV3V4(_name: String, label: Label) extends V3V4ComboBox[String
     val cbxV4: CurveComboBoxV4 = new CurveComboBoxV4(_name)
     val lbl: Label = label
 
-    selection.index = 0
-    
     init()
 }

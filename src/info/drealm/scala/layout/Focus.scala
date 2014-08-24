@@ -87,7 +87,7 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
         }
     }
 
-    private[this] def getPeer(item: String): java.awt.Component = {
+    protected def getPeer(item: String): java.awt.Component = {
         //Console.println(s"getPeer item ${item} in ${container match { case cp: Component => cp.name; case c => c.getClass().getName() }}")
         Focus.findInContainer(container, item) match {
             case None => null
@@ -130,7 +130,7 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
         }
     }
 
-    private[this] def stepBy(cp: java.awt.Component, nthFrom: (Int) => Int, ith: Boolean = false): java.awt.Component = {
+    protected def stepBy(cp: java.awt.Component, nthFrom: (Int) => Int, ith: Boolean = false): java.awt.Component = {
         if (cp == null) null
         else {
             //Console.println(s"stepBy cp ${cp.getName()} by ${nthFrom(0)}, ith ${ith}")
@@ -144,7 +144,7 @@ class NameSeqOrderTraversalPolicy(container: Container, order: Seq[String], firs
         }
     }
     
-    private[this] def containerValid(pn: java.awt.Container): Boolean =
+    protected def containerValid(pn: java.awt.Container): Boolean =
         pn == container.peer && pn.isShowing() && pn.isFocusTraversalPolicyProvider() && pn.isFocusTraversalPolicySet()
 
     //private[this] def fn(pn: java.awt.Container) = "Container " +

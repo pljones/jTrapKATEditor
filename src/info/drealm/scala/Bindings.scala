@@ -87,3 +87,9 @@ trait KitBindings extends Bindings {
         }
     }
 }
+
+trait GlobalBindings extends Bindings {
+    reactions += {
+        case e: GlobalChanged if e.source == jTrapKATEditor => setDisplay()
+    }
+}

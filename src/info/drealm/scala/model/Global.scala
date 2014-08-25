@@ -29,7 +29,7 @@ import collection.mutable
 
 abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     // 21 bytes
-    private[this] var _beeperStatus: Byte = 0
+    private[this] var _beeperStatus: Byte = 1
     private[this] var _bcFunction: Byte = 0
     private[this] var _chokeFunction: Byte = 0
     private[this] var _fcClosedRegion: Byte = 0
@@ -42,9 +42,9 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] var _fcVelocityLevel: Byte = 0
     private[this] var _fcWaitModeLevel: Byte = 0
     private[this] var _instrumentID: Byte = 0
-    private[this] var _kitNumber: Byte = 0
-    private[this] var _kitNumberUser: Byte = 0
-    private[this] var _kitNumberDemo: Byte = 0
+    private[this] var _kitNumber: Byte = 1
+    private[this] var _kitNumberUser: Byte = 1
+    private[this] var _kitNumberDemo: Byte = 1
     private[this] var _motifNumber: Byte = 0
     private[this] var _motifNumberPerc: Byte = 0
     private[this] var _motifNumberMel: Byte = 0
@@ -57,10 +57,10 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] var _trigGain: Byte = 0 // (0 - 3)
     private[this] var _prgChgRcvChn: Byte = 17 // Program change receive channel (1-16; 17=off)
     private[this] var _displayAngle: Byte = 0
-    private[this] var _playMode: Byte = 0 // (0 -> demo, 1 -> user)
+    private[this] var _playMode: Byte = 0 // (0 -> demo, 1 -> user, 2 -> KAT)
     private[this] var _grooveVol: Byte = 0
     private[this] var _grooveStatus: Byte = 0 // (1 -> grooves enables)
-    private[this] var _fcSplashEase: Byte = 0
+    private[this] var _fcSplashEase: Byte = 2 // Something like 1 = Off, 2->11 = 1->10?
     private[this] var _noteNamesStatus: Byte = 0
 
     private[this] val _ttPadData: TPad = p
@@ -68,7 +68,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     // 5 bytes
     private[this] var _hatNoteGate: Byte = 0 // HAT NOTE gate time index
     private[this] var _grooveAutoOff: Byte = 0 // enabled if > 0
-    private[this] var _kitNumberKAT: Byte = 0
+    private[this] var _kitNumberKAT: Byte = 1 // 1 to 6
     private[this] var _ttMeter: Byte = 0 // Tap tempo meter (quarter, half, eighth, etc.)
     private[this] var _hearSoundStatus: Byte = 0 // (1 -> on)
 

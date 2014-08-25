@@ -50,6 +50,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         case am: model.AllMemoryV4 => fV4
     }
     def allMemoryChangedBy(source: Component) = publish(new CurrentAllMemoryChanged(source))
+    
+    def currentGlobal = _currentAllMemory.global
     def globalMemoryChangedBy(source: Component) = {
         publish(new GlobalChanged(source))
         allMemoryChangedBy(source)

@@ -67,8 +67,8 @@ object frmTrapkatSysexEditor extends Frame {
     )
 
     reactions += {
-        case wo: WindowOpened             => Checker.autoUpdateMode = prefs.updateAutomatically
-        case amc: CurrentAllMemoryChanged => title = getTitle()
+        case wo: WindowOpened      => Checker.autoUpdateMode = prefs.updateAutomatically
+        case amc: SomethingChanged => title = getTitle()
     }
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {

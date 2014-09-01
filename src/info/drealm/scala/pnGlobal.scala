@@ -174,8 +174,11 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         Some(GlobalSpinnerParams(1, 1, 24)))
     pnGlobalKit.addSpinner("kitNumberDemo", () => jTrapKATEditor.currentGlobal.kitNumberDemo, (value: Byte) => jTrapKATEditor.currentGlobal.kitNumberDemo = value,
         Some(GlobalSpinnerParams(1, 1, 24)))
+    // Should be 0 + _motifNumberPerc (if PG) or 11 + _motifNumberMel (if MG)
     pnGlobalMotif.addSpinner("motifNumber", () => jTrapKATEditor.currentGlobal.motifNumber, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumber = value, None)
+    // ?? 0 to 10
     pnGlobalMotif.addSpinner("motifNumberPerc", () => jTrapKATEditor.currentGlobal.motifNumberPerc, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumberPerc = value, None)
+    // ?? 0 to ..?s
     pnGlobalMotif.addSpinner("motifNumberMel", () => jTrapKATEditor.currentGlobal.motifNumberMel, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumberMel = value, None)
     pnGlobalGeneral.addOffOnComboBox("midiMergeStatus", () => jTrapKATEditor.currentGlobal.midiMergeStatus, (value: Byte) => jTrapKATEditor.currentGlobal.midiMergeStatus = value)
     pnGlobalGeneral.addComboBox("trigGain", () => jTrapKATEditor.currentGlobal.trigGain, (value: Byte) => jTrapKATEditor.currentGlobal.trigGain = value,

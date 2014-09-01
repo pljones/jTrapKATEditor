@@ -131,7 +131,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         global._thresholdActual.copyToArray(_thresholdActual)
     }
 
-    def deserialize(in: FileInputStream): Unit = {
+    def deserialize(in: InputStream): Unit = {
         _beeperStatus = in.read().toByte
         _bcFunction = in.read().toByte
         _chokeFunction = in.read().toByte
@@ -182,7 +182,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         in.read(_unused4)
         in.read(_thresholdActual)
     }
-    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
+    def serialize(out: OutputStream, saving: Boolean): Unit = {
         out.write(_beeperStatus)
         out.write(_bcFunction)
         out.write(_chokeFunction)
@@ -312,7 +312,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 
 class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
     def this() = this(new PadV3)
-    def this(in: FileInputStream) = {
+    def this(in: InputStream) = {
         this()
         deserialize(in)
     }
@@ -322,12 +322,12 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
         //_unused1, _currentDefaults and _userDefaults left as default
     }
 
-    override def deserialize(in: FileInputStream): Unit = {
+    override def deserialize(in: InputStream): Unit = {
         in.read(_currentDefaults)
         in.read(_userDefaults)
         super.deserialize(in)
     }
-    override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
+    override def serialize(out: OutputStream, saving: Boolean): Unit = {
         out.write(_currentDefaults)
         out.write(_userDefaults)
         super.serialize(out, saving)
@@ -340,7 +340,7 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
 
 class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
     def this() = this(new PadV4(0.toByte))
-    def this(in: FileInputStream) = {
+    def this(in: InputStream) = {
         this()
         deserialize(in)
     }

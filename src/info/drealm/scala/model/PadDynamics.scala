@@ -62,8 +62,8 @@ protected[model] class PadDynamicsContainer(_padLevels: Array[Byte], _userMargin
     def length = _padDynamics.length
     def apply(idx: Int): PadDynamics = _padDynamics.apply(idx)
 
-    def deserialize(in: FileInputStream): Unit = throw new UnsupportedOperationException("This should never happen")
-    def serialize(out: FileOutputStream, saving: Boolean): Unit = throw new UnsupportedOperationException("This should never happen")
+    def deserialize(in: InputStream): Unit = throw new UnsupportedOperationException("This should never happen")
+    def serialize(out: OutputStream, saving: Boolean): Unit = throw new UnsupportedOperationException("This should never happen")
 
     private[this] val _padDynamics: Seq[PadDynamics] = (0 to 24) map (x => new PadDynamics(x, this))
     

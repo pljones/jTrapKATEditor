@@ -39,13 +39,13 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     }
     def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)
 
-    def deserialize(in: FileInputStream): Unit = {
+    def deserialize(in: InputStream): Unit = {
         _kits foreach (x => x.deserialize(in))
         _kits foreach (x => x.deserializeKitName(in))
         in.read(_unused)
         _global.deserialize(in)
     }
-    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
+    def serialize(out: OutputStream, saving: Boolean): Unit = {
         if (saving) _kits foreach (x => x.save(out)) else _kits foreach (x => x.serialize(out, saving))
         _kits foreach (x => x.serializeKitName(out))
         out.write(_unused)
@@ -66,7 +66,7 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
 
 class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory(k, kn, u, g) {
     def this() = this(x => new KitV3, (i, x) => {}, () => new Array(540), () => new GlobalV3)
-    def this(in: FileInputStream) = this(
+    def this(in: InputStream) = this(
         x => new KitV3(in),
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(540).toArray,
@@ -84,7 +84,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
 
 class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory(k, kn, u, g) {
     def this() = this(x => new KitV4, (i, x) => {}, () => new Array(195), () => new GlobalV4)
-    def this(in: FileInputStream) = this(
+    def this(in: InputStream) = this(
         x => new KitV4(in),
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(195).toArray,

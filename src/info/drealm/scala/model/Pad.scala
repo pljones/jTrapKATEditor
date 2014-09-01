@@ -47,7 +47,7 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
         _flags = pad.flags
     }
 
-    def deserialize(in: FileInputStream): Unit = {
+    def deserialize(in: InputStream): Unit = {
         in.read(_slots, 0, 2)
         _curve = in.read().toByte
         _gate = in.read().toByte
@@ -57,7 +57,7 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
         in.read(_slots, 2, 4)
         _flags = in.read().toByte
     }
-    def serialize(out: FileOutputStream, saving: Boolean): Unit = {
+    def serialize(out: OutputStream, saving: Boolean): Unit = {
         out.write(_slots, 0, 2)
         out.write(_curve)
         out.write(_gate)
@@ -103,7 +103,7 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
 
 class PadV3 private (f: => Array[Byte]) extends Pad(f) {
     def this() = this((Seq(42.toByte) ++ Stream.continually(128.toByte).take(5)).take(6).toArray)
-    def this(in: FileInputStream) = {
+    def this(in: InputStream) = {
         this(new Array[Byte](6))
         deserialize(in)
     }
@@ -153,7 +153,7 @@ class PadV3 private (f: => Array[Byte]) extends Pad(f) {
 
 class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
     def this(self: Byte) = this((Seq(42.toByte) ++ Stream.continually(128.toByte).take(16)).take(16).toArray, self)
-    def this(in: FileInputStream) = {
+    def this(in: InputStream) = {
         this(new Array[Byte](16), 0.toByte) // Don't really care but need to initialise
         deserialize(in)
     }
@@ -182,12 +182,12 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
         _changed = true
     }
 
-    override def deserialize(in: FileInputStream): Unit = {
+    override def deserialize(in: InputStream): Unit = {
         super.deserialize(in)
         in.read(_slots, 6, 10)
         _linkTo = in.read().toByte
     }
-    override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
+    override def serialize(out: OutputStream, saving: Boolean): Unit = {
         super.serialize(out, saving)
         out.write(_slots, 6, 10)
         out.write(_linkTo)
@@ -218,16 +218,16 @@ abstract class PadSeq[TPad <: Pad] protected (f: Int => TPad)(implicit TPad: Man
     // Here we just deserialize into the existing pad.
     // Seeing as the C# leaves the existing container, it makes more sense, I think,
     // to do the same with the pad itself.
-    override def deserialize(in: FileInputStream): Unit = _pads foreach (x => x.deserialize(in))
+    override def deserialize(in: InputStream): Unit = _pads foreach (x => x.deserialize(in))
     // .. and I could not be asked to optimise the loop to put the "if" outside ...
-    override def serialize(out: FileOutputStream, saving: Boolean): Unit = _pads foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
+    override def serialize(out: OutputStream, saving: Boolean): Unit = _pads foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
 
     def changed = _changed || _pads.foldLeft(false)(_ || _.changed)
 }
 
 class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
     def this() = this(x => new PadV3)
-    def this(in: FileInputStream) = this(x => new PadV3(in))
+    def this(in: InputStream) = this(x => new PadV3(in))
     def this(padV4seq: Seq[PadV4]) = {
         this(x => new PadV3(padV4seq(x)))
         _changed = true
@@ -236,7 +236,7 @@ class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
 
 class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
     def this() = this(x => new PadV4((x + 1).toByte))
-    def this(in: FileInputStream) = this(x => new PadV4(in))
+    def this(in: InputStream) = this(x => new PadV4(in))
     def this(padV3seq: Seq[PadV3]) = {
         this(x => new PadV4(padV3seq(x), (x + 1).toByte))
         _changed = true

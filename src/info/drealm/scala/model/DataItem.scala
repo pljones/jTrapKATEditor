@@ -29,15 +29,15 @@ import scala.io._
 
 trait DataItem {
     // The C# has this as protected
-    def deserialize(in: FileInputStream): Unit
+    def deserialize(in: InputStream): Unit
 
     // The C# has this as public
-    final def serialize(out: FileOutputStream): Unit = serialize(out, false)
+    final def serialize(out: OutputStream): Unit = serialize(out, false)
 
     // And this is the one you MUST define
     // ALWAYS ALWAYS! ALWAYS!!! call save(out) if saving is true when
     // implementing this!!!!!
-    def serialize(out: FileOutputStream, saving: Boolean): Unit
+    def serialize(out: OutputStream, saving: Boolean): Unit
 
     // The C# has "internalchg" as protected but not used, so not implemented!
 
@@ -54,7 +54,7 @@ trait DataItem {
     }
 
     // In strange circumstances you may want to override this
-    def save(out: FileOutputStream): Unit = {
+    def save(out: OutputStream): Unit = {
         serialize(out, true)
         _changed = false
     }

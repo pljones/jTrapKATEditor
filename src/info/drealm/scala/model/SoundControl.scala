@@ -30,7 +30,7 @@ import collection.mutable
 class SoundControl protected[model] (__prgChg: Byte, __prgChgTxmChn: Byte, __volume: Byte, __bankMSB: Byte, __bankLSB: Byte) extends DataItem with Cloneable {
     protected[model] def this() = this(0, 9, 128.toByte, 128.toByte, 128.toByte)
     protected[model] def this(soundControl: SoundControl) = this(soundControl.prgChg, soundControl.prgChgTxmChn, soundControl.volume, soundControl.bankMSB, soundControl.bankLSB)
-    protected[model] def this(in: FileInputStream) = this(in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte)
+    protected[model] def this(in: InputStream) = this(in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte, in.read().toByte)
 
     private[this] var _prgChg: Byte = __prgChg // 1-128, 0=off
     private[this] var _prgChgTxmChn: Byte = __prgChgTxmChn // 0-15, no off; displayed as value + 1
@@ -38,14 +38,14 @@ class SoundControl protected[model] (__prgChg: Byte, __prgChgTxmChn: Byte, __vol
     private[this] var _bankMSB: Byte = __bankMSB // 0-127, 128=off
     private[this] var _bankLSB: Byte = __bankLSB // 0-127, 128=off
 
-    override def deserialize(in: FileInputStream): Unit = {
+    override def deserialize(in: InputStream): Unit = {
         _prgChg = in.read().toByte
         _prgChgTxmChn = in.read().toByte
         _volume = in.read().toByte
         _bankMSB = in.read().toByte
         _bankLSB = in.read().toByte
     }
-    override def serialize(out: FileOutputStream, saving: Boolean): Unit = {
+    override def serialize(out: OutputStream, saving: Boolean): Unit = {
         // because KitV3 abuses SoundControl...
         if (saving && out == null) {
             // Simply do nothing

@@ -45,9 +45,9 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] var _kitNumber: Byte = 1
     private[this] var _kitNumberUser: Byte = 1
     private[this] var _kitNumberDemo: Byte = 1
-    private[this] var _motifNumber: Byte = 0
-    private[this] var _motifNumberPerc: Byte = 0
-    private[this] var _motifNumberMel: Byte = 0
+    private[this] var _motifNumber: Byte = 0 // Should be 0 + _motifNumberPerc (if PG) or 11 + _motifNumberMel (if MG)
+    private[this] var _motifNumberPerc: Byte = 0 // 0 to 10
+    private[this] var _motifNumberMel: Byte = 0 // 0 to..?
     private[this] var _midiMergeStatus: Byte = 0
     private[this] var _fcOpenRegion: Byte = 0
 

@@ -170,20 +170,45 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
     object mnEdit extends RichMenu("Edit") {
 
-        add(new RichMenuItem("EditUndo", x => Console.println("Edit Undo")) { visible = false })
-        add(new RichMenuItem("EditRedo", x => Console.println("Edit Redo")) { visible = false })
-
-        contents += new Separator() { visible = false }
-
-        add(new RichMenuItem("EditCopyKit", x => Console.println("Edit CopyKit")))
-        add(new RichMenuItem("EditSwapKits", x => Console.println("Edit SwapKits")))
+        val miEditUndo = new RichMenuItem("EditUndo", x => Console.println("Edit Undo"))
+        add(miEditUndo)
+        val miEditRedo = new RichMenuItem("EditRedo", x => Console.println("Edit Redo"))
+        add(miEditRedo)
 
         contents += new Separator()
 
-        add(new RichMenuItem("EditCopyPad", x => Console.println("Edit CopyPad")))
-        add(new RichMenuItem("EditPastePad", x => Console.println("Edit PastePad")))
-        add(new RichMenuItem("EditSwapPads", x => Console.println("Edit SwapPads")))
+        val miEditCopyPad = new RichMenuItem("EditCopyPad", x => Clipboard.copyPad(this))
+        add(miEditCopyPad)
 
+        val miEditPastePad = new RichMenuItem("EditPastePad", x => Clipboard.pastePad(this))
+        add(miEditPastePad)
+
+        val miEditSwapPads = new RichMenuItem("EditSwapPads", x => Clipboard.swapPads(this))
+        add(miEditSwapPads)
+
+        contents += new Separator()
+
+        val miEditCopyKit = new RichMenuItem("EditCopyKit", x => Clipboard.copyKit(this))
+        add(miEditCopyKit)
+
+        val miEditPasteKit = new RichMenuItem("EditPasteKit", x => Clipboard.pasteKit(this))
+        add(miEditPasteKit)
+
+        val miEditSwapKits = new RichMenuItem("EditSwapKits", x => Clipboard.swapKits(this))
+        add(miEditSwapKits)
+
+        reactions += {
+            case e: eventX.MenuWillBecomeVisible => {
+                miEditUndo.enabled = !EditHistory.atStart
+                miEditRedo.enabled = !EditHistory.nextItem.isEmpty
+                val clipboardType = Clipboard.clipboardType
+                Console.println(s"Clipboard.clipboardType ${clipboardType}")
+                miEditPastePad.enabled = clipboardType == Clipboard.ClipboardType.Pad
+                miEditSwapPads.enabled = true
+                miEditPasteKit.enabled = clipboardType == Clipboard.ClipboardType.Kit
+                miEditSwapKits.enabled = true
+            }
+        }
     }
 
     object mnTools extends RichMenu("Tools") {

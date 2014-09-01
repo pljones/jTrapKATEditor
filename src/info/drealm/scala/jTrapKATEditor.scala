@@ -71,6 +71,29 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
     }
+    def setKitV3(source: Component, value: model.KitV3) = {
+        _currentAllMemory.update(_currentKitNumber, value)
+        publish(new CurrentKitChanged(this))
+        allMemoryChangedBy(source)
+    }
+    def setKitV4(source: Component, value: model.KitV4) = {
+        _currentAllMemory.update(_currentKitNumber, value)
+        publish(new CurrentKitChanged(this))
+        allMemoryChangedBy(source)
+    }
+    def swapKits(source: Component, kitOther: Int) {
+        doV3V4({
+            val thisKit = currentKitV3
+            _currentAllMemory(_currentKitNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV3]
+            _currentAllMemory(kitOther) = thisKit
+        }, {
+            val thisKit = currentKitV4
+            _currentAllMemory(_currentKitNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV4]
+            _currentAllMemory(kitOther) = thisKit
+        })
+        publish(new CurrentKitChanged(this))
+        allMemoryChangedBy(source)
+    }
 
     def isKitCurve: Boolean = currentKit.forall(p => p.curve == currentKit.curve)
     def toKitCurve(): Unit = currentKit foreach (p => p.curve = currentKit.curve)
@@ -106,6 +129,32 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentPadV4: model.PadV4 = currentKitV4(_currentPadNumber)
     def padChangedBy(source: Component) = {
         publish(new CurrentPadChanged(source))
+        kitChangedBy(source)
+    }
+    def setPadV3(source: Component, pad: model.PadV3) = {
+        currentKitV3.update(_currentPadNumber, pad)
+        publish(new CurrentPadChanged(this))
+        kitChangedBy(source)
+    }
+    def setPadV4(source: Component, pad: model.PadV4) = {
+        Console.println(s"pad changed ${pad.changed}")
+        currentKitV4.update(_currentPadNumber, pad)
+        Console.println(s"kit changed ${currentKit.changed}")
+        Console.println(s"_currentAllMemory changed ${_currentAllMemory.changed}")
+        publish(new CurrentPadChanged(this))
+        kitChangedBy(source)
+    }
+    def swapPads(source: Component, kitOther: Int, padOther: Int) {
+        doV3V4({
+            val thisPad = currentPadV3
+            _currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3](_currentPadNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV3](padOther)
+            _currentAllMemory(kitOther).asInstanceOf[model.KitV3](padOther) = thisPad
+        }, {
+            val thisPad = currentPadV4
+            _currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV4](_currentPadNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV4](padOther)
+            _currentAllMemory(kitOther).asInstanceOf[model.KitV4](padOther) = thisPad
+        })
+        publish(new CurrentPadChanged(this))
         kitChangedBy(source)
     }
 

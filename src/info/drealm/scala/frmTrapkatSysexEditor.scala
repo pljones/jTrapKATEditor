@@ -71,13 +71,10 @@ object frmTrapkatSysexEditor extends Frame {
         case amc: SomethingChanged => title = getTitle()
     }
 
-    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = {
-        Console.println(s"okayToSplat: ${to} - changed? ${dataItem.changed}")
-        !dataItem.changed || (Dialog.showConfirmation(null,
-            L.G("OKToSplat", to),
-            L.G("ApplicationProductName"),
-            Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
-    }
+    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(null,
+        L.G("OKToSplat", to),
+        L.G("ApplicationProductName"),
+        Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
 
     def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(null,
         L.G("ImportThing", to, from, thing),

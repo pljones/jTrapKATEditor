@@ -111,7 +111,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def currentSoundControlNumber_=(value: Int) = doV3V4({}, if (_currentSoundControl != value) {
         _currentSoundControl = value
         publish(new CurrentSoundControlChanged(this))
-        Console.println(s"currentSoundControlNumber set to ${value}.")
     })
     def sc = currentKit.soundControls(_currentSoundControl)
 
@@ -137,10 +136,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         kitChangedBy(source)
     }
     def setPadV4(source: Component, pad: model.PadV4) = {
-        Console.println(s"pad changed ${pad.changed}")
         currentKitV4.update(_currentPadNumber, pad)
-        Console.println(s"kit changed ${currentKit.changed}")
-        Console.println(s"_currentAllMemory changed ${_currentAllMemory.changed}")
         publish(new CurrentPadChanged(this))
         kitChangedBy(source)
     }
@@ -279,12 +275,10 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             model.TrapKATSysexDump.toFile(file, thing, _currentKitNumber, !notSaving)
         else
             model.TrapKATSysexDump.toFile(file, thing, !notSaving)
-        Console.println(f"_currentType ${_currentType} | thingType ${thingType}")
         if (_currentType == model.DumpType.NotSet || thingType == model.DumpType.AllMemory) {
             _currentFile = file
             _currentType = thingType
         }
-        Console.println("_save thingChanged")
         publish(thingChanged)
     }
 

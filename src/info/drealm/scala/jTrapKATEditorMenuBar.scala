@@ -202,11 +202,10 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 miEditUndo.enabled = !EditHistory.atStart
                 miEditRedo.enabled = !EditHistory.nextItem.isEmpty
                 val clipboardType = Clipboard.clipboardType
-                Console.println(s"Clipboard.clipboardType ${clipboardType}")
                 miEditPastePad.enabled = clipboardType == Clipboard.ClipboardType.Pad
-                miEditSwapPads.enabled = true
+                miEditSwapPads.enabled = true // Should disable if going nowhere
                 miEditPasteKit.enabled = clipboardType == Clipboard.ClipboardType.Kit
-                miEditSwapKits.enabled = true
+                miEditSwapKits.enabled = true // Should disable if going nowhere
             }
         }
     }

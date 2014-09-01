@@ -142,9 +142,7 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     listenTo(jTrapKATEditor)
     reactions += {
-        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor && (clipboardType == ClipboardType.PadSwap || clipboardType == ClipboardType.KitSwap) =>
-            { Console.println("CurrentAllMemoryChanged"); clipboard.setContents(Empty, this) }
-        case e => Console.println(s"${clipboardType} ${e}")
+        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor && (clipboardType == ClipboardType.PadSwap || clipboardType == ClipboardType.KitSwap) => clipboard.setContents(Empty, this)
     }
 
     if (clipboardType == ClipboardType.PadSwap || clipboardType == ClipboardType.KitSwap) clipboard.setContents(Empty, this)

@@ -264,8 +264,9 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
         protected override def _chg() = jTrapKATEditor.padChangedBy(cbx)
 
         reactions += {
-            case e: eventX.CbxEditorFocused if jTrapKATEditor.currentPadNumber != pad - 1 => jTrapKATEditor.currentPadNumber = pad - 1
+            case e: eventX.CbxEditorFocused if jTrapKATEditor.currentPadNumber != pad - 1             => jTrapKATEditor.currentPadNumber = pad - 1
             case e: ValueChanged if e.source == cbx && jTrapKATEditor.currentKit(pad - 1)(0) != value => setValue()
+            case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor                            => setDisplay()
         }
 
         setDisplay()

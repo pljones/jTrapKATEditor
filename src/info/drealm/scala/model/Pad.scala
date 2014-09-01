@@ -222,7 +222,7 @@ abstract class PadSeq[TPad <: Pad] protected (f: Int => TPad)(implicit TPad: Man
     // .. and I could not be asked to optimise the loop to put the "if" outside ...
     override def serialize(out: FileOutputStream, saving: Boolean): Unit = _pads foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
 
-    def changed = _pads.foldLeft(false)(_ || _.changed)
+    def changed = _changed || _pads.foldLeft(false)(_ || _.changed)
 }
 
 class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {

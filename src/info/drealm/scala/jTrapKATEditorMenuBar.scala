@@ -28,7 +28,9 @@ import java.awt.event.{ InputEvent, KeyEvent }
 import javax.swing.KeyStroke
 import swing._
 import swing.event._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
+import info.drealm.scala.{ Localization => L }
+import info.drealm.scala.prefs.{ Preferences => P }
+
 
 object jTrapKATEditorMenuBar extends MenuBar {
 
@@ -226,14 +228,14 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     bgTODMN.buttons.add(this)
                     listenTo(jTrapKATEditorPreferences)
                     reactions += {
-                        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if prefs.notesAs == displayMode => selected = true
-                        case ButtonClicked(_) => prefs.notesAs = displayMode
+                        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if P.notesAs == displayMode => selected = true
+                        case ButtonClicked(_) => P.notesAs = displayMode
                     }
                 }
 
-                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers") { selected = prefs.notesAs == AsNumber }
-                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3") { selected = prefs.notesAs == AsNamesC3 }
-                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4") { selected = prefs.notesAs == AsNamesC4 }
+                contents += new DisplayModeMenuItem(AsNumber, "AsNumbers") { selected = P.notesAs == AsNumber }
+                contents += new DisplayModeMenuItem(AsNamesC3, "AsNamesC3") { selected = P.notesAs == AsNamesC3 }
+                contents += new DisplayModeMenuItem(AsNamesC4, "AsNamesC4") { selected = P.notesAs == AsNamesC4 }
             }
         }
 
@@ -280,7 +282,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         contents += new Separator()
 
         add(new RichMenuItem("HelpAbout", x => Dialog.showMessage(null,
-            L.G("helpAbout", updateTool.Checker.currentVersion, L.G("UT" + prefs.updateAutomatically.toString()), f"${prefs.lastUpdateTS}%TF"),
+            L.G("helpAbout", updateTool.Checker.currentVersion, L.G("UT" + P.updateAutomatically.toString()), f"${P.lastUpdateTS}%TF"),
             L.G("helpAboutCaption"))
         ))
     }

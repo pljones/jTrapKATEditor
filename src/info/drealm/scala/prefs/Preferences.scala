@@ -22,17 +22,17 @@
  * **************************************************************************
  */
 
-package info.drealm.scala
+package info.drealm.scala.prefs
 
-import java.util.prefs._
 import java.util.Date
 import java.text.SimpleDateFormat
 import swing.event._
+import info.drealm.scala._
 
 // TODO: The Windows implementation of this needs be backward compatible - i.e. not use registry
 
 // Yes, please do rename this on import...
-object jTrapKATEditorPreferences extends swing.Publisher {
+object Preferences extends swing.Publisher {
     abstract class PreferenceChanged extends Event
     class CurrentWorkingDirectoryPreferencChanged extends PreferenceChanged
     class NotesAsPreferencChanged extends PreferenceChanged
@@ -40,8 +40,8 @@ object jTrapKATEditorPreferences extends swing.Publisher {
     class LastUpdateTSPreferencChanged extends PreferenceChanged
     class LastIgnoredVersionPreferencChanged extends PreferenceChanged
 
-    lazy val userPreferences = Preferences.userNodeForPackage(classOf[PreferenceChanged])
-    //lazy val systemPreferences = Preferences.systemNodeForPackage(classOf[PreferenceChanged])
+    lazy val userPreferences = java.util.prefs.Preferences.userNodeForPackage(classOf[PreferenceChanged])
+    //lazy val systemPreferences = java.util.prefs.Preferences.systemNodeForPackage(classOf[PreferenceChanged])
 
     def currentWorkingDirectory: java.io.File = userPreferences.get("currentWorkingDirectory", "") match {
         case ""   => util.getHome

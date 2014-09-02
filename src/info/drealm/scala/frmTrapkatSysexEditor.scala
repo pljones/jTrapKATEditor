@@ -28,14 +28,15 @@ import swing._
 import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L, Resource => R }
+import info.drealm.scala.{ Localization => L, Resource => R }
+import info.drealm.scala.prefs.{ Preferences => P }
 import info.drealm.scala.updateTool._
 
 object frmTrapkatSysexEditor extends Frame {
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
-        prefs.currentWorkingDirectory = (
+        P.currentWorkingDirectory = (
             if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile
             else if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
             else util.getHome).getCanonicalFile()
@@ -67,7 +68,7 @@ object frmTrapkatSysexEditor extends Frame {
     )
 
     reactions += {
-        case wo: WindowOpened      => Checker.autoUpdateMode = prefs.updateAutomatically
+        case wo: WindowOpened      => Checker.autoUpdateMode = P.updateAutomatically
         case amc: SomethingChanged => title = getTitle()
     }
 

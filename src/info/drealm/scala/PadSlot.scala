@@ -28,7 +28,8 @@ import javax.swing.{ JComponent, JComboBox, JTextField, InputVerifier }
 import scala.swing._
 import swing.event._
 import info.drealm.scala.migPanel._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
+import info.drealm.scala.{ Localization => L }
+import info.drealm.scala.prefs.{ Preferences => P }
 
 /**
  * NoteNameToNumber
@@ -104,7 +105,7 @@ trait PadSlot {
     val toNumberC3 = (new NoteNameToNumber { val octave = 3 }).toNumber _
     val toNumberC4 = (new NoteNameToNumber { val octave = 4 }).toNumber _
     def toPadSlot(value: String): Byte = (padFunction.indexOf(value) match {
-        case -1 => prefs.notesAs match {
+        case -1 => P.notesAs match {
             case AsNumber => value.toInt match {
                 case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
                 case good                        => good
@@ -118,7 +119,7 @@ trait PadSlot {
     val toNameC3 = (new NoteNumberToName { val octave = 3 }).toName _
     val toNameC4 = (new NoteNumberToName { val octave = 4 }).toName _
     def toString(value: Byte): String = (0x000000ff & value) match {
-        case x if x < 128 => prefs.notesAs match {
+        case x if x < 128 => P.notesAs match {
             case AsNumber  => s"${x}"
             case AsNamesC3 => toNameC3(x)
             case AsNamesC4 => toNameC4(x)
@@ -196,17 +197,17 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
         }
     }
 
-    private[this] var _displayMode: DisplayMode.DisplayMode = prefs.notesAs
-    listenTo(jTrapKATEditorPreferences)
+    private[this] var _displayMode: DisplayMode.DisplayMode = P.notesAs
+    listenTo(prefs.Preferences)
     reactions += {
-        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if _displayMode != prefs.notesAs => {
+        case e: P.NotesAsPreferencChanged if _displayMode != P.notesAs => {
             if (!v3v4.padFunction.contains(editorPeer.getText())) {
                 val oldVal: Byte = (_displayMode match {
                     case DisplayMode.AsNumber  => editorPeer.getText().toInt
                     case DisplayMode.AsNamesC3 => v3v4.toNumberC3(editorPeer.getText())
                     case DisplayMode.AsNamesC4 => v3v4.toNumberC4(editorPeer.getText())
                 }).toByte
-                val newVal: String = prefs.notesAs match {
+                val newVal: String = P.notesAs match {
                     case DisplayMode.AsNumber  => s"${oldVal}"
                     case DisplayMode.AsNamesC3 => v3v4.toNameC3(oldVal)
                     case DisplayMode.AsNamesC4 => v3v4.toNameC4(oldVal)
@@ -214,7 +215,7 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
                 editorPeer.setText(newVal)
                 selection.item = newVal
             }
-            _displayMode = prefs.notesAs
+            _displayMode = P.notesAs
         }
     }
 }

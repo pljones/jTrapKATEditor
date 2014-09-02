@@ -28,7 +28,8 @@ import javax.swing.UIManager
 import swing._
 import swing.event._
 import info.drealm.scala.eventX._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L }
+import info.drealm.scala.{ Localization => L }
+import info.drealm.scala.prefs.{ Preferences => P }
 
 object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     val ui = UIManager.getSystemLookAndFeelClassName()
@@ -46,7 +47,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     private[this] var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType
 
-    private[this] var _currentFile: java.io.File = new java.io.File(prefs.currentWorkingDirectory.getPath() + "/.")
+    private[this] var _currentFile: java.io.File = new java.io.File(P.currentWorkingDirectory.getPath() + "/.")
     def currentFile = _currentFile
 
     private[this] var _currentAllMemory: model.AllMemory = new model.AllMemoryV4

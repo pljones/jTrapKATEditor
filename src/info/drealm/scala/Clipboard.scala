@@ -88,6 +88,8 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     def copyPad(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(CopyPadV3(jTrapKATEditor.currentPadV3), CopyPadV4(jTrapKATEditor.currentPadV4)), this)
 
+    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
+    //       pad needs to switch to various or use the kit setting (prompt)
     def pastePad(source: Component) = clipboard.getAvailableDataFlavors().head match {
         case v3 if v3 == dfPadV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => jTrapKATEditor.doV3V4(
             jTrapKATEditor.setPadV3(source, getContentPadV3()),

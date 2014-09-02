@@ -28,7 +28,8 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import swing._
 import swing.event._
-import info.drealm.scala.{ jTrapKATEditorPreferences => prefs, Localization => L, Resource => R, util, eventX }
+import info.drealm.scala.{ Localization => L, Resource => R, util, eventX }
+import info.drealm.scala.prefs.{ Preferences => P }
 
 object Checker extends Publisher {
 
@@ -94,14 +95,14 @@ object Checker extends Publisher {
     def autoUpdateMode_=(value: AutoUpdateMode): Unit = {
         val oldMode = _autoUpdateMode
         _autoUpdateMode = value
-        prefs.updateAutomatically = _autoUpdateMode
+        P.updateAutomatically = _autoUpdateMode
         publish(new eventX.AutoUpdateModeChanged(oldMode, _autoUpdateMode))
     }
 
     def dailyCheck(): Unit = {
-        if (autoUpdateMode == Automatically && prefs.lastUpdateTS != util.dateToDay(new Date())) {
+        if (autoUpdateMode == Automatically && P.lastUpdateTS != util.dateToDay(new Date())) {
             if (getUpdate(true).isDefined)
-                prefs.lastUpdateTS = new Date()
+                P.lastUpdateTS = new Date()
         }
     }
 
@@ -113,7 +114,7 @@ object Checker extends Publisher {
                     L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Options.YesNoCancel, Dialog.Message.Question, null, L.G("UCAvailableOptions").split("\n"), 0) match {
                         case Dialog.Result.Yes => /*Visit*/ util.browse(updateInfo.updateURL.getOrElse("updateURL missing!"))
                         case Dialog.Result.No  => /*Later*/ {}
-                        case _                 => /*Ignore*/ prefs.lastIgnoredVersion = updateInfo.availableVersion.get
+                        case _                 => /*Ignore*/ P.lastIgnoredVersion = updateInfo.availableVersion.get
                     }
                 Some(true)
             }
@@ -127,20 +128,20 @@ object Checker extends Publisher {
             case cv => updateInfo.availableVersion match {
                 case None => None
                 case Some(av) => Some(if (av <= cv) false else {
-                    if (updateInfo.reset.getOrElse(false) && av != prefs.lastIgnoredVersion) prefs.lastIgnoredVersion = cv
-                    !(auto && av <= prefs.lastIgnoredVersion)
+                    if (updateInfo.reset.getOrElse(false) && av != P.lastIgnoredVersion) P.lastIgnoredVersion = cv
+                    !(auto && av <= P.lastIgnoredVersion)
                 })
             }
         }
     }
 
-    if (prefs.updateAutomatically == NotSet) {
+    if (P.updateAutomatically == NotSet) {
         Dialog.showConfirmation(null,
             L.G("UCNotSet", L.G("ApplicationProductName")), L.G("UCNotSetCaption", L.G("ApplicationProductName"))) match {
-                case Dialog.Result.Yes => prefs.updateAutomatically = Automatically
+                case Dialog.Result.Yes => P.updateAutomatically = Automatically
                 case _ => {
                     Dialog.showMessage(null, L.G("UCSaidNo"), L.G("UCNotSetCaption", L.G("ApplicationProductName")))
-                    prefs.updateAutomatically = Off
+                    P.updateAutomatically = Off
                 }
             }
     }

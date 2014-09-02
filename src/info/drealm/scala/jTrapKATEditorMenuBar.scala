@@ -226,9 +226,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     extends RadioMenuItem(L.G("miToolsOptionsDMN" + nameSuffix)) {
                     name = "miToolsOptionsDMN" + nameSuffix
                     bgTODMN.buttons.add(this)
-                    listenTo(jTrapKATEditorPreferences)
+                    listenTo(prefs.Preferences)
                     reactions += {
-                        case e: jTrapKATEditorPreferences.NotesAsPreferencChanged if P.notesAs == displayMode => selected = true
+                        case e: P.NotesAsPreferencChanged if P.notesAs == displayMode => selected = true
                         case ButtonClicked(_) => P.notesAs = displayMode
                     }
                 }

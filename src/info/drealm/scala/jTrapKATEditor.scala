@@ -36,7 +36,14 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     UIManager.put("swing.boldMetal", false)
     UIManager.setLookAndFeel(ui)
 
+    // Use custom preferences manager
+    System.setProperty("java.util.prefs.PreferencesFactory", "info.drealm.scala.prefs.FilePreferencesFactory")
+
     def top = frmTrapkatSysexEditor
+
+    override def shutdown(): Unit = {
+        prefs.Preferences.userPreferences.flush()
+    }
 
     override def publish(thing: Event) = {
         val source = thing match { case e: SomethingChanged => e.source match { case cp: Component => cp.name; case e if e == jTrapKATEditor => "jTrapKATEditor"; case _ => "{?}" }; case _ => "{?}" }

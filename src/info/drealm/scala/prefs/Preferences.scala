@@ -29,9 +29,6 @@ import java.text.SimpleDateFormat
 import swing.event._
 import info.drealm.scala._
 
-// TODO: The Windows implementation of this needs be backward compatible - i.e. not use registry
-
-// Yes, please do rename this on import...
 object Preferences extends swing.Publisher {
     abstract class PreferenceChanged extends Event
     class CurrentWorkingDirectoryPreferencChanged extends PreferenceChanged

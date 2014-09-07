@@ -1,4 +1,4 @@
-CLASSPATH=../lib/miglayout-4.0-swing.jar:../lib/jna-4.1.0.jar:../lib/jna-platform-4.1.0.jar
+CLASSPATH=../lib/scala-xml.jar:../lib/miglayout-4.0-swing.jar:../lib/jna-4.1.0.jar:../lib/jna-platform-4.1.0.jar
 SRC=$(shell cd src && find -type f -name '*.scala')
 NOTSRC=$(shell cd src && find -type f ! -name '*.scala')
 VERSION=$(shell date '+%y-%m%d-%H%M')

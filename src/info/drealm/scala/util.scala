@@ -31,6 +31,8 @@ import com.sun.jna.platform.win32._
  * Provides hacks around standard mechanisms to fix Windows-isms
  */
 object util {
+
+    // Document storage location
     def getHome: java.io.File = {
         if (!com.sun.jna.Platform.isWindows()) {
             new java.io.File(System.getProperty("user.home"))
@@ -41,6 +43,50 @@ object util {
                 case true => new String(pszPath.takeWhile(c => c != '\u0000'))
                 case _    => System.getProperty("user.home")
             })
+        }
+    }
+
+    private[this] val _vendor = "peter_l_jones"
+    private[this] val _vendowWindows = "Peter L Jones"
+
+    // System-wide settings storage
+    def getSystemStore: java.io.File = {
+        val prefix = s"${
+            if (!com.sun.jna.Platform.isWindows()) {
+                new java.io.File(System.getProperty("system.config", "/etc"), _vendor)
+            }
+            else {
+                val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
+                new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_COMMON_APPDATA, false) match {
+                    case true => new String(pszPath.takeWhile(c => c != '\u0000'))
+                    case _    => System.getProperty("system.config", "/")
+                }, _vendowWindows)
+            }.getCanonicalPath()
+        }"
+        new java.io.File(prefix)
+    }
+
+    // Per-user settings storage
+    def getUserStore: java.io.File = {
+        val prefix = s"${
+            if (!com.sun.jna.Platform.isWindows()) {
+                new java.io.File(System.getProperty("user.home", ""), s".${_vendor}")
+            }
+            else {
+                val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
+                new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_APPDATA, false) match {
+                    case true => new String(pszPath.takeWhile(c => c != '\u0000'))
+                    case _    => System.getProperty("user.home", "/")
+                }, _vendowWindows)
+            }.getCanonicalPath()
+        }"
+        new java.io.File(prefix)
+    }
+
+    def createUserStore() = {
+        getUserStore match {
+            case exists if exists.isDirectory() => {}
+            case create                         => {create.mkdirs()}
         }
     }
 

@@ -28,21 +28,43 @@ object Clipboard extends ClipboardOwner with Publisher {
         private def writeObject(out: java.io.ObjectOutputStream): Unit = pad.serialize(out)
         private def readObject(in: java.io.ObjectInputStream): Unit = pad = new model.PadV3(in)
     }
-    private[this] case class CopyPadV4(var pad: model.PadV4) extends Clippable {
+    private[this] case class CopyPadV4(var pad: model.PadV4, var padNoWas: Byte) extends Clippable {
         override def dataFlavour = dfPadV4
-        private def writeObject(out: java.io.ObjectOutputStream): Unit = pad.serialize(out)
-        private def readObject(in: java.io.ObjectInputStream): Unit = pad = new model.PadV4(in)
+        private def writeObject(out: java.io.ObjectOutputStream): Unit = {
+            out.writeByte(padNoWas)
+            pad.serialize(out)
+        }
+        private def readObject(in: java.io.ObjectInputStream): Unit = {
+            padNoWas = in.readByte()
+            pad = new model.PadV4(in)
+        }
     }
     private[this] case class SwapPads(kit: Int, pad: Int) extends Clippable { override def dataFlavour = dfSwapPads }
-    private[this] case class CopyKitV3(var kit: model.KitV3Dump) extends Clippable {
+    private[this] case class CopyKitV3(var kit: model.KitV3, var kitNoWas: Byte) extends Clippable {
         override def dataFlavour = dfKitV3
-        private def writeObject(out: java.io.ObjectOutputStream): Unit = kit.serialize(out, false)
-        private def readObject(in: java.io.ObjectInputStream): Unit = kit = new model.KitV3Dump(in)
+        private def writeObject(out: java.io.ObjectOutputStream): Unit = {
+            out.writeByte(kitNoWas)
+            kit.serialize(out)
+            kit.serializeKitName(out)
+        }
+        private def readObject(in: java.io.ObjectInputStream): Unit = {
+            kitNoWas = in.readByte()
+            kit = new model.KitV3(in)
+            kit.deserializeKitName(in)
+        }
     }
-    private[this] case class CopyKitV4(var kit: model.KitV4Dump) extends Clippable {
+    private[this] case class CopyKitV4(var kit: model.KitV4, var kitNoWas: Byte) extends Clippable {
         override def dataFlavour = dfKitV4
-        private def writeObject(out: java.io.ObjectOutputStream): Unit = kit.serialize(out, false)
-        private def readObject(in: java.io.ObjectInputStream): Unit = kit = new model.KitV4Dump(in)
+        private def writeObject(out: java.io.ObjectOutputStream): Unit = {
+            out.writeByte(kitNoWas)
+            kit.serialize(out)
+            kit.serializeKitName(out)
+        }
+        private def readObject(in: java.io.ObjectInputStream): Unit = {
+            kitNoWas = in.readByte()
+            kit = new model.KitV4(in)
+            kit.deserializeKitName(in)
+        }
     }
     private[this] case class SwapKits(kit: Int) extends Clippable { override def dataFlavour = dfSwapKits }
 
@@ -80,33 +102,68 @@ object Clipboard extends ClipboardOwner with Publisher {
     }
 
     private[this] def getContentPadV3() = clipboard.getContents(this).getTransferData(dfPadV3).asInstanceOf[CopyPadV3].pad
-    private[this] def getContentPadV4() = clipboard.getContents(this).getTransferData(dfPadV4).asInstanceOf[CopyPadV4].pad
+    private[this] def getContentPadV4() = clipboard.getContents(this).getTransferData(dfPadV4).asInstanceOf[CopyPadV4]
     private[this] def getContentSwapPads() = clipboard.getContents(this).getTransferData(dfSwapPads).asInstanceOf[SwapPads]
-    private[this] def getContentKitV3() = clipboard.getContents(this).getTransferData(dfKitV3).asInstanceOf[CopyKitV3].kit
-    private[this] def getContentKitV4() = clipboard.getContents(this).getTransferData(dfKitV4).asInstanceOf[CopyKitV4].kit
+    private[this] def getContentKitV3() = clipboard.getContents(this).getTransferData(dfKitV3).asInstanceOf[CopyKitV3]
+    private[this] def getContentKitV4() = clipboard.getContents(this).getTransferData(dfKitV4).asInstanceOf[CopyKitV4]
     private[this] def getContentSwapKits() = clipboard.getContents(this).getTransferData(dfSwapKits).asInstanceOf[SwapKits]
 
-    def copyPad(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(CopyPadV3(jTrapKATEditor.currentPadV3), CopyPadV4(jTrapKATEditor.currentPadV4)), this)
+    def copyPad(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
+        CopyPadV3(jTrapKATEditor.currentPadV3),
+        CopyPadV4(jTrapKATEditor.currentPadV4, jTrapKATEditor.currentPadNumber.toByte)
+    ), this)
 
     // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
     //       pad needs to switch to various or use the kit setting (prompt)
-    def pastePad(source: Component) = clipboard.getAvailableDataFlavors().head match {
-        case v3 if v3 == dfPadV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => jTrapKATEditor.doV3V4(
-            jTrapKATEditor.setPadV3(source, getContentPadV3()),
-            if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4")))
-                jTrapKATEditor.setPadV4(source, new model.PadV4(getContentPadV3(), jTrapKATEditor.currentPadNumber.toByte))
-        )
-        case v4 if v4 == dfPadV4 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => jTrapKATEditor.doV3V4(
-            if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3"))) jTrapKATEditor.setPadV3(source, new model.PadV3(getContentPadV4())),
-            {
-                val pad = getContentPadV4()
-                pad.linkTo = (jTrapKATEditor.currentPadNumber + 1).toByte
-                jTrapKATEditor.setPadV4(source, pad)
-            }
-        )
+    // TODO: Need to track HiHat settings
+    def pastePad(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
+        case Some(pad) if (pad == dfPadV3 || pad == dfPadV4) && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => {
+
+            jTrapKATEditor.doV3V4({
+                pad match {
+                    case v3 if v3 == dfPadV3 => jTrapKATEditor.setPadV3(source, getContentPadV3())
+                    case v4 if v4 == dfPadV4 && okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3")) => jTrapKATEditor.setPadV3(source, new model.PadV3(getContentPadV4().pad))
+                }
+            }, {
+                pad match {
+                    case v3 if v3 == dfPadV3 && okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4")) => jTrapKATEditor.setPadV4(source, new model.PadV4(getContentPadV3(), jTrapKATEditor.currentPadNumber.toByte))
+                    case v4 if v4 == dfPadV4 => {
+                        def padName(p: Byte, l: Byte) = if (p == l) L.G("PastePadV4NotLinked") else L.G("PastePadV4Linked", s"${l}")
+                        val tfr = getContentPadV4()
+                        val linkTo = jTrapKATEditor.currentPadV4.linkTo
+                        val currentPadSelf = (jTrapKATEditor.currentPadNumber + 1).toByte
+                        if ((currentPadSelf != linkTo || tfr.padNoWas + 1 != tfr.pad.linkTo) && currentPadSelf != tfr.pad.linkTo) {
+                            val entries = Seq(L.G("Do not link")) ++
+                                (if (currentPadSelf == linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${linkTo}"))) ++
+                                (if (tfr.padNoWas + 1 == tfr.pad.linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${tfr.pad.linkTo}")))
+                            Dialog.showInput(null,
+                                L.G("PastePadV4Link", padName(currentPadSelf, linkTo), padName((tfr.padNoWas + 1).toByte, tfr.pad.linkTo)),
+                                L.G("PastePadV4Caption"), Dialog.Message.Question, null, entries, 0) match {
+                                    case None => // cancel
+                                    case Some(elem) => {
+                                        entries.indexOf(elem) match {
+                                            case 0                             => tfr.pad.linkTo = currentPadSelf // Not linked
+                                            case 1 if currentPadSelf != linkTo => tfr.pad.linkTo = linkTo
+                                            case _                             => {}
+                                        }
+                                        jTrapKATEditor.setPadV4(source, tfr.pad)
+                                    }
+                                }
+                        }
+                        else {
+                            tfr.pad.linkTo = currentPadSelf
+                            jTrapKATEditor.setPadV4(source, tfr.pad)
+                        }
+                    }
+                }
+            })
+        }
         case otherwise => {}
     }
 
+    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
+    //       pad needs to switch to various or use the kit setting (prompt)
+    // TODO: Need to track HiHat settings
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
             val content = getContentSwapPads()
@@ -116,21 +173,27 @@ object Clipboard extends ClipboardOwner with Publisher {
     }
 
     def copyKit(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
-        CopyKitV3(new model.KitV3Dump(jTrapKATEditor.currentKitV3, jTrapKATEditor.currentKitNumber.toByte)),
-        CopyKitV4(new model.KitV4Dump(jTrapKATEditor.currentKitV4, jTrapKATEditor.currentKitNumber.toByte))
+        CopyKitV3(jTrapKATEditor.currentKitV3, jTrapKATEditor.currentKitNumber.toByte),
+        CopyKitV4(jTrapKATEditor.currentKitV4, jTrapKATEditor.currentKitNumber.toByte)
     ), this)
 
-    def pasteKit(source: Component) = clipboard.getAvailableDataFlavors().head match {
-        case v3 if v3 == dfKitV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => jTrapKATEditor.doV3V4(
-            jTrapKATEditor.setKitV3(source, getContentKitV3().self),
-            if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4")))
-                jTrapKATEditor.setKitV4(source, new model.KitV4(getContentKitV3().self))
-        )
-        case v4 if v4 == dfKitV4 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => jTrapKATEditor.doV3V4(
-            if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")))
-                jTrapKATEditor.setKitV3(source, new model.KitV3(getContentKitV4().self)),
-            jTrapKATEditor.setKitV4(source, getContentKitV4().self)
-        )
+    def pasteKit(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
+        case Some(v3) if v3 == dfKitV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
+            val kitV3Clip = getContentKitV3()
+            jTrapKATEditor.doV3V4(
+                jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, kitV3Clip.kit),
+                if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4")))
+                    jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, new model.KitV4(kitV3Clip.kit))
+            )
+        }
+        case Some(v4) if v4 == dfKitV4 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
+            val kitV4Clip = getContentKitV4()
+            jTrapKATEditor.doV3V4(
+                if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")))
+                    jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, new model.KitV3(kitV4Clip.kit)),
+                jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, kitV4Clip.kit)
+            )
+        }
         case otherwise => {}
     }
 

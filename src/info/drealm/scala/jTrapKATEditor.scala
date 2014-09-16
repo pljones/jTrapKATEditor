@@ -85,15 +85,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
     }
-    def setKitV3(source: Component, value: model.KitV3) = {
-        _currentAllMemory.update(_currentKitNumber, value)
-        publish(new CurrentKitChanged(this))
-        allMemoryChangedBy(source)
-    }
-    def setKitV4(source: Component, value: model.KitV4) = {
-        _currentAllMemory.update(_currentKitNumber, value)
-        publish(new CurrentKitChanged(this))
-        allMemoryChangedBy(source)
+    def setKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
+        if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
+            _currentAllMemory(_currentKitNumber) = getKit
+            publish(new CurrentKitChanged(this))
+        }
     }
     def swapKits(source: Component, kitOther: Int) {
         doV3V4({
@@ -106,7 +102,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             _currentAllMemory(kitOther) = thisKit
         })
         publish(new CurrentKitChanged(this))
-        allMemoryChangedBy(source)
     }
 
     def isKitCurve: Boolean = currentKit.forall(p => p.curve == currentKit.curve)

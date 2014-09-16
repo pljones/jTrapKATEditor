@@ -75,8 +75,8 @@ object Preferences extends swing.Publisher {
     }
 
     def lastUpdateTS: Date = {
-        new SimpleDateFormat("YYYY-MM-DD").parse(userPreferences.get("lastUpdateTS", "2000-01-01")) match {
-            case null => new SimpleDateFormat("YYYY-MM-DD").parse("2000-01-01")
+        new SimpleDateFormat("yyyy-MM-dd").parse(userPreferences.get("lastUpdateTS", "2000-01-01")) match {
+            case null => new SimpleDateFormat("yyyy-MM-dd").parse("2000-01-01")
             case date => date
         }
     }

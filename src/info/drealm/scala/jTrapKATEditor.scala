@@ -38,6 +38,9 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     // Use custom preferences manager
     System.setProperty("java.util.prefs.PreferencesFactory", "info.drealm.scala.prefs.FilePreferencesFactory")
+    
+    // Now we know how to get the preferences, check to see if there's an update
+    updateTool.Checker.dailyCheck()
 
     def top = frmTrapkatSysexEditor
 

@@ -257,8 +257,16 @@ class GlobalV4Dump(globalV4: GlobalV4) extends TrapKATSysexDump[GlobalV4](global
 
 class KitV3Dump(kitV3: KitV3, auxType: Byte) extends TrapKATSysexDump[KitV3](kitV3, in => { val self = new KitV3(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {
     def this(in: InputStream) = { this(null.asInstanceOf[KitV3], 0); deserialize(in) }
+    override protected def writeSysexData(out: OutputStream, saving: Boolean): Unit = {
+        _self.serialize(out, saving)
+        _self.serializeKitName(out)
+    }
 }
 
 class KitV4Dump(kitV4: KitV4, auxType: Byte) extends TrapKATSysexDump[KitV4](kitV4, in => { val self = new KitV4(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {
     def this(in: InputStream) = { this(null.asInstanceOf[KitV4], 0); deserialize(in) }
+    override protected def writeSysexData(out: OutputStream, saving: Boolean): Unit = {
+        _self.serialize(out, saving)
+        _self.serializeKitName(out)
+    }
 }

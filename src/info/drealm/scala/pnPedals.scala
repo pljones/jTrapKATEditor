@@ -37,9 +37,8 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
     name = "pnPedals"
 
     Seq(("cell 1 0", 25), ("cell 2 0", 26), ("cell 6 0", 27), ("cell 7 0", 28)) foreach (pad => {
-        val pn = new Pad(pad._2) { background = new Color(228, 228, 228) }
+        val pn = new Pad(pad._2)
         contents += (pn, pad._1 + ",gapx 1, pad 0 -1 0 1,grow")
-        listenTo(pn)
         pn
     })
 

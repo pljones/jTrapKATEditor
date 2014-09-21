@@ -253,10 +253,32 @@ abstract class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Bo
     init()
 }
 
+object Pad {
+    val padColorSelected = java.awt.SystemColor.textHighlight
+    val padColorSelectedText = java.awt.SystemColor.textHighlightText
+    val padColorPad = new Color(224, 255, 255)
+    val padColorRim = new Color(230, 230, 250)
+    val padColorPedal = new Color(228, 228, 228)
+    val padColorText = java.awt.SystemColor.textText
+}
 class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") {
     name = s"pnPad${pad}"
+    background = getBackground
 
-    private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) { name = s"lblPad${pad}" }
+    private[this] def selected = jTrapKATEditor.currentPadNumber == pad - 1
+    private[this] def getBackground = if (selected) Pad.padColorSelected else { if (pad < 11) Pad.padColorPad else { if (pad < 24) Pad.padColorRim else Pad.padColorPedal } }
+
+    private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) {
+        name = s"lblPad${pad}"
+        foreground = getForeground
+
+        private[this] def getForeground = if (selected) Pad.padColorSelectedText else Pad.padColorText
+
+        listenTo(jTrapKATEditor)
+        reactions += {
+            case _ => foreground = getForeground
+        }
+    }
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
 
     private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true) with Bindings {
@@ -276,6 +298,11 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
 
     override def requestFocus() = cbxPad.requestFocus()
+
+    listenTo(jTrapKATEditor)
+    reactions += {
+        case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor => background = getBackground
+    }
 }
 
 class Slot(slot: Int) {

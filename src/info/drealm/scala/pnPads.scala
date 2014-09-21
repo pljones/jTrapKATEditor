@@ -42,9 +42,7 @@ object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][gro
         col <- (0 to 7) zip row._2;
         if col._2 != 0
     } yield (s"cell ${col._1} ${row._1}", col._2)) foreach { pad =>
-        val pn = new Pad(pad._2) {
-            background = if (pad._2 < 11) new Color(224, 255, 255) else new Color(230, 230, 250)
-        }
+        val pn = new Pad(pad._2)
         contents += (pn, pad._1 + ",grow")
         pn
     }

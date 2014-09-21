@@ -167,7 +167,10 @@ object Clipboard extends ClipboardOwner with Publisher {
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
             val content = getContentSwapPads()
-            if (content.kit != jTrapKATEditor.currentKitNumber || content.pad != jTrapKATEditor.currentPadNumber) jTrapKATEditor.swapPads(source, content.kit, content.pad)
+            if (content.kit != jTrapKATEditor.currentKitNumber || content.pad != jTrapKATEditor.currentPadNumber) {
+                jTrapKATEditor.swapPads(source, content.kit, content.pad)
+                clipboard.setContents(Empty, this)
+            }
         }
         case _ => clipboard.setContents(SwapPads(jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber), this)
     }
@@ -200,7 +203,10 @@ object Clipboard extends ClipboardOwner with Publisher {
     def swapKits(source: Component) = clipboardType match {
         case KitSwap => {
             val kit = getContentSwapKits().kit
-            if (kit != jTrapKATEditor.currentKitNumber) jTrapKATEditor.swapKits(source, kit)
+            if (kit != jTrapKATEditor.currentKitNumber) {
+                jTrapKATEditor.swapKits(source, kit)
+                clipboard.setContents(Empty, this)
+            }
         }
         case _ => clipboard.setContents(SwapKits(jTrapKATEditor.currentKitNumber), this)
     }

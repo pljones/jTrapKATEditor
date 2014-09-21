@@ -91,14 +91,14 @@ object Clipboard extends ClipboardOwner with Publisher {
     import ClipboardType._
 
     def clipboardType: ClipboardType = clipboard.getAvailableDataFlavors().headOption match {
-        case Some(null)                                  => { Console.println("Got a null data flavor!"); ClipboardType.NotSet }
-        case Some(pad) if pad.equals(dfPadV3)            => ClipboardType.Pad
-        case Some(pad) if pad.equals(dfPadV4)            => ClipboardType.Pad
-        case Some(padSwap) if padSwap.equals(dfSwapPads) => ClipboardType.PadSwap
-        case Some(kit) if kit.equals(dfKitV3)            => ClipboardType.Kit
-        case Some(kit) if kit.equals(dfKitV4)            => ClipboardType.Kit
-        case Some(kitSwap) if kitSwap.equals(dfSwapKits) => ClipboardType.KitSwap
-        case otherwise                                   => ClipboardType.NotSet
+        case Some(null)                             => { Console.println("Got a null data flavor!"); ClipboardType.NotSet }
+        case Some(pad) if pad == dfPadV3            => ClipboardType.Pad
+        case Some(pad) if pad == dfPadV4            => ClipboardType.Pad
+        case Some(padSwap) if padSwap == dfSwapPads => ClipboardType.PadSwap
+        case Some(kit) if kit == dfKitV3            => ClipboardType.Kit
+        case Some(kit) if kit == dfKitV4            => ClipboardType.Kit
+        case Some(kitSwap) if kitSwap == dfSwapKits => ClipboardType.KitSwap
+        case otherwise                              => ClipboardType.NotSet
     }
 
     private[this] def getContentPadV3() = clipboard.getContents(this).getTransferData(dfPadV3).asInstanceOf[CopyPadV3].pad

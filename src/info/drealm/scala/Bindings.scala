@@ -35,13 +35,17 @@ trait Bindings extends Publisher {
 
     protected def setDisplay(): Unit = {
         deafTo(this)
-        _get()
+        try { _get() } catch { case e: Exception => e.printStackTrace() } finally {}
         listenTo(this)
     }
     protected def setValue(): Unit = {
         deafTo(jTrapKATEditor)
-        _set()
-        _chg()
+        try {
+            _set()
+            _chg()
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally {}
         listenTo(jTrapKATEditor)
     }
 

@@ -311,9 +311,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         // was checked -> various, now unchecked -> kit
                         // currently various pad values
                         // not okay to splat, so revert the checkbox (yuck!)
-                        deafTo(this)
-                        selected = true
-                        listenTo(this)
+                        try {
+                            deafTo(this)
+                            selected = true
+                        }
+                        catch { case e: Exception => e.printStackTrace() }
+                        finally { listenTo(this) }
                     }
                     else {
                         padCpName foreach (n => setPadEnabled(n, selected))
@@ -616,24 +619,33 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                     name = s"ckb${_name}"
 
                                     private[this] def setDisplay(): Unit = {
-                                        deafTo(this)
-                                        selected = _isOff()
-                                        listenTo(this)
+                                        try {
+                                            deafTo(this)
+                                            selected = _isOff()
+                                        }
+                                        catch { case e: Exception => e.printStackTrace() }
+                                        finally { listenTo(this) }
                                         spn.enabled = !selected
                                     }
                                     private[this] def setValue(): Unit = {
                                         if (selected && !_isOff() && !okToGoSCOff(_name)) {
                                             // changed to Off, was !Off, not OK, abort...
-                                            deafTo(this)
-                                            selected = true
-                                            listenTo(this)
+                                            try {
+                                                deafTo(this)
+                                                selected = true
+                                            }
+                                            catch { case e: Exception => e.printStackTrace() }
+                                            finally { listenTo(this) }
                                         }
                                         else {
                                             spn.enabled = !selected
-                                            deafTo(jTrapKATEditor)
-                                            _toOff(selected)
-                                            jTrapKATEditor.kitChangedBy(this)
-                                            listenTo(jTrapKATEditor)
+                                            try {
+                                                deafTo(jTrapKATEditor)
+                                                _toOff(selected)
+                                                jTrapKATEditor.kitChangedBy(this)
+                                            }
+                                            catch { case e: Exception => e.printStackTrace() }
+                                            finally { listenTo(jTrapKATEditor) }
                                         }
                                     }
 

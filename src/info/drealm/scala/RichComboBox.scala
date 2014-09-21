@@ -35,7 +35,7 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label, stepped: Bool
     def this(items: Seq[A]) = this(items, "", null)
 
     name = _name
-    
+
     if (stepped) {
         peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
     }
@@ -55,14 +55,15 @@ class RichComboBox[A](items: Seq[A], _name: String, _label: Label, stepped: Bool
         reactions += {
             case e: eventX.ItemDeselected => editreset = e.item.asInstanceOf[A]
             case e: eventX.ItemSelected if editorPeer.getInputVerifier() != null && !editorPeer.getInputVerifier().verify(editorPeer) => {
-                deafTo(this)
-                selection.item = editreset
-                listenTo(this)
+                try {
+                    deafTo(this)
+                    selection.item = editreset
+                }
+                catch { case e: Exception => e.printStackTrace() }
+                finally { listenTo(this) }
             }
             case e: FocusGained if e.source == theEditor => {
-                deafTo(this)
                 publish(new eventX.CbxEditorFocused(this))
-                listenTo(this)
             }
 
             // I tried reading about key maps

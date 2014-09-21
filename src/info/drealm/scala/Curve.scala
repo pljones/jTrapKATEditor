@@ -51,9 +51,12 @@ class CurveComboBoxV3V4(_name: String, label: Label, _getVal: () => Byte, _setVa
     val cbxV4: CurveComboBoxV4 = new CurveComboBoxV4(_name)
     val lbl: Label = label
     protected override def _get() = {
-        deafTo(selection)
-        selection.index = _getVal()
-        listenTo(selection)
+        try {
+            deafTo(selection)
+            selection.index = _getVal()
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(selection) }
     }
     protected override def _set() = _setVal(selection.index.toByte)
     protected override def _chg() = _chgBy(cbx)

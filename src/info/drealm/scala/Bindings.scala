@@ -34,19 +34,21 @@ trait Bindings extends Publisher {
     protected def _chg(): Unit
 
     protected def setDisplay(): Unit = {
-        deafTo(this)
-        try { _get() } catch { case e: Exception => e.printStackTrace() } finally {}
-        listenTo(this)
+        try {
+            deafTo(this)
+            _get()
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(this) }
     }
     protected def setValue(): Unit = {
-        deafTo(jTrapKATEditor)
         try {
+            deafTo(jTrapKATEditor)
             _set()
             _chg()
         }
         catch { case e: Exception => e.printStackTrace() }
-        finally {}
-        listenTo(jTrapKATEditor)
+        finally { listenTo(jTrapKATEditor) }
     }
 
     listenTo(jTrapKATEditor)
@@ -59,9 +61,12 @@ trait Bindings extends Publisher {
 
 trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
     protected override def setDisplay(): Unit = {
-        deafTo(selection)
-        super.setDisplay()
-        listenTo(selection)
+        try {
+            deafTo(selection)
+            super.setDisplay()
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(selection) }
     }
 
     listenTo(selection)

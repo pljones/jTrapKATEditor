@@ -239,14 +239,20 @@ abstract class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Bo
 
     reactions += {
         case e: eventX.CbxEditorFocused => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+            try {
+                deafTo(this)
+                publish(e)
+            }
+            catch { case e: Exception => e.printStackTrace() }
+            finally { listenTo(this) }
         }
         case e: ValueChanged if e.source.isInstanceOf[PadSlotComboBoxParent] => {
-            deafTo(this)
-            publish(e)
-            listenTo(this)
+            try {
+                deafTo(this)
+                publish(e)
+            }
+            catch { case e: Exception => e.printStackTrace() }
+            finally { listenTo(this) }
         }
     }
 

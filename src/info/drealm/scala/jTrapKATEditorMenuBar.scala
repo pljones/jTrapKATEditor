@@ -31,7 +31,6 @@ import swing.event._
 import info.drealm.scala.{ Localization => L }
 import info.drealm.scala.prefs.{ Preferences => P }
 
-
 object jTrapKATEditorMenuBar extends MenuBar {
 
     class RichMenu(_name: String) extends Menu(L.G(s"mn${_name}")) {
@@ -41,7 +40,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
             case mne                          => mnemonic = scala.swing.event.Key(mne.charAt(0))
         }
 
-        def add(mi: RichMenuItem) = {
+        def add(mi: MenuItem) = {
             listenTo(mi)
             contents += mi
         }
@@ -55,7 +54,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
         })
     }
 
-    class RichMenuItem(protected val _name: String, miClick: RichMenuItem => Unit = null) extends MenuItem(L.G(s"mi${_name}")) {
+    trait EnrichenMenuItem extends MenuItem {
+        protected val _name: String
+        protected val miClick: MenuItem => Unit = null
         name = s"mi${_name}"
 
         // Must define any accelerator before mnemonic...
@@ -72,10 +73,14 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
 
         reactions += {
-            case e: ButtonClicked => if (miClick != null) miClick(e.source.asInstanceOf[RichMenuItem])
+            case e: ButtonClicked => if (miClick != null) miClick(e.source.asInstanceOf[MenuItem])
         }
-
     }
+    class RichMenuItem(override protected val _name: String, override protected val miClick: MenuItem => Unit = null)
+        extends MenuItem(L.G(s"mi${_name}")) with EnrichenMenuItem
+
+    class RichCheckMenuItem(override protected val _name: String, override protected val miClick: MenuItem => Unit = null)
+        extends CheckMenuItem(L.G(s"mi${_name}")) with EnrichenMenuItem
 
     object mnFile extends RichMenu("File") {
         add(new RichMenuItem("FileNewV3", x => jTrapKATEditor.reinitV3()))
@@ -185,7 +190,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         val miEditPastePad = new RichMenuItem("EditPastePad", x => Clipboard.pastePad(this))
         add(miEditPastePad)
 
-        val miEditSwapPads = new RichMenuItem("EditSwapPads", x => Clipboard.swapPads(this))
+        val miEditSwapPads = new RichCheckMenuItem("EditSwapPads", x => Clipboard.swapPads(this))
         add(miEditSwapPads)
 
         contents += new Separator()
@@ -196,7 +201,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         val miEditPasteKit = new RichMenuItem("EditPasteKit", x => Clipboard.pasteKit(this))
         add(miEditPasteKit)
 
-        val miEditSwapKits = new RichMenuItem("EditSwapKits", x => Clipboard.swapKits(this))
+        val miEditSwapKits = new RichCheckMenuItem("EditSwapKits", x => Clipboard.swapKits(this))
         add(miEditSwapKits)
 
         reactions += {
@@ -204,10 +209,11 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 miEditUndo.enabled = !EditHistory.atStart
                 miEditRedo.enabled = !EditHistory.nextItem.isEmpty
                 val clipboardType = Clipboard.clipboardType
+                Console.println(s"clipboardType ${clipboardType}")
                 miEditPastePad.enabled = clipboardType == Clipboard.ClipboardType.Pad
-                miEditSwapPads.enabled = true // Should disable if going nowhere
+                miEditSwapPads.selected = clipboardType == Clipboard.ClipboardType.PadSwap
                 miEditPasteKit.enabled = clipboardType == Clipboard.ClipboardType.Kit
-                miEditSwapKits.enabled = true // Should disable if going nowhere
+                miEditSwapKits.selected = clipboardType == Clipboard.ClipboardType.KitSwap
             }
         }
     }
@@ -229,7 +235,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     listenTo(prefs.Preferences)
                     reactions += {
                         case e: P.NotesAsPreferencChanged if P.notesAs == displayMode => selected = true
-                        case ButtonClicked(_) => P.notesAs = displayMode
+                        case ButtonClicked(_)                                         => P.notesAs = displayMode
                     }
                 }
 

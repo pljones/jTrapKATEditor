@@ -135,70 +135,92 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     private[this] val pnGlobalGeneral = new GlobalPanel("General")
     contents += (pnGlobalGeneral, "cell 0 0")
 
-    private[this] val pnGlobalKit = new GlobalPanel("Kit")
-    contents += (pnGlobalKit, "cell 0 1")
-
     private[this] val pnGlobalFC = new GlobalPanel("FC")
     contents += (pnGlobalFC, "cell 1 0")
 
     private[this] val pnGlobalBC = new GlobalPanel("BC")
     contents += (pnGlobalBC, "cell 2 0")
 
-    private[this] val pnGlobalMotif = new GlobalPanel("Motif")
-    contents += (pnGlobalMotif, "cell 1 1")
+    private[this] val pnGlobalKit = new GlobalPanel("Kit")
+    contents += (pnGlobalKit, "cell 0 1")
 
     private[this] val pnGlobalGroove = new GlobalPanel("Groove")
-    contents += (pnGlobalGroove, "cell 2 1")
+    contents += (pnGlobalGroove, "cell 1 1")
 
-    pnGlobalGeneral.addOffOnComboBox("beeperStatus", () => jTrapKATEditor.currentGlobal.beeperStatus, (value: Byte) => jTrapKATEditor.currentGlobal.beeperStatus = value)
-    pnGlobalBC.addComboBox("bcFunction", () => jTrapKATEditor.currentGlobal.bcFunction, (value: Byte) => jTrapKATEditor.currentGlobal.bcFunction = value,
-        GlobalComboBoxParams(Seq(L.G("itemOff"), L.G("bcBendUp"), L.G("bcBendDown"), L.G("bcExpression"), L.G("bcSustain"))))
+    private[this] val pnGlobalMotif = new GlobalPanel("Motif")
+    contents += (pnGlobalMotif, "cell 2 1")
+
+    // Global Pad 4
+    pnGlobalGeneral.addOffOnComboBox("midiMergeStatus", () => jTrapKATEditor.currentGlobal.midiMergeStatus, (value: Byte) => jTrapKATEditor.currentGlobal.midiMergeStatus = value)
+    // Global Pad 7
+    pnGlobalGeneral.addComboBox("prgChgRcvChn", () => jTrapKATEditor.currentGlobal.prgChgRcvChn, (value: Byte) => jTrapKATEditor.currentGlobal.prgChgRcvChn = value,
+        GlobalComboBoxParams((1 to 16).map(x => s"${x}") ++ Seq(L.G("chnOmni"), L.G("itemOff"))))
+    // Global Pad 8
     pnGlobalGeneral.addComboBox("chokeFunction", () => jTrapKATEditor.currentGlobal.chokeFunction, (value: Byte) => jTrapKATEditor.currentGlobal.chokeFunction = value,
         GlobalComboBoxParams(Seq(L.G("itemOff"), L.G("chokeAT"), L.G("choke96"))))
-    pnGlobalFC.addSpinner("fcClosedRegion", () => jTrapKATEditor.currentGlobal.fcClosedRegion, (value: Byte) => jTrapKATEditor.currentGlobal.fcClosedRegion = value, None)
-    pnGlobalFC.addComboBox("fcPolarity", () => jTrapKATEditor.currentGlobal.fcPolarity, (value: Byte) => jTrapKATEditor.currentGlobal.fcPolarity = value,
-        GlobalComboBoxParams(Seq(L.G("fcExpr"), L.G("fcFC"))))
-    pnGlobalBC.addComboBox("bcPolarity", () => jTrapKATEditor.currentGlobal.bcPolarity, (value: Byte) => jTrapKATEditor.currentGlobal.bcPolarity = value,
-        GlobalComboBoxParams(Seq(L.G("bcHighHard"), L.G("bcHighSoft"))))
-    pnGlobalBC.addSpinner("bcLowLevel", () => jTrapKATEditor.currentGlobal.bcLowLevel, (value: Byte) => jTrapKATEditor.currentGlobal.bcLowLevel = value, None)
-    pnGlobalBC.addSpinner("bcHighLevel", () => jTrapKATEditor.currentGlobal.bcHighLevel, (value: Byte) => jTrapKATEditor.currentGlobal.bcHighLevel = value, None)
-    pnGlobalFC.addSpinner("fcLowLevel", () => jTrapKATEditor.currentGlobal.fcLowLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcLowLevel = value, None)
-    pnGlobalFC.addSpinner("fcHighLevel", () => jTrapKATEditor.currentGlobal.fcHighLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcHighLevel = value, None)
-    pnGlobalFC.addSpinner("fcVelocityLevel", () => jTrapKATEditor.currentGlobal.fcVelocityLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcVelocityLevel = value, None)
-    pnGlobalFC.addSpinner("fcWaitModeLevel", () => jTrapKATEditor.currentGlobal.fcWaitModeLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcWaitModeLevel = value, None)
+    // Global Pad 16
+    pnGlobalGeneral.addOffOnComboBox("noteNamesStatus", () => jTrapKATEditor.currentGlobal.noteNamesStatus, (value: Byte) => jTrapKATEditor.currentGlobal.noteNamesStatus = value)
+    // Global Pad 18
+    pnGlobalGeneral.addComboBox("trigGain", () => jTrapKATEditor.currentGlobal.trigGain, (value: Byte) => jTrapKATEditor.currentGlobal.trigGain = value,
+        GlobalComboBoxParams(Seq(L.G("trigMIN"), L.G("trigMID"), L.G("trigMAX"))))
+    // V3 Global Pads: 19 is beeperStatus, 20 is display Angle; V4 mixes it up...
+    pnGlobalGeneral.addOffOnComboBox("beeperStatus", () => jTrapKATEditor.currentGlobal.beeperStatus, (value: Byte) => jTrapKATEditor.currentGlobal.beeperStatus = value)
+    pnGlobalGeneral.addComboBox("displayAngle", () => jTrapKATEditor.currentGlobal.displayAngle, (value: Byte) => jTrapKATEditor.currentGlobal.displayAngle = value,
+        GlobalComboBoxParams(Seq(L.G("displayStraight"), L.G("displayEdge"))))
+
     pnGlobalGeneral.addSpinner("instrumentID", () => jTrapKATEditor.currentGlobal.instrumentID, (value: Byte) => jTrapKATEditor.currentGlobal.instrumentID = value,
         Some(GlobalSpinnerParams(0, 0, 127)))
+
+    pnGlobalGeneral.addOffOnComboBox("hearSoundStatus", () => jTrapKATEditor.currentGlobal.hearSoundStatus, (value: Byte) => jTrapKATEditor.currentGlobal.hearSoundStatus = value)
+
+    // Global Pad 6
+    pnGlobalFC.addComboBox("fcSplashEase", () => (jTrapKATEditor.currentGlobal.fcSplashEase - 1).toByte, (value: Byte) => jTrapKATEditor.currentGlobal.fcSplashEase = (value + 1).toByte,
+        GlobalComboBoxParams(Seq(L.G("itemOff")) ++ (1 to 10).map(x => s"${x}")))
+    // Global Pad 17 is FC train...
+    pnGlobalFC.addSpinner("fcLowLevel", () => jTrapKATEditor.currentGlobal.fcLowLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcLowLevel = value, None)
+    pnGlobalFC.addSpinner("fcVelocityLevel", () => jTrapKATEditor.currentGlobal.fcVelocityLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcVelocityLevel = value, None)
+    pnGlobalFC.addSpinner("fcWaitModeLevel", () => jTrapKATEditor.currentGlobal.fcWaitModeLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcWaitModeLevel = value, None)
+    pnGlobalFC.addSpinner("fcClosedRegion", () => jTrapKATEditor.currentGlobal.fcClosedRegion, (value: Byte) => jTrapKATEditor.currentGlobal.fcClosedRegion = value, None)
+    pnGlobalFC.addSpinner("fcHighLevel", () => jTrapKATEditor.currentGlobal.fcHighLevel, (value: Byte) => jTrapKATEditor.currentGlobal.fcHighLevel = value, None)
+    pnGlobalFC.addComboBox("fcPolarity", () => jTrapKATEditor.currentGlobal.fcPolarity, (value: Byte) => jTrapKATEditor.currentGlobal.fcPolarity = value,
+        GlobalComboBoxParams(Seq(L.G("fcExpr"), L.G("fcFC"))))
+
+    // V3 Global Pad 21 (becomes "Save User Kit")
+    pnGlobalBC.addComboBox("bcFunction", () => jTrapKATEditor.currentGlobal.bcFunction, (value: Byte) => jTrapKATEditor.currentGlobal.bcFunction = value,
+        GlobalComboBoxParams(Seq(L.G("itemOff"), L.G("bcBendUp"), L.G("bcBendDown"), L.G("bcExpression"), L.G("bcSustain"))))
+    // V3 (and V4 with hardware) Pad 22 is BC train...
+    pnGlobalBC.addSpinner("bcLowLevel", () => jTrapKATEditor.currentGlobal.bcLowLevel, (value: Byte) => jTrapKATEditor.currentGlobal.bcLowLevel = value, None)
+    pnGlobalBC.addSpinner("bcHighLevel", () => jTrapKATEditor.currentGlobal.bcHighLevel, (value: Byte) => jTrapKATEditor.currentGlobal.bcHighLevel = value, None)
+    pnGlobalBC.addComboBox("bcPolarity", () => jTrapKATEditor.currentGlobal.bcPolarity, (value: Byte) => jTrapKATEditor.currentGlobal.bcPolarity = value,
+        GlobalComboBoxParams(Seq(L.G("bcHighHard"), L.G("bcHighSoft"))))
+
+    // Global Pad 1
+    pnGlobalKit.addComboBox("playMode", () => jTrapKATEditor.currentGlobal.playMode, (value: Byte) => jTrapKATEditor.currentGlobal.playMode = value,
+        GlobalComboBoxParams(Seq(L.G("kitFactory"), L.G("kitUser"), L.G("kitKAT"))))
     pnGlobalKit.addSpinner("kitNumber", () => jTrapKATEditor.currentGlobal.kitNumber, (value: Byte) => jTrapKATEditor.currentGlobal.kitNumber = value,
         Some(GlobalSpinnerParams(1, 1, 24)))
     pnGlobalKit.addSpinner("kitNumberUser", () => jTrapKATEditor.currentGlobal.kitNumberUser, (value: Byte) => jTrapKATEditor.currentGlobal.kitNumberUser = value,
         Some(GlobalSpinnerParams(1, 1, 24)))
     pnGlobalKit.addSpinner("kitNumberDemo", () => jTrapKATEditor.currentGlobal.kitNumberDemo, (value: Byte) => jTrapKATEditor.currentGlobal.kitNumberDemo = value,
         Some(GlobalSpinnerParams(1, 1, 24)))
-    // Should be 0 + _motifNumberPerc (if PG) or 11 + _motifNumberMel (if MG)
-    pnGlobalMotif.addSpinner("motifNumber", () => jTrapKATEditor.currentGlobal.motifNumber, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumber = value, None)
-    // ?? 0 to 10
-    pnGlobalMotif.addSpinner("motifNumberPerc", () => jTrapKATEditor.currentGlobal.motifNumberPerc, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumberPerc = value, None)
-    // ?? 0 to ..?s
-    pnGlobalMotif.addSpinner("motifNumberMel", () => jTrapKATEditor.currentGlobal.motifNumberMel, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumberMel = value, None)
-    pnGlobalGeneral.addOffOnComboBox("midiMergeStatus", () => jTrapKATEditor.currentGlobal.midiMergeStatus, (value: Byte) => jTrapKATEditor.currentGlobal.midiMergeStatus = value)
-    pnGlobalGeneral.addComboBox("trigGain", () => jTrapKATEditor.currentGlobal.trigGain, (value: Byte) => jTrapKATEditor.currentGlobal.trigGain = value,
-        GlobalComboBoxParams(Seq(L.G("trigMIN"), L.G("trigMID"), L.G("trigMAX"))))
-    pnGlobalGeneral.addComboBox("prgChgRcvChn", () => jTrapKATEditor.currentGlobal.prgChgRcvChn, (value: Byte) => jTrapKATEditor.currentGlobal.prgChgRcvChn = value,
-        GlobalComboBoxParams((1 to 16).map(x => s"${x}") ++ Seq(L.G("chnOmni"), L.G("itemOff"))))
-    pnGlobalGeneral.addComboBox("displayAngle", () => jTrapKATEditor.currentGlobal.displayAngle, (value: Byte) => jTrapKATEditor.currentGlobal.displayAngle = value,
-        GlobalComboBoxParams(Seq(L.G("displayStraight"), L.G("displayEdge"))))
-    pnGlobalKit.addComboBox("playMode", () => jTrapKATEditor.currentGlobal.playMode, (value: Byte) => jTrapKATEditor.currentGlobal.playMode = value,
-        GlobalComboBoxParams(Seq(L.G("kitFactory"), L.G("kitUser"), L.G("kitKAT"))))
-    pnGlobalGroove.addSpinner("grooveVol", () => jTrapKATEditor.currentGlobal.grooveVol, (value: Byte) => jTrapKATEditor.currentGlobal.grooveVol = value,
-        Some(GlobalSpinnerParams(0, 0, 10)))
-    pnGlobalGroove.addOffOnComboBox("grooveStatus", () => jTrapKATEditor.currentGlobal.grooveStatus, (value: Byte) => jTrapKATEditor.currentGlobal.grooveStatus = value)
-    pnGlobalFC.addComboBox("fcSplashEase", () => (jTrapKATEditor.currentGlobal.fcSplashEase - 1).toByte, (value: Byte) => jTrapKATEditor.currentGlobal.fcSplashEase = (value + 1).toByte,
-        GlobalComboBoxParams(Seq(L.G("itemOff")) ++ (1 to 10).map(x => s"${x}")))
-    pnGlobalGeneral.addOffOnComboBox("noteNamesStatus", () => jTrapKATEditor.currentGlobal.noteNamesStatus, (value: Byte) => jTrapKATEditor.currentGlobal.noteNamesStatus = value)
-    pnGlobalGroove.addOffOnComboBox("grooveAutoOff", () => jTrapKATEditor.currentGlobal.grooveAutoOff, (value: Byte) => jTrapKATEditor.currentGlobal.grooveAutoOff = value)
     pnGlobalKit.addSpinner("kitNumberKAT", () => jTrapKATEditor.currentGlobal.kitNumberKAT, (value: Byte) => jTrapKATEditor.currentGlobal.kitNumberKAT = value,
         Some(GlobalSpinnerParams(1, 1, 6)))
-    pnGlobalGroove.addSpinner("ttMeter", () => jTrapKATEditor.currentGlobal.ttMeter, (value: Byte) => jTrapKATEditor.currentGlobal.ttMeter = value, None)
-    pnGlobalGeneral.addOffOnComboBox("hearSoundStatus", () => jTrapKATEditor.currentGlobal.hearSoundStatus, (value: Byte) => jTrapKATEditor.currentGlobal.hearSoundStatus = value)
+
+    // Global Pad 2
+    pnGlobalGroove.addOffOnComboBox("grooveStatus", () => jTrapKATEditor.currentGlobal.grooveStatus, (value: Byte) => jTrapKATEditor.currentGlobal.grooveStatus = value)
+    // Global Pad 5
+    pnGlobalGroove.addOffOnComboBox("grooveAutoOff", () => jTrapKATEditor.currentGlobal.grooveAutoOff, (value: Byte) => jTrapKATEditor.currentGlobal.grooveAutoOff = value)
+    // Global Pad 9
+    pnGlobalGroove.addSpinner("grooveVol", () => jTrapKATEditor.currentGlobal.grooveVol, (value: Byte) => jTrapKATEditor.currentGlobal.grooveVol = value,
+        Some(GlobalSpinnerParams(0, 0, 10)))
+    // Grooves Status On, Pad 23 tap tempo:
+    pnGlobalMotif.addSpinner("ttMeter", () => jTrapKATEditor.currentGlobal.ttMeter, (value: Byte) => jTrapKATEditor.currentGlobal.ttMeter = value, None)
+
+    // Should be 0 + _motifNumberPerc (if PG) or 11 + _motifNumberMel (if MG)
+    pnGlobalMotif.addSpinner("motifNumber", () => jTrapKATEditor.currentGlobal.motifNumber, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumber = value, None)
+    // Grooves Status On, Pad 16 selects; ?? 0 to 10
+    pnGlobalMotif.addSpinner("motifNumberPerc", () => jTrapKATEditor.currentGlobal.motifNumberPerc, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumberPerc = value, None)
+    // Grooves Status On, Pad 15 selects; ?? 0 to ..?s
+    pnGlobalMotif.addSpinner("motifNumberMel", () => jTrapKATEditor.currentGlobal.motifNumberMel, (value: Byte) => jTrapKATEditor.currentGlobal.motifNumberMel = value, None)
 
 }

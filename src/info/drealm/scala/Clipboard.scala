@@ -101,7 +101,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         case otherwise                              => ClipboardType.NotSet
     }
 
-    private[this] def getContentPadV3() = clipboard.getContents(this).getTransferData(dfPadV3).asInstanceOf[CopyPadV3].pad
+    private[this] def getContentPadV3() = clipboard.getContents(this).getTransferData(dfPadV3).asInstanceOf[CopyPadV3]
     private[this] def getContentPadV4() = clipboard.getContents(this).getTransferData(dfPadV4).asInstanceOf[CopyPadV4]
     private[this] def getContentSwapPads() = clipboard.getContents(this).getTransferData(dfSwapPads).asInstanceOf[SwapPads]
     private[this] def getContentKitV3() = clipboard.getContents(this).getTransferData(dfKitV3).asInstanceOf[CopyKitV3]
@@ -113,57 +113,78 @@ object Clipboard extends ClipboardOwner with Publisher {
         CopyPadV4(jTrapKATEditor.currentPadV4, jTrapKATEditor.currentPadNumber.toByte)
     ), this)
 
-    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
-    //       pad needs to switch to various or use the kit setting (prompt)
-    // TODO: Need to track HiHat settings
     def pastePad(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
         case Some(pad) if (pad == dfPadV3 || pad == dfPadV4) && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => {
-
-            jTrapKATEditor.doV3V4({
-                pad match {
-                    case v3 if v3 == dfPadV3 => jTrapKATEditor.setPadV3(source, getContentPadV3())
-                    case v4 if v4 == dfPadV4 && okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3")) => jTrapKATEditor.setPadV3(source, new model.PadV3(getContentPadV4().pad))
-                }
-            }, {
-                pad match {
-                    case v3 if v3 == dfPadV3 && okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4")) => jTrapKATEditor.setPadV4(source, new model.PadV4(getContentPadV3(), jTrapKATEditor.currentPadNumber.toByte))
-                    case v4 if v4 == dfPadV4 => {
-                        def padName(p: Byte, l: Byte) = if (p == l) L.G("PastePadV4NotLinked") else L.G("PastePadV4Linked", s"${l}")
-                        val tfr = getContentPadV4()
-                        val linkTo = jTrapKATEditor.currentPadV4.linkTo
-                        val currentPadSelf = (jTrapKATEditor.currentPadNumber + 1).toByte
-                        if ((currentPadSelf != linkTo || tfr.padNoWas + 1 != tfr.pad.linkTo) && currentPadSelf != tfr.pad.linkTo) {
-                            val entries = Seq(L.G("Do not link")) ++
-                                (if (currentPadSelf == linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${linkTo}"))) ++
-                                (if (tfr.padNoWas + 1 == tfr.pad.linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${tfr.pad.linkTo}")))
-                            Dialog.showInput(null,
-                                L.G("PastePadV4Link", padName(currentPadSelf, linkTo), padName((tfr.padNoWas + 1).toByte, tfr.pad.linkTo)),
-                                L.G("PastePadV4Caption"), Dialog.Message.Question, null, entries, 0) match {
-                                    case None => // cancel
-                                    case Some(elem) => {
-                                        entries.indexOf(elem) match {
-                                            case 0                             => tfr.pad.linkTo = currentPadSelf // Not linked
-                                            case 1 if currentPadSelf != linkTo => tfr.pad.linkTo = linkTo
-                                            case _                             => {}
-                                        }
-                                        jTrapKATEditor.setPadV4(source, tfr.pad)
-                                    }
-                                }
-                        }
-                        else {
-                            tfr.pad.linkTo = currentPadSelf
-                            jTrapKATEditor.setPadV4(source, tfr.pad)
-                        }
-                    }
-                }
-            })
+            pad match {
+                case v3 if v3 == dfPadV3 => pastePadV3(source)
+                case v4 if v4 == dfPadV4 => pastePadV4(source)
+            }
         }
         case otherwise => {}
+    }
+    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
+    //       pad needs to switch to various or use the kit setting (prompt)
+    // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
+    private[this] def pastePadV3(source: Component) {
+        val padV3Clip = getContentPadV3()
+        val padV3 = padV3Clip.pad
+        jTrapKATEditor.doV3V4({
+            // v3 -> v3
+            jTrapKATEditor.setPadV3(source, padV3)
+        }, {
+            // v3 -> v4
+            if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4")))
+                jTrapKATEditor.setPadV4(source, new model.PadV4(padV3, jTrapKATEditor.currentPadNumber.toByte))
+        })
+    }
+    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
+    //       pad needs to switch to various or use the kit setting (prompt)
+    // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
+    private[this] def pastePadV4(source: Component) {
+        val padV4Clip = getContentPadV4()
+        val padV4 = padV4Clip.pad
+        val padNoWas = (padV4Clip.padNoWas + 1).toByte
+        jTrapKATEditor.doV3V4({
+            // v4 -> v3
+            if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3")))
+                jTrapKATEditor.setPadV3(source, new model.PadV3(padV4))
+        }, {
+            // v4 -> v4
+            def padName(p: Byte, l: Byte) = if (p == l) L.G("PastePadV4NotLinked") else L.G("PastePadV4Linked", s"${l}")
+            val linkTo = jTrapKATEditor.currentPadV4.linkTo
+            val padNoIs = (jTrapKATEditor.currentPadNumber + 1).toByte
+
+            if ((padNoIs != linkTo || padNoWas != padV4.linkTo) && padNoIs != padV4.linkTo) {
+                val entries = Seq(L.G("Do not link")) ++
+                    (if (padNoIs == linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${linkTo}"))) ++
+                    (if (padNoWas == padV4.linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${padV4.linkTo}")))
+                Dialog.showInput(null,
+                    L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
+                    L.G("PastePadV4Caption"), Dialog.Message.Question, null, entries, 0) match {
+                        case None => // cancel
+                        case Some(elem) => {
+                            entries.indexOf(elem) match {
+                                case 0                      => padV4.linkTo = padNoIs // Not linked
+                                case 1 if padNoIs != linkTo => padV4.linkTo = linkTo
+                                case _                      => {}
+                            }
+                            jTrapKATEditor.setPadV4(source, padV4)
+                        }
+                    }
+            }
+            else {
+                padV4.linkTo = padNoIs
+                jTrapKATEditor.setPadV4(source, padV4)
+            }
+
+        })
+
     }
 
     // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
     //       pad needs to switch to various or use the kit setting (prompt)
-    // TODO: Need to track HiHat settings
+    // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
+    // TODO: For V4, LinkTo needs resolving...
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
             val content = getContentSwapPads()

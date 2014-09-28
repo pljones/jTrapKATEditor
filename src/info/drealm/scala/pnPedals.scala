@@ -42,7 +42,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
         pn
     })
 
-    private[this] object pnHH extends MigPanel("insets 2, gap 0", "[grow,right][left,fill]", "[]") {
+    object pnHH extends MigPanel("insets 2, gap 0", "[grow,right][left,fill]", "[]") {
         name = "pnHH"
         border = new LineBorder(java.awt.Color.BLACK)
 
@@ -55,8 +55,17 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
                 name = s"cbxHH${x}"
 
                 protected override def _get() = selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
-                protected override def _set() = jTrapKATEditor.currentKit.hhPads(x - 1, this.selection.index.toByte)
-                protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
+                protected override def _set() = {
+                    val padWas = jTrapKATEditor.currentKit.hhPads(x - 1) - 1
+                    if (padWas >= 0)
+                        jTrapKATEditor.currentKit(padWas).flags = (0x7f & jTrapKATEditor.currentKit(padWas).flags).toByte
+                    val pad = this.selection.index - 1
+                    if (pad >= 0)
+                        jTrapKATEditor.currentKit(pad).flags = (0x80 | jTrapKATEditor.currentKit(pad).flags).toByte
+
+                    jTrapKATEditor.currentKit.hhPads(x - 1, this.selection.index.toByte)
+                }
+                protected override def _chg() = jTrapKATEditor.kitChangedBy(pnHH)
 
                 setDisplay()
             }

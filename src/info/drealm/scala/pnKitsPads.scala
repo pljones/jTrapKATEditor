@@ -182,8 +182,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         protected override def _set() = jTrapKATEditor.currentPad.flags = ((~(1 << flag) & jTrapKATEditor.currentPad.flags) | ((if (selected) 1 else 0) << flag)).toByte
                         protected override def _chg() = jTrapKATEditor.padChangedBy(this)
 
+                        listenTo(pnPedals.pnHH)
                         reactions += {
                             case e: CurrentPadChanged if e.source == jTrapKATEditor => setDisplay()
+                            case e: CurrentKitChanged if e.source == pnPedals.pnHH  => setDisplay()
                             case e: ButtonClicked                                   => setValue()
                         }
 

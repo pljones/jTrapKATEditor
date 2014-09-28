@@ -38,7 +38,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     // Use custom preferences manager
     System.setProperty("java.util.prefs.PreferencesFactory", "info.drealm.scala.prefs.FilePreferencesFactory")
-    
+
     // Now we know how to get the preferences, check to see if there's an update
     updateTool.Checker.dailyCheck()
 
@@ -104,6 +104,16 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             _currentAllMemory(_currentKitNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV4]
             _currentAllMemory(kitOther) = thisKit
         })
+
+        // hackery and fakery
+        val _wasKit = _currentKitNumber
+        try {
+            _currentKitNumber = kitOther
+            publish(new CurrentKitChanged(this))
+        }
+        catch { case e: Exception => {} }
+        finally { _currentKitNumber = _wasKit }
+
         publish(new CurrentKitChanged(this))
     }
 
@@ -162,6 +172,21 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             _currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV4](_currentPadNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV4](padOther)
             _currentAllMemory(kitOther).asInstanceOf[model.KitV4](padOther) = thisPad
         })
+
+        // hackery and fakery
+        val _wasKit = _currentKitNumber
+        val _wasPad = _currentPadNumber
+        try {
+            _currentKitNumber = kitOther
+            _currentPadNumber = padOther
+            publish(new CurrentPadChanged(this))
+        }
+        catch { case e: Exception => {} }
+        finally {
+            _currentKitNumber = _wasKit
+            _currentPadNumber = _wasPad
+        }
+
         publish(new CurrentPadChanged(this))
         kitChangedBy(source)
     }

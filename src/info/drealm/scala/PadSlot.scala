@@ -272,7 +272,7 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     background = getBackground
 
     private[this] def selected = jTrapKATEditor.currentPadNumber == pad - 1
-    private[this] def getBackground = if (selected) Pad.padColorSelected else { if (pad < 11) Pad.padColorPad else { if (pad < 24) Pad.padColorRim else Pad.padColorPedal } }
+    private[this] def getBackground = if (selected) Pad.padColorSelected else { if (pad < 11) Pad.padColorPad else { if (pad < 25) Pad.padColorRim else Pad.padColorPedal } }
 
     private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) {
         name = s"lblPad${pad}"

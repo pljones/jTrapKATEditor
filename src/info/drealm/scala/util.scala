@@ -114,5 +114,5 @@ object util {
         }
     }
 
-    @inline def dateToDay(value: java.util.Date): java.util.Date = new java.text.SimpleDateFormat("YYYY-MM-DD").parse(new java.text.SimpleDateFormat("YYYY-MM-DD").format(value))
+    @inline def dateToDay(value: java.util.Date): java.util.Date = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(new java.text.SimpleDateFormat("yyyy-MM-dd").format(value))
 }

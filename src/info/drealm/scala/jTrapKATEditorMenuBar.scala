@@ -274,6 +274,8 @@ object jTrapKATEditorMenuBar extends MenuBar {
         contents += new CheckMenuItem(L.G("miHelpCheckAutomatically")) {
             import updateTool.Checker._
             name = "miHelpCheckAutomatically"
+            selected = autoUpdateMode == AutoUpdateMode.Automatically
+            
             listenTo(updateTool.Checker)
             reactions += {
                 case e: eventX.AutoUpdateModeChanged => {

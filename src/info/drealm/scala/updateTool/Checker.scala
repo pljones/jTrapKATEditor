@@ -25,7 +25,6 @@
 package info.drealm.scala.updateTool
 
 import java.util.Date
-import java.text.SimpleDateFormat
 import swing._
 import swing.event._
 import info.drealm.scala.{ Localization => L, Resource => R, util, eventX }
@@ -145,4 +144,5 @@ object Checker extends Publisher {
                 }
             }
     }
+    autoUpdateMode = P.updateAutomatically
 }

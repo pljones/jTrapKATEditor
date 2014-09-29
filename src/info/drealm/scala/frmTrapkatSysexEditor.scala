@@ -60,17 +60,16 @@ object frmTrapkatSysexEditor extends Frame {
 
     listenTo(jTrapKATEditor)
 
+    reactions += {
+        case e: SomethingChanged => title = getTitle()
+    }
+
     private[this] def getTitle() = L.G("MainProgramTitle",
         L.G("ApplicationProductName"),
         if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
         jTrapKATEditor.doV3V4(L.G("V3"), L.G("V4")),
         if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
     )
-
-    reactions += {
-        case wo: WindowOpened      => Checker.autoUpdateMode = P.updateAutomatically
-        case amc: SomethingChanged => title = getTitle()
-    }
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(null,
         L.G("OKToSplat", to),

@@ -36,6 +36,7 @@ object frmTrapkatSysexEditor extends Frame {
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
+        P.windowLocation = Tuple2(location.x, location.y)
         P.currentWorkingDirectory = (
             if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile
             else if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
@@ -56,7 +57,12 @@ object frmTrapkatSysexEditor extends Frame {
 
     layout.Focus.set(pnKitsPads, "pnPad1")
 
-    centerOnScreen
+    val xy = P.windowLocation
+    if (xy == Tuple2(-1, -1))
+        centerOnScreen
+    else {
+        this.location = new Point(xy._1, xy._2)
+    }
 
     listenTo(jTrapKATEditor)
 

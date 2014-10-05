@@ -36,6 +36,7 @@ object Preferences extends swing.Publisher {
     class UpdateAudomaticallyPreferencChanged extends PreferenceChanged
     class LastUpdateTSPreferencChanged extends PreferenceChanged
     class LastIgnoredVersionPreferencChanged extends PreferenceChanged
+    class WindowLocationPreferencChanged extends PreferenceChanged
 
     lazy val userPreferences = java.util.prefs.Preferences.userNodeForPackage(classOf[PreferenceChanged])
     //lazy val systemPreferences = java.util.prefs.Preferences.systemNodeForPackage(classOf[PreferenceChanged])
@@ -89,5 +90,15 @@ object Preferences extends swing.Publisher {
     def lastIgnoredVersion_=(value: String): Unit = {
         userPreferences.put("lastIgnoredVersion", value)
         publish(new LastIgnoredVersionPreferencChanged)
+    }
+
+    def windowLocation: Tuple2[Int, Int] = {
+        val value = userPreferences.get("windowLocation", "-1, -1").split(", ", 2)
+        try { (value(0).toInt, value(1).toInt) }
+        catch { case e: Exception => (-1, -1) }
+    }
+    def windowLocation_=(value: Tuple2[Int, Int]): Unit = {
+        userPreferences.put("windowLocation", s"${value._1}, ${value._2}")
+        publish(new WindowLocationPreferencChanged)
     }
 }

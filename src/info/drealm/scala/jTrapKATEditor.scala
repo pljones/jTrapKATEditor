@@ -162,16 +162,76 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentPadChanged(this))
         kitChangedBy(source)
     }
-    def swapPads(source: Component, kitOther: Int, padOther: Int) {
-        doV3V4({
-            val thisPad = currentPadV3
-            _currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3](_currentPadNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV3](padOther)
-            _currentAllMemory(kitOther).asInstanceOf[model.KitV3](padOther) = thisPad
+
+    def swapPads(source: Component, kitOther: Int, padOther: Int) = {
+
+        import scala.language.existentials
+        val (thisKit, thisPad, thatKit, thatPad) = doV3V4({
+            val _thisPad = currentPadV3
+            val _thatKit = _currentAllMemory(kitOther).asInstanceOf[model.KitV3]
+            val _thatPad = _thatKit(padOther)
+            currentKitV3(_currentPadNumber) = _thatPad
+            _thatKit(padOther) = _thisPad
+            Tuple4(currentKitV3, _thisPad, _thatKit, _thatPad)
         }, {
-            val thisPad = currentPadV4
-            _currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV4](_currentPadNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV4](padOther)
-            _currentAllMemory(kitOther).asInstanceOf[model.KitV4](padOther) = thisPad
+            val _thisPad = currentPadV4
+            val _thatKit = _currentAllMemory(kitOther).asInstanceOf[model.KitV4]
+            val _thatPad = _thatKit(padOther)
+
+            // Handle LinkTo.
+            if (_currentKitNumber != kitOther) {
+                // If changing kits, lose it.
+                _thisPad.linkTo = (padOther + 1).toByte
+                _thatPad.linkTo = (_currentPadNumber + 1).toByte
+            }
+            else {
+                // Same kit - retain linked-ness
+                // Not linked -> not linked
+                // Linked to other -> swap it!
+                // Linked to something else -> no change
+
+                if (_thisPad.linkTo == _currentPadNumber + 1)
+                    _thisPad.linkTo = (padOther + 1).toByte
+                else if (_thisPad.linkTo == padOther + 1)
+                    _thisPad.linkTo = (_currentPadNumber + 1).toByte
+
+                if (_thatPad.linkTo == padOther + 1)
+                    _thatPad.linkTo = (_currentPadNumber + 1).toByte
+                else if (_thatPad.linkTo == _currentPadNumber + 1)
+                    _thatPad.linkTo = (padOther + 1).toByte
+            }
+
+            currentKitV4(_currentPadNumber) = _thatPad
+            _thatKit(padOther) = _thisPad
+            Tuple4(currentKitV4, _thisPad, _thatKit, _thatPad)
         })
+
+        def hhPad(kit: model.Kit[_], padNo: Int): Option[Int] = (0 to 3).find(idx => kit.hhPads(idx) == padNo + 1)
+        if (((thisPad.flags & 0x80) != (thatPad.flags & 0x80)) || hhPad(thisKit, _currentPadNumber).isDefined != hhPad(thatKit, padOther).isDefined) {
+            // One or other of the pads is a hi-hat pads but not both - update hhPads, if needed
+            if ((thisPad.flags & 0x80) != 0 || hhPad(thisKit, _currentPadNumber).isDefined) {
+                (0 to 3).foreach(_hh => {
+                    if (thisKit.hhPads(_hh) == _currentPadNumber + 1)
+                        thisKit.hhPads(_hh, (if (thisKit == thatKit) (padOther + 1) else 0).toByte)
+                })
+                if (_currentKitNumber != kitOther && !hhPad(thatKit, padOther).isDefined)
+                    hhPad(thatKit, -1) match {
+                        case Some(idx) => thatKit.hhPads(idx, (padOther + 1).toByte)
+                        case _         => {}
+                    }
+            }
+            if ((thatPad.flags & 0x80) != 0 || hhPad(thatKit, padOther).isDefined) {
+                (0 to 3).foreach(_hh => {
+                    if (thatKit.hhPads(_hh) == padOther + 1)
+                        thatKit.hhPads(_hh, (if (thisKit == thatKit) (_currentPadNumber + 1) else 0).toByte)
+                })
+                if (_currentKitNumber != kitOther && !hhPad(thisKit, _currentPadNumber).isDefined)
+                    hhPad(thisKit, -1) match {
+                        case Some(idx) => thisKit.hhPads(idx, (_currentPadNumber + 1).toByte)
+                        case _         => {}
+                    }
+            }
+        }
 
         // hackery and fakery
         val _wasKit = _currentKitNumber
@@ -189,6 +249,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
         publish(new CurrentPadChanged(this))
         kitChangedBy(source)
+
     }
 
     def reinitV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {

@@ -67,6 +67,11 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
                 }
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(pnHH)
 
+                // Must listen out for Clipboard.SwapPad...
+                reactions += {
+                    case e: CurrentKitChanged if e.source == jTrapKATEditorMenuBar.mnEdit => setDisplay()
+                }
+                
                 setDisplay()
             }
             contents += (cbxHH, s"cell ${x} 0, grow")

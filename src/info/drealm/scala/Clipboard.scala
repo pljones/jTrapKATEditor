@@ -155,22 +155,17 @@ object Clipboard extends ClipboardOwner with Publisher {
             val padNoIs = (jTrapKATEditor.currentPadNumber + 1).toByte
 
             if ((padNoIs != linkTo || padNoWas != padV4.linkTo) && padNoIs != padV4.linkTo) {
-                val entries = Seq(L.G("Do not link")) ++
-                    (if (padNoIs == linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${linkTo}"))) ++
-                    (if (padNoWas == padV4.linkTo) Seq() else Seq(L.G("Link to pad {0}", s"${padV4.linkTo}")))
-                Dialog.showInput(null,
-                    L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
-                    L.G("PastePadV4Caption"), Dialog.Message.Question, null, entries, 0) match {
-                        case None => // cancel
-                        case Some(elem) => {
-                            entries.indexOf(elem) match {
-                                case 0                      => padV4.linkTo = padNoIs // Not linked
-                                case 1 if padNoIs != linkTo => padV4.linkTo = linkTo
-                                case _                      => {}
-                            }
-                            jTrapKATEditor.setPadV4(source, padV4)
-                        }
-                    }
+                val entries = Seq(L.G("PastePadV4DoNotLink")) ++
+                    (if (padNoIs == linkTo) Seq() else Seq(L.G("PastePadV4LinkToPad", s"${linkTo}"))) ++
+                    (if (padNoWas == padV4.linkTo) Seq() else Seq(L.G("PastePadV4LinkToPad", s"${padV4.linkTo}")))
+                if (Dialog.showOptions(message = L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
+                    title = L.G("PastePadV4Caption"), entries = entries, initial = 0) match {
+                        case Dialog.Result.Yes    => { padV4.linkTo = padNoIs; true } // Do Not Link
+                        case Dialog.Result.No     => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo
+                        case Dialog.Result.Cancel => true // Link to oldPad.LinkTo
+                        case _                    => false // Closed the window, so abort
+                    })
+                    jTrapKATEditor.setPadV4(source, padV4)
             }
             else {
                 padV4.linkTo = padNoIs
@@ -184,7 +179,6 @@ object Clipboard extends ClipboardOwner with Publisher {
     // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
     //       pad needs to switch to various or use the kit setting (prompt)
     // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
-    // TODO: For V4, LinkTo needs resolving...
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
             val content = getContentSwapPads()

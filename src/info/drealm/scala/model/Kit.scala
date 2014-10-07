@@ -125,6 +125,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def bcFunction_=(value: Byte): Unit = if (_bcFunction != value) update(_bcFunction = value) else {}
     def hhPads(idx: Int): Byte = _hhPads.apply(idx)
     def hhPads(idx: Int, value: Byte) = if (_hhPads.apply(idx) != value) update(_hhPads.update(idx, value)) else {}
+    def hhPadNos(value: Byte): Seq[Int] = (0 to 3).filter(idx => _hhPads(idx) == value)
     def fcChannel: Byte = _fcChannel
     def fcChannel_=(value: Byte): Unit = if (_fcChannel != value) update(_fcChannel = value) else {}
     def fcCurve: Byte = _fcCurve

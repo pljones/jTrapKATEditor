@@ -154,13 +154,21 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
     def setPadV3(source: Component, pad: model.PadV3) = {
         currentKitV3.update(_currentPadNumber, pad)
+        updateHHPads(pad)
         publish(new CurrentPadChanged(this))
         kitChangedBy(source)
     }
     def setPadV4(source: Component, pad: model.PadV4) = {
         currentKitV4.update(_currentPadNumber, pad)
+        updateHHPads(pad)
         publish(new CurrentPadChanged(this))
         kitChangedBy(source)
+    }
+
+    private[this] def updateHHPads(pad: model.Pad): Unit = {
+        val thisPadNo = (jTrapKATEditor.currentPadNumber + 1).toByte
+        currentKit.hhPadNos(thisPadNo).foreach(currentKit.hhPads(_, 0))
+        if ((pad.flags & 0x80) != 0) currentKit.hhPadNos(0).headOption.foreach(currentKit.hhPads(_, thisPadNo))
     }
 
     def swapPads(source: Component, kitOther: Int, padOther: Int) = {
@@ -206,31 +214,28 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             Tuple4(currentKitV4, _thisPad, _thatKit, _thatPad)
         })
 
-        def hhPad(kit: model.Kit[_], padNo: Int): Option[Int] = (0 to 3).find(idx => kit.hhPads(idx) == padNo + 1)
-        if (((thisPad.flags & 0x80) != (thatPad.flags & 0x80)) || hhPad(thisKit, _currentPadNumber).isDefined != hhPad(thatKit, padOther).isDefined) {
-            // One or other of the pads is a hi-hat pads but not both - update hhPads, if needed
-            if ((thisPad.flags & 0x80) != 0 || hhPad(thisKit, _currentPadNumber).isDefined) {
-                (0 to 3).foreach(_hh => {
-                    if (thisKit.hhPads(_hh) == _currentPadNumber + 1)
-                        thisKit.hhPads(_hh, (if (thisKit == thatKit) (padOther + 1) else 0).toByte)
-                })
-                if (_currentKitNumber != kitOther && !hhPad(thatKit, padOther).isDefined)
-                    hhPad(thatKit, -1) match {
-                        case Some(idx) => thatKit.hhPads(idx, (padOther + 1).toByte)
-                        case _         => {}
-                    }
-            }
-            if ((thatPad.flags & 0x80) != 0 || hhPad(thatKit, padOther).isDefined) {
-                (0 to 3).foreach(_hh => {
-                    if (thatKit.hhPads(_hh) == padOther + 1)
-                        thatKit.hhPads(_hh, (if (thisKit == thatKit) (_currentPadNumber + 1) else 0).toByte)
-                })
-                if (_currentKitNumber != kitOther && !hhPad(thisKit, _currentPadNumber).isDefined)
-                    hhPad(thisKit, -1) match {
-                        case Some(idx) => thisKit.hhPads(idx, (_currentPadNumber + 1).toByte)
-                        case _         => {}
-                    }
-            }
+        // Handy names for hhPad numbers
+        val thisPadNo = (_currentPadNumber + 1).toByte
+        val thatPadNo = (padOther + 1).toByte
+
+        // Remember whether a pad is a hhPad
+        val thisPadIsHH = ((thisPad.flags & 0x80) != 0) || !thisKit.hhPadNos(thisPadNo).isEmpty
+        val thatPadIsHH = ((thatPad.flags & 0x80) != 0) || !thatKit.hhPadNos(thatPadNo).isEmpty
+
+        // Free up any used hhPad
+        thisKit.hhPadNos(thisPadNo).foreach(thisKit.hhPads(_, 0))
+        thatKit.hhPadNos(thatPadNo).foreach(thatKit.hhPads(_, 0))
+
+        // Make thisPad a hhPad in thatKit
+        if (thisPadIsHH) {
+            thatKit.hhPadNos(0).headOption.foreach(thatKit.hhPads(_, thatPadNo))
+            thisPad.flags = (0x80 | thisPad.flags).toByte
+        }
+
+        // Make thatPad a hhPad in thisKit
+        if (thatPadIsHH) {
+            thisKit.hhPadNos(0).headOption.foreach(thisKit.hhPads(_, thisPadNo))
+            thatPad.flags = (0x80 | thatPad.flags).toByte
         }
 
         // hackery and fakery

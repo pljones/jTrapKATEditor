@@ -23,20 +23,28 @@ object Clipboard extends ClipboardOwner with Publisher {
         def isDataFlavorSupported(flavor: DataFlavor) = flavor.equals(dataFlavour)
         def getTransferData(flavor: DataFlavor) = if (!isDataFlavorSupported(flavor)) throw new UnsupportedFlavorException(flavor) else this
     }
-    private[this] case class CopyPadV3(var pad: model.PadV3) extends Clippable {
+    private[this] case class CopyPadV3(var pad: model.PadV3, var hhPad: Boolean) extends Clippable {
         override def dataFlavour = dfPadV3
-        private def writeObject(out: java.io.ObjectOutputStream): Unit = pad.serialize(out)
-        private def readObject(in: java.io.ObjectInputStream): Unit = pad = new model.PadV3(in)
-    }
-    private[this] case class CopyPadV4(var pad: model.PadV4, var padNoWas: Byte) extends Clippable {
-        override def dataFlavour = dfPadV4
         private def writeObject(out: java.io.ObjectOutputStream): Unit = {
-            out.writeByte(padNoWas)
             pad.serialize(out)
+            out.writeBoolean(hhPad)
         }
         private def readObject(in: java.io.ObjectInputStream): Unit = {
-            padNoWas = in.readByte()
+            pad = new model.PadV3(in)
+            hhPad = in.readBoolean()
+        }
+    }
+    private[this] case class CopyPadV4(var pad: model.PadV4, var hhPad: Boolean, var padNoWas: Byte) extends Clippable {
+        override def dataFlavour = dfPadV4
+        private def writeObject(out: java.io.ObjectOutputStream): Unit = {
+            pad.serialize(out)
+            out.writeBoolean(hhPad)
+            out.writeByte(padNoWas)
+        }
+        private def readObject(in: java.io.ObjectInputStream): Unit = {
             pad = new model.PadV4(in)
+            hhPad = in.readBoolean()
+            padNoWas = in.readByte()
         }
     }
     private[this] case class SwapPads(kit: Int, pad: Int) extends Clippable { override def dataFlavour = dfSwapPads }
@@ -109,8 +117,8 @@ object Clipboard extends ClipboardOwner with Publisher {
     private[this] def getContentSwapKits() = clipboard.getContents(this).getTransferData(dfSwapKits).asInstanceOf[SwapKits]
 
     def copyPad(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
-        CopyPadV3(jTrapKATEditor.currentPadV3),
-        CopyPadV4(jTrapKATEditor.currentPadV4, jTrapKATEditor.currentPadNumber.toByte)
+        CopyPadV3(jTrapKATEditor.currentPadV3, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty),
+        CopyPadV4(jTrapKATEditor.currentPadV4, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty, jTrapKATEditor.currentPadNumber.toByte)
     ), this)
 
     def pastePad(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
@@ -122,12 +130,14 @@ object Clipboard extends ClipboardOwner with Publisher {
         }
         case otherwise => {}
     }
+
     // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
     //       pad needs to switch to various or use the kit setting (prompt)
-    // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
     private[this] def pastePadV3(source: Component) {
         val padV3Clip = getContentPadV3()
         val padV3 = padV3Clip.pad
+        val hhPad = padV3Clip.hhPad
+        padV3.flags = ((if (hhPad) 0x80 else 0) | padV3.flags).toByte
         jTrapKATEditor.doV3V4({
             // v3 -> v3
             jTrapKATEditor.setPadV3(source, padV3)
@@ -139,11 +149,12 @@ object Clipboard extends ClipboardOwner with Publisher {
     }
     // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
     //       pad needs to switch to various or use the kit setting (prompt)
-    // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
     private[this] def pastePadV4(source: Component) {
         val padV4Clip = getContentPadV4()
         val padV4 = padV4Clip.pad
+        val hhPad = padV4Clip.hhPad
         val padNoWas = (padV4Clip.padNoWas + 1).toByte
+        padV4.flags = ((if (hhPad) 0x80 else 0) | padV4.flags).toByte
         jTrapKATEditor.doV3V4({
             // v4 -> v3
             if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3")))
@@ -178,7 +189,6 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
     //       pad needs to switch to various or use the kit setting (prompt)
-    // TODO: Need to track HiHat settings (incoming pad flags bit 7 vs current pad flags bit 7)
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
             val content = getContentSwapPads()

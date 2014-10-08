@@ -166,12 +166,16 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
 
     private[this] def updateHHPads(pad: model.Pad): Unit = {
-        val thisPadNo = (jTrapKATEditor.currentPadNumber + 1).toByte
+        val thisPadNo = (_currentPadNumber + 1).toByte
         currentKit.hhPadNos(thisPadNo).foreach(currentKit.hhPads(_, 0))
         if ((pad.flags & 0x80) != 0) currentKit.hhPadNos(0).headOption.foreach(currentKit.hhPads(_, thisPadNo))
     }
 
     def swapPads(source: Component, kitOther: Int, padOther: Int) = {
+
+        // Handy names for linkTo (V4) and hhPad numbers
+        val thisPadNo = (_currentPadNumber + 1).toByte
+        val thatPadNo = (padOther + 1).toByte
 
         import scala.language.existentials
         val (thisKit, thisPad, thatKit, thatPad) = doV3V4({
@@ -189,8 +193,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             // Handle LinkTo.
             if (_currentKitNumber != kitOther) {
                 // If changing kits, lose it.
-                _thisPad.linkTo = (padOther + 1).toByte
-                _thatPad.linkTo = (_currentPadNumber + 1).toByte
+                _thisPad.linkTo = thatPadNo
+                _thatPad.linkTo = thisPadNo
             }
             else {
                 // Same kit - retain linked-ness
@@ -198,25 +202,21 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 // Linked to other -> swap it!
                 // Linked to something else -> no change
 
-                if (_thisPad.linkTo == _currentPadNumber + 1)
-                    _thisPad.linkTo = (padOther + 1).toByte
-                else if (_thisPad.linkTo == padOther + 1)
-                    _thisPad.linkTo = (_currentPadNumber + 1).toByte
+                if (_thisPad.linkTo == thisPadNo)
+                    _thisPad.linkTo = thatPadNo
+                else if (_thisPad.linkTo == thatPadNo)
+                    _thisPad.linkTo = thisPadNo
 
-                if (_thatPad.linkTo == padOther + 1)
-                    _thatPad.linkTo = (_currentPadNumber + 1).toByte
-                else if (_thatPad.linkTo == _currentPadNumber + 1)
-                    _thatPad.linkTo = (padOther + 1).toByte
+                if (_thatPad.linkTo == thatPadNo)
+                    _thatPad.linkTo = thisPadNo
+                else if (_thatPad.linkTo == thisPadNo)
+                    _thatPad.linkTo = thatPadNo
             }
 
             currentKitV4(_currentPadNumber) = _thatPad
             _thatKit(padOther) = _thisPad
             Tuple4(currentKitV4, _thisPad, _thatKit, _thatPad)
         })
-
-        // Handy names for hhPad numbers
-        val thisPadNo = (_currentPadNumber + 1).toByte
-        val thatPadNo = (padOther + 1).toByte
 
         // Remember whether a pad is a hhPad
         val thisPadIsHH = ((thisPad.flags & 0x80) != 0) || !thisKit.hhPadNos(thisPadNo).isEmpty
@@ -226,14 +226,14 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         thisKit.hhPadNos(thisPadNo).foreach(thisKit.hhPads(_, 0))
         thatKit.hhPadNos(thatPadNo).foreach(thatKit.hhPads(_, 0))
 
-        // Make thisPad a hhPad in thatKit
         if (thisPadIsHH) {
+            // Make thisPad a hhPad in thatKit
             thatKit.hhPadNos(0).headOption.foreach(thatKit.hhPads(_, thatPadNo))
             thisPad.flags = (0x80 | thisPad.flags).toByte
         }
 
-        // Make thatPad a hhPad in thisKit
         if (thatPadIsHH) {
+            // Make thatPad a hhPad in thisKit
             thisKit.hhPadNos(0).headOption.foreach(thisKit.hhPads(_, thisPadNo))
             thatPad.flags = (0x80 | thatPad.flags).toByte
         }

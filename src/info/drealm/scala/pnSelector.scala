@@ -63,8 +63,8 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         listenTo(jTrapKATEditor)
 
         reactions += {
-            case e: CurrentKitChanged       => setDisplay()
-            case e: CurrentAllMemoryChanged => setDisplay()
+            case e: CurrentKitChanged                                     => setDisplay()
+            case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
         }
 
         setDisplay()
@@ -118,7 +118,9 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         listenTo(jTrapKATEditor)
 
         reactions += {
-            case e: CurrentPadChanged => setDisplay()
+            case e: CurrentPadChanged                                     => setDisplay()
+            case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
+            case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
         }
 
         setDisplay()

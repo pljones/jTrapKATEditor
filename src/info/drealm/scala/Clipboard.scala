@@ -149,7 +149,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         ("MinVel", () => kit.isKitMinVel, isPadMinVelKit _, padToKitMinVel _),
         ("MaxVel", () => kit.isKitMaxVel, isPadMaxVelKit _, padToKitMaxVel _)
     ) map (t => {
-            (!t._2() || t._3(kit, pad), L.G("PadKitStatus", t._1, if (!t._2() || t._3(kit, pad)) "PadKitStatusOK" else "PadKitStatusBad"), () => t._4(kit, pad))
+            (!t._2() || t._3(kit, pad), L.G("PadKitStatus", t._1, L.G(if (!t._2() || t._3(kit, pad)) "PadKitStatusOK" else "PadKitStatusBad")), () => t._4(kit, pad))
         })
 
     // Fortunately, this is a copy of a pad, so we can mess around with it regardless

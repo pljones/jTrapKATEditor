@@ -94,7 +94,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
         catch {
             case ex: IllegalArgumentException => {
-                Dialog.showMessage(null, ex.getLocalizedMessage(), L.G("InvalidSysexFile"), Dialog.Message.Error, null)
+                Dialog.showMessage(frmTrapkatSysexEditor.contents(0), ex.getLocalizedMessage(), L.G("InvalidSysexFile"), Dialog.Message.Error, null)
             }
         }
         ))
@@ -246,7 +246,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
 
         add(new RichMenuItem("ToolsConvert", x => {
-            def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(null,
+            def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
                 L.G("ConvertVersions", L.G(from), L.G(to)), L.G("ConvertCaption"),
                 Dialog.Options.YesNo, Dialog.Message.Question, null) match {
                     case Dialog.Result.Yes => converter
@@ -269,7 +269,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         contents += new Separator()
 
         add(new RichMenuItem("HelpCheckForUpdate", x => if (!updateTool.Checker.getUpdate().getOrElse(true)) // true as error already displayed
-            Dialog.showMessage(null, L.G("UHNoUpdate"), L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Message.Info)))
+            Dialog.showMessage(frmTrapkatSysexEditor.contents(0), L.G("UHNoUpdate"), L.G("UCAvailableCaption", L.G("ApplicationProductName")), Dialog.Message.Info)))
 
         contents += new CheckMenuItem(L.G("miHelpCheckAutomatically")) {
             import updateTool.Checker._
@@ -289,7 +289,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        add(new RichMenuItem("HelpAbout", x => Dialog.showMessage(null,
+        add(new RichMenuItem("HelpAbout", x => Dialog.showMessage(frmTrapkatSysexEditor.contents(0),
             L.G("helpAbout", updateTool.Checker.currentVersion, L.G("UT" + P.updateAutomatically.toString()), f"${P.lastUpdateTS}%TF"),
             L.G("helpAboutCaption"))
         ))

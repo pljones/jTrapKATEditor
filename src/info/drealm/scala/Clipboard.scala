@@ -83,7 +83,7 @@ object Clipboard extends ClipboardOwner with Publisher {
     private[this] val dfKitV4 = new DataFlavor(classOf[CopyKitV4], DataFlavor.javaSerializedObjectMimeType)
     private[this] val dfSwapKits = new DataFlavor(classOf[SwapKits], DataFlavor.javaJVMLocalObjectMimeType)
 
-    private[this] def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(null,
+    private[this] def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
         L.G("PasteThing", to, from, thing),
         L.G("PasteThingCaption", thing),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
@@ -169,7 +169,7 @@ object Clipboard extends ClipboardOwner with Publisher {
                 val entries = Seq(L.G("PastePadV4DoNotLink")) ++
                     (if (padNoIs == linkTo) Seq() else Seq(L.G("PastePadV4LinkToPad", s"${linkTo}"))) ++
                     (if (padNoWas == padV4.linkTo) Seq() else Seq(L.G("PastePadV4LinkToPad", s"${padV4.linkTo}")))
-                if (Dialog.showOptions(message = L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
+                if (Dialog.showOptions(frmTrapkatSysexEditor.contents(0), message = L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
                     title = L.G("PastePadV4Caption"), entries = entries, initial = 0) match {
                         case Dialog.Result.Yes    => { padV4.linkTo = padNoIs; true } // Do Not Link
                         case Dialog.Result.No     => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo

@@ -34,13 +34,13 @@ object SaveFileChooser extends FileChooser {
 
     def file(dumpType: String): Option[java.io.File] = {
         title = f"Save ${dumpType} Sysex Dump"
-        (showSaveDialog(null) match {
+        (showSaveDialog(frmTrapkatSysexEditor.contents(0)) match {
             case FileChooser.Result.Approve if (!selectedFile.exists() || okayToOverwrite(selectedFile)) => Some(selectedFile)
             case _ => None
         })
     }
 
-    def okayToOverwrite(file: File): Boolean = Dialog.showConfirmation(null,
+    def okayToOverwrite(file: File): Boolean = Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
         f"${file.getCanonicalPath()} exists.\n\nDo you want to overwrite it?\n",
         "jTrapKATEditor",
         Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok

@@ -34,7 +34,7 @@ object OpenFileChooser extends FileChooser {
 
     def file: Option[java.io.File] = {
         title = "Open Sysex Dump"
-        (showOpenDialog(null) match {
+        (showOpenDialog(frmTrapkatSysexEditor.contents(0)) match {
             case FileChooser.Result.Approve => Some(selectedFile)
             case _                          => None
         })

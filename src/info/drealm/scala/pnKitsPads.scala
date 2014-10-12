@@ -275,7 +275,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
             private[this] def okToGoKit(name: String): Boolean = {
-                Dialog.showConfirmation(null,
+                Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
                     L.G("ToKit", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
@@ -341,7 +341,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
 
             private[this] def okToGoSCOff(name: String): Boolean = {
-                Dialog.showConfirmation(null,
+                Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
                     L.G("ToSCOff", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok

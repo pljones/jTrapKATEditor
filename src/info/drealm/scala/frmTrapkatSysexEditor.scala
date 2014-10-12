@@ -77,17 +77,17 @@ object frmTrapkatSysexEditor extends Frame {
         if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
     )
 
-    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(null,
+    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(contents(0),
         L.G("OKToSplat", to),
         L.G("ApplicationProductName"),
         Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
 
-    def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(null,
+    def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(contents(0),
         L.G("ImportThing", to, from, thing),
         L.G("ImportThingCaption", thing),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
-    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(null,
+    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(contents(0),
         L.G("RenumberKit", s"${into}", intoName, s"${from}", fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes

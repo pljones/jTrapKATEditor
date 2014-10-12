@@ -162,7 +162,7 @@ object Clipboard extends ClipboardOwner with Publisher {
                 L.G("PastePadOKToVarious", jTrapKATEditor.currentKit.kitName, incoming.map(t => t._2).mkString("\n")),
                 L.G("PastePadOKToVariousCaption"),
                 Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
-                    case Dialog.Result.No  => { incoming.foreach(t => if (t._1) t._3()); true } //... retain the kit values and then paste
+                    case Dialog.Result.No  => { incoming.foreach(t => t._3()); true } //... retain the kit values and then paste
                     case Dialog.Result.Yes => true //... just paste (go to Various)
                     case _                 => false //... do nothing
                 }
@@ -235,8 +235,8 @@ object Clipboard extends ClipboardOwner with Publisher {
                 Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
                     case Dialog.Result.No => {
                         // Retain the kit values
-                        incoming.foreach(t => if (t._1) t._3())
-                        outgoing.foreach(t => if (t._1) t._3())
+                        incoming.foreach(t => t._3())
+                        outgoing.foreach(t => t._3())
                         true //... and then swap
                     }
                     case Dialog.Result.Yes => true //... just swap (go to Various)

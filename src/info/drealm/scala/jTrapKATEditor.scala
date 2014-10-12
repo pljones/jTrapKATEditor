@@ -117,17 +117,6 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentKitChanged(this))
     }
 
-    def isKitCurve: Boolean = currentKit.forall(p => p.curve == currentKit.curve)
-    def toKitCurve(): Unit = currentKit foreach (p => p.curve = currentKit.curve)
-    def isKitGate: Boolean = currentKit.forall(p => p.gate == currentKit.gate)
-    def toKitGate(): Unit = currentKit foreach (p => p.gate = currentKit.gate)
-    def isKitChannel: Boolean = currentKit.forall(p => p.channel == currentKit.channel)
-    def toKitChannel(): Unit = currentKit foreach (p => p.channel = currentKit.channel)
-    def isKitMinVel: Boolean = currentKit.forall(p => p.minVelocity == currentKit.minVelocity)
-    def toKitMinVel(): Unit = currentKit foreach (p => p.minVelocity = currentKit.minVelocity)
-    def isKitMaxVel: Boolean = currentKit.forall(p => p.maxVelocity == currentKit.maxVelocity)
-    def toKitMaxVel(): Unit = currentKit foreach (p => p.maxVelocity = currentKit.maxVelocity)
-
     private[this] var _currentSoundControl = 0
     def currentSoundControlNumber = _currentSoundControl
     def currentSoundControlNumber_=(value: Int) = doV3V4({}, if (_currentSoundControl != value) {

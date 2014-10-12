@@ -111,14 +111,29 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
 
     def curve: Byte = _curve
     def curve_=(value: Byte): Unit = if (_curve != value) update(_curve = value) else {}
+    def isKitCurve: Boolean = forall(p => p.curve == _curve)
+    def toKitCurve(): Unit = update(foreach (p => p.curve = _curve))
+
     def gate: Byte = _gate
     def gate_=(value: Byte): Unit = if (_gate != value) update(_gate = value) else {}
+    def isKitGate: Boolean = forall(p => p.gate == _gate)
+    def toKitGate(): Unit = update(foreach (p => p.gate = _gate))
+    
     def channel: Byte = _channel
     def channel_=(value: Byte): Unit = if (_channel != value) update(_channel = value) else {}
+    def isKitChannel: Boolean = forall(p => p.channel == _channel)
+    def toKitChannel(): Unit = update(foreach (p => p.channel = _channel))
+
     def minVelocity: Byte = _minVelocity
     def minVelocity_=(value: Byte): Unit = if (_minVelocity != value) update(_minVelocity = value) else {}
+    def isKitMinVel: Boolean = forall(p => p.minVelocity == _minVelocity)
+    def toKitMinVel(): Unit = update(foreach (p => p.minVelocity = _minVelocity))
+
     def maxVelocity: Byte = _maxVelocity
     def maxVelocity_=(value: Byte): Unit = if (_maxVelocity != value) update(_maxVelocity = value) else {}
+    def isKitMaxVel: Boolean = forall(p => p.maxVelocity == _maxVelocity)
+    def toKitMaxVel(): Unit = update(foreach (p => p.maxVelocity = _maxVelocity))
+
     def fcFunction: Byte = _fcFunction
     def fcFunction_=(value: Byte): Unit = if (_fcFunction != value) update(_fcFunction = value) else {}
     def bcFunction: Byte = _bcFunction
@@ -135,6 +150,7 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         case newName if !newName.equals(kitName) => update(Array.copy(newName.toCharArray(), 0, _kitName, 0, _kitName.length))
         case _                                   => {}
     }
+
 
     def changed = _changed || _pads.changed || _soundControls.foldLeft(false)(_ || _.changed)
 }

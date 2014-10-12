@@ -355,8 +355,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 value => jTrapKATEditor.currentKit.curve = value,
                 cbx => jTrapKATEditor.kitChangedBy(cbx)
             ) with KitBindings {
-                protected override def _isKit() = jTrapKATEditor.isKitCurve
-                protected override def _toKit() = jTrapKATEditor.toKitCurve()
+                protected override def _isKit() = jTrapKATEditor.currentKit.isKitCurve
+                protected override def _toKit() = jTrapKATEditor.currentKit.toKitCurve()
                 protected override def _cp() = cbx
 
                 reactions += {
@@ -370,7 +370,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             order += cbxKitCurve.cbxV3.name
             order += cbxKitCurve.cbxV4.name
 
-            private[this] val ckbVarCurve = new VarXCheckBox("Curve", cbxKitCurve, () => jTrapKATEditor.isKitCurve, () => jTrapKATEditor.toKitCurve(), "cbxPadCurveV3", "cbxPadCurveV4")
+            private[this] val ckbVarCurve = new VarXCheckBox("Curve", cbxKitCurve, () => jTrapKATEditor.currentKit.isKitCurve, () => jTrapKATEditor.currentKit.toKitCurve(), "cbxPadCurveV3", "cbxPadCurveV4")
             contents += (ckbVarCurve, "cell 2 0")
             order += ckbVarCurve.name
 
@@ -381,8 +381,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 protected override def _get() = selection.item = GateTime.toString(jTrapKATEditor.currentKit.gate)
                 protected override def _set() = jTrapKATEditor.currentKit.gate = GateTime.toGateTime(selection.item)
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
-                protected override def _isKit() = jTrapKATEditor.isKitGate
-                protected override def _toKit() = jTrapKATEditor.toKitGate()
+                protected override def _isKit() = jTrapKATEditor.currentKit.isKitGate
+                protected override def _toKit() = jTrapKATEditor.currentKit.toKitGate()
                 protected override def _cp() = this
 
                 reactions += {
@@ -394,7 +394,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (cbxKitGate, "cell 1 1,spanx 2")
             order += cbxKitGate.name
 
-            private[this] val ckbVarGate = new VarXCheckBox("Gate", cbxKitGate, () => jTrapKATEditor.isKitGate, () => jTrapKATEditor.toKitGate(), "cbxPadGate")
+            private[this] val ckbVarGate = new VarXCheckBox("Gate", cbxKitGate, () => jTrapKATEditor.currentKit.isKitGate, () => jTrapKATEditor.currentKit.toKitGate(), "cbxPadGate")
             contents += (ckbVarGate, "cell 1 1")
             order += ckbVarGate.name
 
@@ -405,8 +405,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 protected override def _get() = value = jTrapKATEditor.currentKit.channel + 1
                 protected override def _set() = jTrapKATEditor.currentKit.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
-                protected override def _isKit() = jTrapKATEditor.isKitChannel
-                protected override def _toKit() = jTrapKATEditor.toKitChannel()
+                protected override def _isKit() = jTrapKATEditor.currentKit.isKitChannel
+                protected override def _toKit() = jTrapKATEditor.currentKit.toKitChannel()
                 protected override def _cp() = this
 
                 reactions += {
@@ -421,7 +421,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (spnKitChannel, "cell 1 2,spanx 2")
             order += spnKitChannel.name
 
-            private[this] val ckbVarChannel = new VarXCheckBox("Channel", spnKitChannel, () => jTrapKATEditor.isKitChannel, () => jTrapKATEditor.toKitChannel(), "spnPadChannel")
+            private[this] val ckbVarChannel = new VarXCheckBox("Channel", spnKitChannel, () => jTrapKATEditor.currentKit.isKitChannel, () => jTrapKATEditor.currentKit.toKitChannel(), "spnPadChannel")
             contents += (ckbVarChannel, "cell 1 2")
             order += ckbVarChannel.name
 
@@ -500,8 +500,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min", 1, () => jTrapKATEditor.currentKit.minVelocity, (value: Byte) => jTrapKATEditor.currentKit.minVelocity = value, () => jTrapKATEditor.isKitMinVel, () => jTrapKATEditor.toKitMinVel()),
-                    (1, "Max", 127, () => jTrapKATEditor.currentKit.maxVelocity, (value: Byte) => jTrapKATEditor.currentKit.maxVelocity = value, () => jTrapKATEditor.isKitMaxVel, () => jTrapKATEditor.toKitMaxVel())
+                Seq((0, "Min", 1, () => jTrapKATEditor.currentKit.minVelocity, (value: Byte) => jTrapKATEditor.currentKit.minVelocity = value, () => jTrapKATEditor.currentKit.isKitMinVel, () => jTrapKATEditor.currentKit.toKitMinVel()),
+                    (1, "Max", 127, () => jTrapKATEditor.currentKit.maxVelocity, (value: Byte) => jTrapKATEditor.currentKit.maxVelocity = value, () => jTrapKATEditor.currentKit.isKitMaxVel, () => jTrapKATEditor.currentKit.toKitMaxVel())
                 ) foreach { x =>
                         (x._1, x._2, x._3, x._4, x._5, x._6, x._7) match {
                             case (_x, _name, _ini, _getVel, _setVel, _isKitVel, _toKitVel) => {

@@ -335,6 +335,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 reactions += {
                     case e: ButtonClicked => setValue()
+                    case e: CurrentKitChanged if (e.source == jTrapKATEditorMenuBar.mnEdit) => setDisplay()
                 }
 
                 setDisplay()

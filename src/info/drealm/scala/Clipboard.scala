@@ -131,14 +131,50 @@ object Clipboard extends ClipboardOwner with Publisher {
         case otherwise => {}
     }
 
-    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
-    //       pad needs to switch to various or use the kit setting (prompt)
+    private[this] def isPadCurveKit(kit: model.Kit[_], pad: model.Pad): Boolean = pad.curve == kit.curve
+    private[this] def padToKitCurve(kit: model.Kit[_], pad: model.Pad): Unit = pad.curve = kit.curve
+    private[this] def isPadGateKit(kit: model.Kit[_], pad: model.Pad): Boolean = pad.gate == kit.gate
+    private[this] def padToKitGate(kit: model.Kit[_], pad: model.Pad): Unit = pad.gate = kit.gate
+    private[this] def isPadChannelKit(kit: model.Kit[_], pad: model.Pad): Boolean = pad.channel == kit.channel
+    private[this] def padToKitChannel(kit: model.Kit[_], pad: model.Pad): Unit = pad.channel = kit.channel
+    private[this] def isPadMinVelKit(kit: model.Kit[_], pad: model.Pad): Boolean = pad.minVelocity == kit.minVelocity
+    private[this] def padToKitMinVel(kit: model.Kit[_], pad: model.Pad): Unit = pad.minVelocity = kit.minVelocity
+    private[this] def isPadMaxVelKit(kit: model.Kit[_], pad: model.Pad): Boolean = pad.maxVelocity == kit.maxVelocity
+    private[this] def padToKitMaxVel(kit: model.Kit[_], pad: model.Pad): Unit = pad.maxVelocity = kit.maxVelocity
+
+    private[this] def padKitStatus(kit: model.Kit[_], pad: model.Pad) = Seq(
+        ("Curve", () => kit.isKitCurve, isPadCurveKit _, padToKitCurve _),
+        ("Gate", () => kit.isKitGate, isPadGateKit _, padToKitGate _),
+        ("Channel", () => kit.isKitChannel, isPadChannelKit _, padToKitChannel _),
+        ("MinVel", () => kit.isKitMinVel, isPadMinVelKit _, padToKitMinVel _),
+        ("MaxVel", () => kit.isKitMaxVel, isPadMaxVelKit _, padToKitMaxVel _)
+    ) map (t => {
+            (!t._2() || t._3(kit, pad), L.G("PadKitStatus", t._1, if (!t._2() || t._3(kit, pad)) "PadKitStatusOK" else "PadKitStatusBad"), () => t._4(kit, pad))
+        })
+
+    // Fortunately, this is a copy of a pad, so we can mess around with it regardless
+    private[this] def pasteIfVarious(pad: model.Pad): Boolean = {
+        val incoming = padKitStatus(jTrapKATEditor.currentKit, pad)
+
+        if (!incoming.forall(t => t._1)) {
+            // At least one of the pads has a value that does not match its kit (for which the kit is not in Various)
+            Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
+                L.G("PastePadOKToVarious", jTrapKATEditor.currentKit.kitName, incoming.map(t => t._2).mkString("\n")),
+                L.G("PastePadOKToVariousCaption"),
+                Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
+                    case Dialog.Result.No  => { incoming.foreach(t => if (t._1) t._3()); true } //... retain the kit values and then paste
+                    case Dialog.Result.Yes => true //... just paste (go to Various)
+                    case _                 => false //... do nothing
+                }
+        }
+        else true
+    }
     private[this] def pastePadV3(source: Component) {
         val padV3Clip = getContentPadV3()
         val padV3 = padV3Clip.pad
         val hhPad = padV3Clip.hhPad
         padV3.flags = ((if (hhPad) 0x80 else 0) | padV3.flags).toByte
-        jTrapKATEditor.doV3V4({
+        if (pasteIfVarious(padV3)) jTrapKATEditor.doV3V4({
             // v3 -> v3
             jTrapKATEditor.setPadV3(source, padV3)
         }, {
@@ -147,15 +183,13 @@ object Clipboard extends ClipboardOwner with Publisher {
                 jTrapKATEditor.setPadV4(source, new model.PadV4(padV3, jTrapKATEditor.currentPadNumber.toByte))
         })
     }
-    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
-    //       pad needs to switch to various or use the kit setting (prompt)
     private[this] def pastePadV4(source: Component) {
         val padV4Clip = getContentPadV4()
         val padV4 = padV4Clip.pad
         val hhPad = padV4Clip.hhPad
         val padNoWas = (padV4Clip.padNoWas + 1).toByte
         padV4.flags = ((if (hhPad) 0x80 else 0) | padV4.flags).toByte
-        jTrapKATEditor.doV3V4({
+        if (pasteIfVarious(padV4)) jTrapKATEditor.doV3V4({
             // v4 -> v3
             if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3")))
                 jTrapKATEditor.setPadV3(source, new model.PadV3(padV4))
@@ -187,14 +221,41 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     }
 
-    // TODO: Need to check against current kit to see if it is in "kit mode" for Curve, etc and, if so, whether pasting this
-    //       pad needs to switch to various or use the kit setting (prompt)
+    private[this] def swapIfVarious(thatKit: model.Kit[model.Pad], thatPadNo: Int): Boolean = {
+        val thisKit = jTrapKATEditor.currentAllMemory(jTrapKATEditor.currentKitNumber).asInstanceOf[model.Kit[model.Pad]]
+
+        val incoming = padKitStatus(thisKit, thatKit(thatPadNo))
+        val outgoing = padKitStatus(thatKit, jTrapKATEditor.currentPad)
+
+        if (!incoming.forall(t => t._1) || !outgoing.forall(t => t._1)) {
+            // At least one of the pads has a value that does not match its kit (for which the kit is not in Various)
+            Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
+                L.G("SwapPadOKToVarious", thisKit.kitName, incoming.map(t => t._2).mkString("\n"), thatKit.kitName, outgoing.map(t => t._2).mkString("\n")),
+                L.G("SwapPadOKToVariousCaption"),
+                Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
+                    case Dialog.Result.No => {
+                        // Retain the kit values
+                        incoming.foreach(t => if (t._1) t._3())
+                        outgoing.foreach(t => if (t._1) t._3())
+                        true //... and then swap
+                    }
+                    case Dialog.Result.Yes => true //... just swap (go to Various)
+                    case _                 => false //... do nothing
+                }
+        }
+        else true
+    }
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
             val content = getContentSwapPads()
             if (content.kit != jTrapKATEditor.currentKitNumber || content.pad != jTrapKATEditor.currentPadNumber) {
-                jTrapKATEditor.swapPads(source, content.kit, content.pad)
-                clipboard.setContents(Empty, this)
+
+                // If it's the same kit, we're not changing the isKit-ness, otherwise we have to worry about it for both kits
+                if (content.kit == jTrapKATEditor.currentKitNumber || swapIfVarious(jTrapKATEditor.currentAllMemory(content.kit).asInstanceOf[model.Kit[model.Pad]], content.pad)) {
+                    jTrapKATEditor.swapPads(source, content.kit, content.pad)
+                    clipboard.setContents(Empty, this)
+                }
+
             }
         }
         case _ => clipboard.setContents(SwapPads(jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber), this)

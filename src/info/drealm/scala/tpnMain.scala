@@ -33,7 +33,7 @@ object tpnMain extends TabbedPane {
 
     name = "tpnMain"
 
-    pages += new TabbedPane.Page(L.G("tpKitsPads"), pnKitsPads) { name = "tpKitsPads" }
-    pages += new TabbedPane.Page(L.G("tpGlobal"), pnGlobal) { name = "tpGlobal" }
+    pages += new TabbedPane.Page(L.G("tpKitsPads"), pnKitsPads, L.G("ttKitsPads")) { name = "tpKitsPads" }
+    pages += new TabbedPane.Page(L.G("tpGlobal"), pnGlobal, L.G("ttGlobal")) { name = "tpGlobal" }
 
 }

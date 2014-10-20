@@ -28,6 +28,7 @@ import scala.swing._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
 import info.drealm.scala.layout._
+import info.drealm.scala.{ Localization => L }
 
 object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][grow][grow][grow][grow]", "[][][][]") {
     name = "pnPads"

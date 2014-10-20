@@ -37,7 +37,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     contents += (lblSelectKit, "cell 0 0,alignx right")
 
     private[this] val kitNames = new Array[String](24)
-    private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", lblSelectKit) with ComboBoxBindings[String] {
+    private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", L.G("ttSelectKit"), lblSelectKit) with ComboBoxBindings[String] {
         peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("WWWWWWWWWWWW")
 
@@ -58,6 +58,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     contents += (cbxSelectKit, "cell 1 0")
 
     private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
+        tooltip = L.G("ttKitEdited")
         private[this] def setDisplay() = visible = jTrapKATEditor.currentKit.changed
 
         listenTo(jTrapKATEditor)
@@ -75,13 +76,15 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     contents += (lblKitName, "cell 4 0,alignx right")
 
     private[this] val txtKitName = new TextField with Bindings {
+        name = "txtKitName"
+        columns = 16
+        tooltip = L.G("ttKitName")
+        lblKitName.peer.setLabelFor(peer)
+        lblKitName.tooltip = tooltip
+
         protected override def _get() = text = jTrapKATEditor.currentKit.kitName.trim()
         protected override def _set() = jTrapKATEditor.currentKit.kitName = text
         protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
-
-        lblKitName.peer.setLabelFor(peer)
-        name = "txtKitName"
-        columns = 16
 
         reactions += {
             case e: ValueChanged => setValue()
@@ -97,7 +100,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
         case x if x < 25 => s"${x}"
         case x           => L.G(s"lbPad${x}")
-    }), "cbxSelectPad", lblSelectPad) with ComboBoxBindings[String] {
+    }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with ComboBoxBindings[String] {
         peer.setMaximumRowCount(28)
         prototypeDisplayValue = Some("88 mmmm")
         protected override def _get() = selection.index = jTrapKATEditor.currentPadNumber
@@ -113,6 +116,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     contents += (cbxSelectPad, "cell 8 0")
 
     private[this] val lblPadEdited = new Label(L.G("lblXEdited")) {
+        tooltip = L.G("ttPadEdited")
         private[this] def setDisplay(): Unit = visible = jTrapKATEditor.currentPad.changed
 
         listenTo(jTrapKATEditor)

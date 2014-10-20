@@ -44,13 +44,14 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
 
     object pnHH extends MigPanel("insets 2, gap 0", "[grow,right][left,fill]", "[]") {
         name = "pnHH"
+        tooltip = L.G("ttHH")
         border = new LineBorder(java.awt.Color.BLACK)
 
         private[this] val lblHH = new Label(L.G("lblHH")) { peer.setDisplayedMnemonic(L.G("mneHH").charAt(0)) }
         contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
 
         (1 to 4) foreach { x =>
-            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", if (x == 1) lblHH else null) with ComboBoxBindings[String] {
+            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with ComboBoxBindings[String] {
                 peer.setMaximumRowCount(25)
                 name = s"cbxHH${x}"
 

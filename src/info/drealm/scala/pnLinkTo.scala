@@ -32,12 +32,13 @@ import info.drealm.scala.{ Localization => L }
 
 object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
     name = "pnLinkTo"
+    tooltip = L.G("ttLinkTo")
 
     private[this] val lblLinkTo = new Label(L.G("lblLinkTo")) { peer.setDisplayedMnemonic(L.G("mneLinkTo").charAt(0)) }
     contents += (lblLinkTo, "cell 0 0")
 
     private[this] val linkTo: Array[String] = new Array[String](28)
-    private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", lblLinkTo) with ComboBoxBindings[String] {
+    private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", tooltip, lblLinkTo) with ComboBoxBindings[String] {
         prototypeDisplayValue = Some("88 mmmm")
 
         private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {

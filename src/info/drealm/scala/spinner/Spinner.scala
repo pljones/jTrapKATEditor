@@ -33,16 +33,18 @@ package info.drealm.scala.spinner
 import swing._
 import javax.swing.{ JSpinner, SpinnerModel }
 
-class Spinner(_model: SpinnerModel, _name: String, _label: scala.swing.Label) extends Component with Publisher {
-    def this(_model: SpinnerModel, _name: String) = this(_model, _name, null)
-    def this(_model: SpinnerModel) = this(_model, "", null)
+class Spinner(_model: SpinnerModel, _name: String = "", _tip: String = null, _label: scala.swing.Label = null) extends Component with Publisher {
+    def this(_model: SpinnerModel, _name: String, label: scala.swing.Label) = this(_model, _name, _label = label)
 
     override lazy val peer = new javax.swing.JSpinner(_model) with SuperMixin
 
     name = _name
+    if (_tip != null) tooltip = _tip
+    
     if (_label != null) {
         // Uhhhhh, right...
         _label.peer.setLabelFor(peer.asInstanceOf[java.awt.Component])
+        if (_label.tooltip == null) _label.tooltip = tooltip
     }
 
     def value: Any = peer.getValue

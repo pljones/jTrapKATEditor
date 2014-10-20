@@ -40,15 +40,15 @@ object CurveV4 extends Curve {
     val curveSelection = L.G("CurvesV4").split("\n").toSeq
 }
 
-abstract class CurveComboBoxParent(seq: Seq[String], _name: String) extends RichComboBox[String](seq, _name)
-class CurveComboBoxV3(_name: String) extends CurveComboBoxParent(CurveV3.curveSelection, _name + "V3")
-class CurveComboBoxV4(_name: String) extends CurveComboBoxParent(CurveV4.curveSelection, _name + "V4")
+abstract class CurveComboBoxParent(seq: Seq[String], _name: String, tooltip: String) extends RichComboBox[String](seq, _name, tooltip)
+class CurveComboBoxV3(_name: String, tooltip: String) extends CurveComboBoxParent(CurveV3.curveSelection, _name + "V3", tooltip)
+class CurveComboBoxV4(_name: String, tooltip: String) extends CurveComboBoxParent(CurveV4.curveSelection, _name + "V4", tooltip)
 
-class CurveComboBoxV3V4(_name: String, label: Label, _getVal: () => Byte, _setVal: Byte => Unit, _chgBy: CurveComboBoxParent => Unit)
+class CurveComboBoxV3V4(_name: String, tooltip: String, label: Label, _getVal: () => Byte, _setVal: Byte => Unit, _chgBy: CurveComboBoxParent => Unit)
     extends V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] with Bindings {
 
-    val cbxV3: CurveComboBoxV3 = new CurveComboBoxV3(_name)
-    val cbxV4: CurveComboBoxV4 = new CurveComboBoxV4(_name)
+    val cbxV3: CurveComboBoxV3 = new CurveComboBoxV3(_name, tooltip)
+    val cbxV4: CurveComboBoxV4 = new CurveComboBoxV4(_name, tooltip)
     val lbl: Label = label
     protected override def _get() = {
         try {

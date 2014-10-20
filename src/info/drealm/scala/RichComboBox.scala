@@ -28,21 +28,20 @@ import javax.swing.JComboBox
 import scala.swing.{ ComboBox, Label, Swing }
 import scala.swing.event._
 
-class RichComboBox[A](items: Seq[A], _name: String, _label: Label, stepped: Boolean = false) extends ComboBox[A](items) {
-    def this(items: Seq[A], _name: String, stepped: Boolean) = this(items, _name, null, stepped)
-    def this(items: Seq[A], _name: String) = this(items, _name, null)
-    def this(items: Seq[A], stepped: Boolean) = this(items, "", null, stepped)
-    def this(items: Seq[A]) = this(items, "", null)
+class RichComboBox[A](_items: Seq[A], _name: String, tip: String = null, label: Label = null, stepped: Boolean = false) extends ComboBox[A](_items) {
+    def this(items: Seq[A], _name: String, label: Label) = this(items, _name, null, label)
 
     name = _name
+    if (tip != null) tooltip = tip
 
     if (stepped) {
         peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
     }
 
-    if (_label != null) {
+    if (label != null) {
         // Uhhhhh, right...
-        _label.peer.setLabelFor(peer.asInstanceOf[JComboBox[_]])
+        label.peer.setLabelFor(peer.asInstanceOf[JComboBox[_]])
+        if (label.tooltip == null) label.tooltip = tooltip
     }
 
     var editreset: A = null.asInstanceOf[A]

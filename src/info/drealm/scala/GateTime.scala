@@ -104,7 +104,7 @@ object GateTime {
     }
 }
 
-class GateTimeComboBox(name: String, label: swing.Label) extends RichComboBox[String](GateTime.gateSelection, name, label) {
+class GateTimeComboBox(name: String, tooltip: String, label: swing.Label) extends RichComboBox[String](GateTime.gateSelection, name, tooltip, label) {
     makeEditable()
     editorPeer.setInputVerifier(GateTime.verifier)
     selection.index = -1

@@ -137,7 +137,7 @@ object PadSlotV4 extends PadSlot {
     override lazy val padFunction: Seq[String] = L.G("PadSlotV4").split("\n").toSeq
 }
 
-abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boolean = false) extends RichComboBox[String](v3v4.padFunction, name, stepped) {
+abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, tooltip: String, stepped: Boolean = false) extends RichComboBox[String](v3v4.padFunction, name, tooltip, stepped = stepped) {
     makeEditable()
     editorPeer.setColumns(4)
     editorPeer.setInputVerifier(Verifier)
@@ -219,16 +219,16 @@ abstract class PadSlotComboBoxParent(v3v4: PadSlot, name: String, stepped: Boole
         }
     }
 }
-class PadSlotComboBoxV3(name: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV3, name + "V3", stepped)
-class PadSlotComboBoxV4(name: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", stepped)
+class PadSlotComboBoxV3(name: String, tooltip: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV3, name + "V3", tooltip, stepped)
+class PadSlotComboBoxV4(name: String, tooltip: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", tooltip, stepped)
 
-abstract class PadSlotComboBoxV3V4(name: String, label: swing.Label, stepped: Boolean = false)
+abstract class PadSlotComboBoxV3V4(name: String, ttRoot: String, label: swing.Label, stepped: Boolean = false)
     extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
 
-    def this(name: String) = this(name, null)
+    //def this(name: String) = this(name, null)
 
-    val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name, stepped)
-    val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, stepped)
+    val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name, L.G(s"tt${ttRoot}V3"), stepped)
+    val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, L.G(s"tt${ttRoot}V4"), stepped)
     val lbl: Label = label
 
     def value: Byte = cbx.value
@@ -287,7 +287,7 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     }
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
 
-    private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", lblPad, true) with Bindings {
+    private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", "Pad", lblPad, true) with Bindings {
         protected override def _get() = value = jTrapKATEditor.currentKit(pad - 1)(0)
         protected override def _set() = jTrapKATEditor.currentKit(pad - 1)(0) = value
         protected override def _chg() = jTrapKATEditor.padChangedBy(cbx)
@@ -302,18 +302,20 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     }
     contents += (cbxPad.cbxV3, "cell 1 0,grow")
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
+    tooltip = cbxPad.tooltip
 
     override def requestFocus() = cbxPad.requestFocus()
 
     listenTo(jTrapKATEditor)
     reactions += {
-        case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor => background = getBackground
+        case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor       => background = getBackground
+        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor => tooltip = cbxPad.tooltip
     }
 }
 
 class Slot(slot: Int) {
     val lblSlot = new Label(s"${slot}") { name = s"lblSlot${slot}"; peer.setDisplayedMnemonic(s"${slot}".last) }
-    val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", lblSlot) with Bindings {
+    val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", "Slot", lblSlot) with Bindings {
         protected override def _get() = value = jTrapKATEditor.currentPad(slot - 1)
         protected override def _set() = jTrapKATEditor.currentPad(slot - 1) = value
         protected override def _chg() = jTrapKATEditor.padChangedBy(cbx)

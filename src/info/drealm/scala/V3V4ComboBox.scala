@@ -70,16 +70,21 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
 
     def enabled: Boolean = cbx.enabled
     def enabled_=(value: Boolean): Unit = { cbxV3.enabled = value; cbxV4.enabled = value }
-    
+
     def requestFocus() = cbx.requestFocus()
+    
+    def tooltip: String = cbx.tooltip
 
     private[this] def allMemoryChanged(toVisible: CP, toHidden: CP): Unit = {
         // Need to avoid creeping focus when this control disappears from the UI
         toVisible.visible = _visible
         if (toHidden.hasFocus || (toHidden.editable && toHidden.peer.getEditor().getEditorComponent().hasFocus())) toVisible.requestFocus()
         toHidden.visible = false
-        // Uhhhhh, right...
-        if (lbl != null) lbl.peer.setLabelFor(toVisible.peer.asInstanceOf[java.awt.Component])
+        if (lbl != null) {
+            // Uhhhhh, right...
+            lbl.peer.setLabelFor(toVisible.peer.asInstanceOf[java.awt.Component])
+            if (cbx.tooltip != null) lbl.tooltip = cbx.tooltip
+        }
     }
 
     protected def init() = jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))

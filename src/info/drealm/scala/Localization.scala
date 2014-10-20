@@ -36,9 +36,6 @@ object Localization {
     }
     def G(lookup: String, args: String*): String = {
         def from(n: Int): Stream[Int] = n #:: from(n + 1)
-
-        var result = G(lookup)
-        args zip from(0) foreach (x => result = result.replaceAll(s"[{]${x._2}[}]", s"${x._1}"))
-        result
+        (args zip from(0)).foldLeft(G(lookup))((s, x) => s.replaceAll(s"[{]${x._2}[}]", s"${x._1}"))
     }
 }

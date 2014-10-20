@@ -76,7 +76,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
             contents += (lblPadCurve, "cell 4 0,alignx right")
 
-            private[this] val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", lblPadCurve,
+            private[this] val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", L.G("ttPadCurve"), lblPadCurve,
                 () => jTrapKATEditor.currentPad.curve,
                 (value: Byte) => jTrapKATEditor.currentPad.curve = value,
                 (cbx: Component) => jTrapKATEditor.padChangedBy(cbx)
@@ -97,7 +97,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mnePadGate").charAt(0)) }
             contents += (lblPadGate, "cell 4 1,alignx right")
 
-            private[this] val cbxPadGate = new GateTimeComboBox("cbxPadGate", lblPadGate) with EditableComboBoxBindings[String] {
+            private[this] val cbxPadGate = new GateTimeComboBox("cbxPadGate", L.G("ttPadGate"), lblPadGate) with EditableComboBoxBindings[String] {
                 protected override def _get() = selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
                 protected override def _set() = jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
                 protected override def _chg() = jTrapKATEditor.padChangedBy(this)
@@ -115,7 +115,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
             contents += (lblPadChannel, "cell 4 2,alignx right")
 
-            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", lblPadChannel) with Bindings {
+            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", L.G("ttPadChannel"), lblPadChannel) with Bindings {
                 protected override def _get() = value = jTrapKATEditor.currentPad.channel + 1
                 protected override def _set() = jTrapKATEditor.currentPad.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
                 protected override def _chg() = jTrapKATEditor.padChangedBy(this)
@@ -133,6 +133,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] object pnPadVelocity extends MigPanel("insets 3, gap 0", "[][]", "[][][]") {
                 name = "pnPadVelocity"
+                tooltip = L.G("ttPadVelocity")
                 background = new Color(228, 228, 228)
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
@@ -144,7 +145,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         (x._1, x._2, x._3, x._4, x._5) match {
                             case (_x, _name, _ini, _getVel, _setVel) => {
                                 val lbl = new Label(L.G(s"lbl${_name}"))
-                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnPadVel${_name}", lbl) with Bindings {
+                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnPadVel${_name}", tooltip, lbl) with Bindings {
                                     protected override def _get() = value = _getVel()
                                     protected override def _set() = _setVel(value.asInstanceOf[java.lang.Number].byteValue())
                                     protected override def _chg() = jTrapKATEditor.padChangedBy(this)
@@ -168,12 +169,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val pnFlags: MigPanel = new MigPanel("insets 0, gap 0", "[][][][][][][][]", "[][][]") {
                 name = "pnFlags"
+                tooltip = L.G("ttPadFlags")
 
                 contents += (new Label(L.G("lblFlags")), "cell 0 0 9 1,alignx center")
 
                 (7 to 0 by -1) foreach { flag =>
                     val ckbFlag = new CheckBox(s"${flag}") with Bindings {
                         name = s"ckbFlag${flag}"
+                        tooltip = L.G("ttPadFlags")
                         margin = new Insets(0, 0, 0, 0)
                         horizontalTextPosition = Alignment.Center
                         verticalTextPosition = Alignment.Top
@@ -200,6 +203,23 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnGlobalPadDynamics"
                 border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
+                private[this] class PadDynamicsSpinner(_name: String, label: Label, _getPD: () => Byte, _setPD: (Byte) => Unit)
+                    extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label) with Bindings {
+                    protected override def _get() = {
+                        enabled = jTrapKATEditor.currentPadNumber < 25
+                        value = if (enabled) getInt(_getPD()) else 0
+                    }
+                    protected override def _set() = _setPD(value.asInstanceOf[java.lang.Number].byteValue())
+                    protected override def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
+
+                    reactions += {
+                        case e: CurrentPadChanged if e.source == jTrapKATEditor => setDisplay()
+                        case e: ValueChanged                                    => setValue()
+                    }
+
+                    setDisplay()
+                }
+
                 Seq(
                     (0, 0, "lowLevel", () => jTrapKATEditor.pd.lowLevel, (value: Byte) => jTrapKATEditor.pd.lowLevel = value),
                     (1, 0, "thresholdManual", () => jTrapKATEditor.pd.thresholdManual, (value: Byte) => jTrapKATEditor.pd.thresholdManual = value),
@@ -212,21 +232,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             val lbl = new Label(L.G(_name))
                             contents += (lbl, s"cell ${1 + 3 * _x} ${1 + _y},alignx right")
 
-                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", lbl) with Bindings {
-                                protected override def _get() = {
-                                    enabled = jTrapKATEditor.currentPadNumber < 25
-                                    value = if (enabled) getInt(_getPD()) else 0
-                                }
-                                protected override def _set() = _setPD(value.asInstanceOf[java.lang.Number].byteValue())
-                                protected override def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
-
-                                reactions += {
-                                    case e: CurrentPadChanged if e.source == jTrapKATEditor => setDisplay()
-                                    case e: ValueChanged                                    => setValue()
-                                }
-
-                                setDisplay()
-                            }
+                            val spn = new PadDynamicsSpinner(_name, lbl, _getPD, _setPD)
                             contents += (spn, s"cell ${2 + 3 * _x} ${1 + _y}")
                         }
                     })
@@ -275,7 +281,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
             private[this] def okToGoKit(name: String): Boolean = {
-                Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
+                Dialog.showConfirmation(tpnMain,
                     L.G("ToKit", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
@@ -290,14 +296,16 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             trait CanBeEnabled {
                 def enabled: Boolean
                 def enabled_=(value: Boolean): Unit
+                def tooltip: String
             }
             implicit def maybeItCanBeEnabled(o: AnyRef): CanBeEnabled = o match {
-                case cp: Component                => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value }
-                case cp: V3V4ComboBox[_, _, _, _] => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value }
+                case cp: Component                => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value; def tooltip = cp.tooltip }
+                case cp: V3V4ComboBox[_, _, _, _] => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value; def tooltip = cp.tooltip }
                 case _                            => throw new ClassCastException(s"Class ${o.getClass().getName()} cannot be cast to CanBeEnabled")
             }
             private[this] class VarXCheckBox(_name: String, _cp: CanBeEnabled, _isKit: () => Boolean, _toKit: () => Unit, padCpName: String*) extends CheckBox(L.G("lblXVarious")) with Bindings {
                 name = s"ckbVar${_name}"
+                tooltip = _cp.tooltip
                 protected override def _get() = {
                     val isKit = _isKit()
                     selected = !isKit
@@ -336,13 +344,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 reactions += {
                     case e: ButtonClicked => setValue()
                     case e: CurrentKitChanged if (e.source == jTrapKATEditorMenuBar.mnEdit) => setDisplay()
+                    case e: CurrentAllMemoryChanged if (e.source == jTrapKATEditor) => tooltip = _cp.tooltip
                 }
 
                 setDisplay()
             }
 
             private[this] def okToGoSCOff(name: String): Boolean = {
-                Dialog.showConfirmation(frmTrapkatSysexEditor.contents(0),
+                Dialog.showConfirmation(tpnMain,
                     L.G("ToSCOff", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
@@ -351,7 +360,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblKitCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mneKitCurve").charAt(0)) }
             contents += (lblKitCurve, "cell 0 0,alignx right")
 
-            private[this] val cbxKitCurve: CurveComboBoxV3V4 = new CurveComboBoxV3V4("cbxKitCurve", lblKitCurve,
+            private[this] val cbxKitCurve: CurveComboBoxV3V4 = new CurveComboBoxV3V4("cbxKitCurve", L.G("ttKitCurve"), lblKitCurve,
                 () => jTrapKATEditor.currentKit.curve,
                 value => jTrapKATEditor.currentKit.curve = value,
                 cbx => jTrapKATEditor.kitChangedBy(cbx)
@@ -378,7 +387,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblKitGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mneKitGate").charAt(0)) }
             contents += (lblKitGate, "cell 0 1,alignx right")
 
-            private[this] val cbxKitGate: GateTimeComboBox = new GateTimeComboBox("cbxKitGate", lblKitGate) with EditableComboBoxBindings[String] with KitBindings {
+            private[this] val cbxKitGate: GateTimeComboBox = new GateTimeComboBox("cbxKitGate", L.G("ttKitGate"), lblKitGate) with EditableComboBoxBindings[String] with KitBindings {
                 protected override def _get() = selection.item = GateTime.toString(jTrapKATEditor.currentKit.gate)
                 protected override def _set() = jTrapKATEditor.currentKit.gate = GateTime.toGateTime(selection.item)
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
@@ -402,7 +411,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblKitChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mneKitChannel").charAt(0)) }
             contents += (lblKitChannel, "cell 0 2,alignx right")
 
-            private[this] val spnKitChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", lblKitChannel) with KitBindings {
+            private[this] val spnKitChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", L.G("ttKitChannel"), lblKitChannel) with KitBindings {
                 protected override def _get() = value = jTrapKATEditor.currentKit.channel + 1
                 protected override def _set() = jTrapKATEditor.currentKit.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
@@ -431,7 +440,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblFCFunction = new Label(L.G("lblFCFunction")) { peer.setDisplayedMnemonic(L.G("mneFCFunction").charAt(0)) }
             contents += (lblFCFunction, "cell 0 4,alignx right")
 
-            val cbxFCFunction = new RichComboBox(L.G("fcFunctions").split("\n"), "cbxFCFunction", lblFCFunction) with ComboBoxBindings[String] {
+            val cbxFCFunction = new RichComboBox(L.G("fcFunctions").split("\n"), "cbxFCFunction", L.G("ttFCFunction"), lblFCFunction) with ComboBoxBindings[String] {
                 protected override def _get() = selection.index = jTrapKATEditor.currentKit.fcFunction
                 protected override def _set() = jTrapKATEditor.currentKit.fcFunction = selection.index.toByte
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
@@ -443,8 +452,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblFCChannel = new Label(L.G("lblFCChannel")) { peer.setDisplayedMnemonic(L.G("mneFCChannel").charAt(0)) }
             contents += (lblFCChannel, "cell 0 5,alignx right")
 
-            private[this] val spnFCChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", lblFCChannel) with Bindings {
-                protected override def _get() = value = (if (enabled) jTrapKATEditor.currentKit.fcChannel else jTrapKATEditor.currentKit(25).channel) + 1
+            private[this] val spnFCChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnFCChannel", L.G("ttFCChannel"), lblFCChannel) with Bindings {
+                protected override def _get() = value = (if (jTrapKATEditor.currentKit.fcChannel < 16) jTrapKATEditor.currentKit.fcChannel else jTrapKATEditor.currentKit(25).channel) + 1
                 protected override def _set() = jTrapKATEditor.currentKit.fcChannel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
 
@@ -464,6 +473,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val ckbAsChick = new CheckBox(L.G("ckbAsChick")) with Bindings {
                 name = "ckbAsChick"
+                tooltip = spnFCChannel.tooltip
                 protected override def _get() = {
                     selected = jTrapKATEditor.currentKit.fcChannel >= 16
                     spnFCChannel.enabled = !selected
@@ -486,7 +496,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             val lblFCCurve = new Label(L.G("lblFCCurve")) { peer.setDisplayedMnemonic(L.G("mneFCCurve").charAt(0)) }
             contents += (lblFCCurve, "cell 0 6,alignx right")
 
-            val cbxFCCurve = new RichComboBox(L.G("fcCurves").split("\n"), "cbxFCCurve", lblFCCurve) with ComboBoxBindings[String] {
+            val cbxFCCurve = new RichComboBox(L.G("fcCurves").split("\n"), "cbxFCCurve", L.G("ttFCCurve"), lblFCCurve) with ComboBoxBindings[String] {
                 protected override def _get() = selection.index = jTrapKATEditor.currentKit.fcCurve
                 protected override def _set() = jTrapKATEditor.currentKit.fcCurve = selection.index.toByte
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
@@ -497,6 +507,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] object pnKitVelocity extends MigPanel("insets 3, gap 0", "[][]", "[][][][]") {
                 name = "pnKitVelocity"
+                tooltip = L.G("ttKitVelocity")
                 background = new Color(228, 228, 228)
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
@@ -510,7 +521,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                 val lbl = new Label(L.G(s"lbl${_name}"))
                                 contents += (lbl, s"cell ${_x} 1,alignx center")
 
-                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnKitVel${_name}", lbl) with KitBindings {
+                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnKitVel${_name}", tooltip, lbl) with KitBindings {
                                     protected override def _get() = value = _getVel()
                                     protected override def _set() = _setVel(value.asInstanceOf[java.lang.Number].intValue().toByte)
                                     protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
@@ -543,7 +554,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] val lblSoundControl = new Label(L.G("lblSoundControl"))
                 contents += (lblSoundControl, "cell 0 0,alignx right")
 
-                private[this] val cbxSoundControl = new RichComboBox((1 to 4), "cbxSoundControl", lblSoundControl) {
+                private[this] val cbxSoundControl = new RichComboBox((1 to 4), "cbxSoundControl", L.G("ttSoundControl"), lblSoundControl) {
                     selection.index = jTrapKATEditor.currentSoundControlNumber
                     listenTo(selection)
                     reactions += {
@@ -602,7 +613,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                     case _                  => {}
                                 }
                             }
-                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", lbl) with Bindings {
+                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", L.G(s"ttSC${_name}"), lbl) with Bindings {
                                 protected override def _get() = value = if (t._7.isDefined && t._7.get()) _ini else getInt(_getVal())
                                 protected override def _set() = _setVal(value.asInstanceOf[java.lang.Number].intValue().toByte)
                                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
@@ -683,16 +694,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
 
-            // This is only needed the once at start up... bit of a hack, though.
-            // spnPrgChgTxmChn is just that little bit too different...
-            Focus.findInComponent(this, "ckbPrgChg") match {
-                case Some(ckb: CheckBox) => Focus.findInComponent(this, "spnPrgChgTxmChn") match {
-                    case Some(cp: Spinner) => cp.enabled = !ckb.selected
-                    case _                 => Console.println("spnPrgChgTxmChn not found")
-                }
-                case _ => Console.println("ckbPrgChg not found")
-            }
-
             listenTo(jTrapKATEditor)
             reactions += {
                 case e: CurrentAllMemoryChanged => {
@@ -703,13 +704,27 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
+            // This is only needed the once at start up... bit of a hack, though.
+            // spnPrgChgTxmChn is just that little bit too different...
+            Focus.findInComponent(this, "ckbPrgChg") match {
+                case Some(ckb: CheckBox) => Focus.findInComponent(this, "spnPrgChgTxmChn") match {
+                    case Some(cp: Spinner) => cp.enabled = !ckb.selected
+                    case _                 => Console.println("spnPrgChgTxmChn not found")
+                }
+                case _ => Console.println("ckbPrgChg not found")
+            }
+            Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
+                case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
+                case _        => {}
+            })
+
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, order))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
-        val tpnPadDetails = new TabbedPane.Page("Pad Details", pnPadDetails) { name = "tpPadDetails" }
-        val tpnMoreSlots = new TabbedPane.Page("More Slots", pnMoreSlots) { name = "tpMoreSlots" }
-        val tpnKitDetails = new TabbedPane.Page("Kit Details", pnKitDetails) { name = "tpKitDetails" }
+        val tpnPadDetails = new TabbedPane.Page("Pad Details", pnPadDetails, L.G("ttPadDetails")) { name = "tpPadDetails" }
+        val tpnMoreSlots = new TabbedPane.Page("More Slots", pnMoreSlots, L.G("ttMoreSlots")) { name = "tpMoreSlots" }
+        val tpnKitDetails = new TabbedPane.Page("Kit Details", pnKitDetails, L.G("ttKitDetails")) { name = "tpKitDetails" }
 
         listenTo(jTrapKATEditor)
 

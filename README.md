@@ -26,6 +26,15 @@ or double-click on Windows.  To make this work, the build
 depends on P. Simon Tuffs' [One-Jar](http://one-jar.sourceforge.net/index.php?page=introduction&file=intro "One-Jar Introduction")
 packaging system.  If you want to build from source, get
 [one-jar-boot-0.97.jar](http://one-jar.sourceforge.net/index.php?page=downloads&file=downloads "Downloads") and unzip
-it into "one-jar".
+it into "one-jar".  You will also need to ensure the following are in the "lib" directory (symlinks are good enough)
+so that they get packaged:
+
++ jna-4.1.0.jar
++ jna-platform-4.1.0.jar
++ miglayout-4.0-swing.jar
++ scala-library.jar
++ scala-swing.jar
++ scala-xml.jar
+
 
 I had to do things my own way, naturally, when it comes to the build processes.  Yes, it's scala... so I used a classic Makefile...

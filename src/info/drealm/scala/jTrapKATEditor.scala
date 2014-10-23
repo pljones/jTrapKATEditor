@@ -48,11 +48,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         prefs.Preferences.userPreferences.flush()
     }
 
-    override def publish(thing: Event) = {
-        val source = thing match { case e: SomethingChanged => e.source match { case cp: Component => cp.name; case e if e == jTrapKATEditor => "jTrapKATEditor"; case _ => "{?}" }; case _ => "{?}" }
-        Console.println(s"${thing.getClass().getName()} emited from ${source} to ${listeners.count(p => p.isDefinedAt(thing))} listeners.")
-        super.publish(thing)
-    }
+//    override def publish(thing: Event) = {
+//        val source = thing match { case e: SomethingChanged => e.source match { case cp: Component => cp.name; case e if e == jTrapKATEditor => "jTrapKATEditor"; case _ => "{?}" }; case _ => "{?}" }
+//        Console.println(s"${thing.getClass().getName()} emited from ${source} to ${listeners.count(p => p.isDefinedAt(thing))} listeners.")
+//        super.publish(thing)
+//    }
 
     private[this] var _currentType: model.DumpType.DumpType = model.DumpType.NotSet
     def currentType = _currentType

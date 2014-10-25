@@ -78,7 +78,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
             () => new Array(540),
             () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4])
         )
-        _changed = true
+        update({/*It's all been done*/})
     }
 }
 
@@ -96,6 +96,6 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
             () => new Array(195),
             () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3])
         )
-        _changed = true
+        update({/*It's all been done*/})
     }
 }

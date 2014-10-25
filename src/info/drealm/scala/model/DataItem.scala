@@ -43,19 +43,20 @@ trait DataItem {
 
     // The C# has this as private
     // _changed tracks whether update has been called on this DataItem
-    protected[DataItem] var _changed: Boolean = false
+    private[this] var __changed: Boolean = false
+    protected[DataItem] def _changed: Boolean = __changed
 
     // Require data items to explain this (hence _changed being protected not private)
     def changed: Boolean
 
     protected def update(u: => Unit) = {
         u
-        _changed = true
+        __changed = true
     }
 
     // In strange circumstances you may want to override this
     def save(out: OutputStream): Unit = {
         serialize(out, true)
-        _changed = false
+        __changed = false
     }
 }

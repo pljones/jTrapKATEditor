@@ -58,11 +58,22 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
             setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)
             selection.index = getSelectionIndex(jTrapKATEditor.currentPadV4.linkTo - 1)
         }
-        protected override def _set() = jTrapKATEditor.currentPadV4.linkTo = (selection.index match {
-            case 0 => jTrapKATEditor.currentPadNumber + 1
-            case e if e + 1 < jTrapKATEditor.currentPadNumber => e
-            case e => e + 1
-        }).toByte
+        protected override def _set() = {
+            val value = (selection.index match {
+                case 0 => jTrapKATEditor.currentPadNumber + 1
+                case e if e + 1 < jTrapKATEditor.currentPadNumber => e
+                case e => e + 1
+            }).toByte
+            EditHistory.add(new HistoryAction {
+                val pad = jTrapKATEditor.currentPadV4
+                val valueBefore = pad.linkTo
+                val valueAfter = value
+                val actionName = "actionLinkTo"
+                def undoAction = setUndoRedo(() => pad.linkTo = valueBefore)
+                def redoAction = setUndoRedo(() => pad.linkTo = valueAfter)
+            })
+            jTrapKATEditor.currentPadV4.linkTo = value.toByte
+        }
         protected override def _chg() = jTrapKATEditor.padChangedBy(this)
 
         override def setDisplay = jTrapKATEditor.doV3V4({}, super.setDisplay())

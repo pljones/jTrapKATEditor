@@ -57,14 +57,23 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
 
                 protected override def _get() = selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
                 protected override def _set() = {
-                    val padWas = jTrapKATEditor.currentKit.hhPads(x - 1) - 1
-                    if (padWas >= 0)
-                        jTrapKATEditor.currentKit(padWas).flags = (0x7f & jTrapKATEditor.currentKit(padWas).flags).toByte
-                    val pad = this.selection.index - 1
-                    if (pad >= 0)
-                        jTrapKATEditor.currentKit(pad).flags = (0x80 | jTrapKATEditor.currentKit(pad).flags).toByte
+                    def doSet(kit: model.Kit[_ <: model.Pad], was: Int, now: Int) = {
+                        if (was > 0) kit(was - 1).flags = (0x7f & kit(was - 1).flags).toByte
+                        if (now > 0) kit(now - 1).flags = (0x80 | kit(now - 1).flags).toByte
+                        kit.hhPads(x - 1, now.toByte)
+                    }
 
-                    jTrapKATEditor.currentKit.hhPads(x - 1, this.selection.index.toByte)
+                    val kit = jTrapKATEditor.currentKit
+                    val padNoWas = kit.hhPads(x - 1)
+                    val padNo = this.selection.index
+
+                    EditHistory.add(new HistoryAction {
+                        val actionName = "actionHH"
+                        def undoAction = setUndoRedo(() => doSet(kit, padNo, padNoWas))
+                        def redoAction = setUndoRedo(() => doSet(kit, padNoWas, padNo))
+                    })
+
+                    doSet(kit, padNoWas, padNo)
                 }
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(pnHH)
 

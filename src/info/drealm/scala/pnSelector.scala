@@ -101,7 +101,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         case x if x < 25 => s"${x}"
         case x           => L.G(s"lbPad${x}")
     }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with ComboBoxBindings[String] {
-        peer.setMaximumRowCount(28)
+        peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("88 mmmm")
         protected override def _get() = selection.index = jTrapKATEditor.currentPadNumber
         protected override def _set() = jTrapKATEditor.currentPadNumber = selection.index

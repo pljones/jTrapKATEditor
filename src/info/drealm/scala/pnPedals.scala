@@ -52,7 +52,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
 
         (1 to 4) foreach { x =>
             val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with ComboBoxBindings[String] {
-                peer.setMaximumRowCount(25)
+                peer.setMaximumRowCount(13)
                 name = s"cbxHH${x}"
 
                 protected override def _get() = selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
@@ -72,7 +72,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
                 reactions += {
                     case e: CurrentKitChanged if e.source == jTrapKATEditorMenuBar.mnEdit => setDisplay()
                 }
-                
+
                 setDisplay()
             }
             contents += (cbxHH, s"cell ${x} 0, grow")

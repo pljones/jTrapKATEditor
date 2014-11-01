@@ -40,6 +40,7 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
     private[this] val linkTo: Array[String] = new Array[String](28)
     private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", tooltip, lblLinkTo) with ComboBoxBindings[String] {
         prototypeDisplayValue = Some("88 mmmm")
+        peer.setMaximumRowCount(24)
 
         private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
             case 0           => L.G("cbxLinkToOff")

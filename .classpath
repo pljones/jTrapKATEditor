@@ -18,12 +18,12 @@
 			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/jna-platform-4.1.0-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/scala-swing.jar" sourcepath="P:/Source/java-lib/scala-swing-2.11.0-M7-sources.jar">
+	<classpathentry kind="lib" path="lib/scala-swing.jar" sourcepath="/usr/share/scala/src/scala-swing-2.11.0-M7-sources.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/scala-swing-2.11.0-M7-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/scala-xml.jar" sourcepath="P:/Source/java-lib/scala-xml-2.11.0-M4-sources.jar">
+	<classpathentry kind="lib" path="lib/scala-xml.jar" sourcepath="/usr/share/scala/src/scala-xml-2.11.0-M4-sources.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/scala-xml-2.11.0-M4-javadoc.jar!/"/>
 		</attributes>

@@ -50,6 +50,16 @@ trait Bindings extends Publisher {
         catch { case e: Exception => e.printStackTrace() }
         finally { listenTo(jTrapKATEditor) }
     }
+    protected def setUndoRedo(action: () => Unit) = {
+        try {
+            deafTo(jTrapKATEditor)
+            action()
+            _get()
+            _chg()
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(jTrapKATEditor) }
+    }
 
     listenTo(jTrapKATEditor)
 
@@ -68,6 +78,14 @@ trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
         catch { case e: Exception => e.printStackTrace() }
         finally { listenTo(selection) }
     }
+    protected override def setUndoRedo(action: () => Unit) = {
+        try {
+            deafTo(selection)
+            super.setUndoRedo(action)
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(selection); }
+    }
 
     listenTo(selection)
 
@@ -79,6 +97,35 @@ trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
 trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] {
     reactions += {
         case e: ValueChanged => setValue()
+    }
+}
+
+trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends V3V4ComboBox[T, TP, T3, T4] with Bindings {
+    protected override def setDisplay(): Unit = {
+        try {
+            deafTo(cbx)
+            deafTo(selection)
+            super.setDisplay()
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(cbx); listenTo(selection) }
+    }
+    protected override def setUndoRedo(action: () => Unit) = {
+        try {
+            deafTo(cbx)
+            deafTo(selection)
+            super.setUndoRedo(action)
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally { listenTo(cbx); listenTo(selection) }
+    }
+
+    listenTo(selection)
+
+    reactions += {
+        case e: event.SelectionChanged                                 => setValue()
+        case e: eventX.V3V4SelectionChanged                            => setValue()
+        case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor => setDisplay()
     }
 }
 

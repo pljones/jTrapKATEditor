@@ -259,6 +259,25 @@ abstract class PadSlotComboBoxV3V4(name: String, ttRoot: String, label: swing.La
     init()
 }
 
+trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+    protected def _getCurrentPad: model.Pad
+    protected def _setHelper(slot: Int, valueAfter: Byte, name: String) = {
+        val currentPad = _getCurrentPad
+        val valueBefore = currentPad(slot)
+        if (valueBefore != valueAfter) {
+            EditHistory.add(new HistoryAction {
+                val actionName = s"action${name}"
+                def undoAction = setUndoRedo(() => currentPad(slot) = valueBefore)
+                def redoAction = setUndoRedo(() => currentPad(slot) = valueAfter)
+            })
+            currentPad(slot) = valueAfter
+        }
+    }
+    reactions += {
+        case e: ValueChanged => setValue()
+    }
+}
+
 object Pad {
     val padColorSelected = java.awt.SystemColor.textHighlight
     val padColorSelectedText = java.awt.SystemColor.textHighlightText

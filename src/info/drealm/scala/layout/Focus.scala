@@ -63,7 +63,7 @@ object Focus {
 
     def set(component: Component, target: String): Unit = {
         val cp = findInComponent(component, target)
-        if (cp.isDefined) cp.get.requestFocus()
+        if (cp.isDefined) cp.get.requestFocusInWindow()
     }
 }
 

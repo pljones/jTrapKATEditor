@@ -282,7 +282,7 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
 
         listenTo(jTrapKATEditor)
         reactions += {
-            case _ => foreground = getForeground
+            case e: eventX.CurrentPadChanged if e.source == jTrapKATEditor => foreground = getForeground
         }
     }
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")

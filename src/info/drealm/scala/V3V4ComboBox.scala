@@ -92,6 +92,6 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: eventX.CurrentAllMemoryChanged => jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
+        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor => jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
     }
 }

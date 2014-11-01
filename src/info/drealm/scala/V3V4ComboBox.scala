@@ -71,14 +71,14 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     def enabled: Boolean = cbx.enabled
     def enabled_=(value: Boolean): Unit = { cbxV3.enabled = value; cbxV4.enabled = value }
 
-    def requestFocus() = cbx.requestFocus()
+    def requestFocusInWindow() = cbx.requestFocusInWindow()
     
     def tooltip: String = cbx.tooltip
 
     private[this] def allMemoryChanged(toVisible: CP, toHidden: CP): Unit = {
         // Need to avoid creeping focus when this control disappears from the UI
         toVisible.visible = _visible
-        if (toHidden.hasFocus || (toHidden.editable && toHidden.peer.getEditor().getEditorComponent().hasFocus())) toVisible.requestFocus()
+        if (toHidden.hasFocus || (toHidden.editable && toHidden.peer.getEditor().getEditorComponent().hasFocus())) toVisible.requestFocusInWindow()
         toHidden.visible = false
         if (lbl != null) {
             // Uhhhhh, right...

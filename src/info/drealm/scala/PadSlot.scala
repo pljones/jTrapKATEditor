@@ -304,7 +304,7 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
     tooltip = cbxPad.tooltip
 
-    override def requestFocus() = cbxPad.requestFocus()
+    override def requestFocusInWindow() = cbxPad.requestFocusInWindow()
 
     listenTo(jTrapKATEditor)
     reactions += {

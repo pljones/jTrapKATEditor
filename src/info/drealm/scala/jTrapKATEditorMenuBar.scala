@@ -177,9 +177,9 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
     object mnEdit extends RichMenu("Edit") {
 
-        val miEditUndo = new RichMenuItem("EditUndo", x => Console.println("Edit Undo"))
+        val miEditUndo = new RichMenuItem("EditUndo", x => EditHistory.undoAction())
         add(miEditUndo)
-        val miEditRedo = new RichMenuItem("EditRedo", x => Console.println("Edit Redo"))
+        val miEditRedo = new RichMenuItem("EditRedo", x => EditHistory.redoAction())
         add(miEditRedo)
 
         contents += new Separator()
@@ -206,10 +206,11 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         reactions += {
             case e: eventX.MenuWillBecomeVisible => {
-                miEditUndo.enabled = !EditHistory.atStart
-                miEditRedo.enabled = !EditHistory.nextItem.isEmpty
+                miEditUndo.enabled = EditHistory.canUndo
+                miEditUndo.text = EditHistory.undoActionName match { case Some(actionName) => L.G("miEditUndoAction", L.G(actionName)); case _ => L.G("miEditUndo") }
+                miEditRedo.enabled = EditHistory.canRedo
+                miEditRedo.text = EditHistory.redoActionName match { case Some(actionName) => L.G("miEditRedoAction", L.G(actionName)); case _ => L.G("miEditRedo") }
                 val clipboardType = Clipboard.clipboardType
-                Console.println(s"clipboardType ${clipboardType}")
                 miEditPastePad.enabled = clipboardType == Clipboard.ClipboardType.Pad
                 miEditSwapPads.selected = clipboardType == Clipboard.ClipboardType.PadSwap
                 miEditPasteKit.enabled = clipboardType == Clipboard.ClipboardType.Kit
@@ -275,7 +276,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
             import updateTool.Checker._
             name = "miHelpCheckAutomatically"
             selected = autoUpdateMode == AutoUpdateMode.Automatically
-            
+
             listenTo(updateTool.Checker)
             reactions += {
                 case e: eventX.AutoUpdateModeChanged => {

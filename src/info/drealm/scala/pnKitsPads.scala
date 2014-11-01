@@ -337,6 +337,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             // currently various pad values
                             // we got the okay to splat, so splat!
                             super.setValue()
+                            // You cannot undo the splat...
+                            EditHistory.clear()
                         }
                     }
                 }
@@ -614,9 +616,32 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                 }
                             }
                             val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", L.G(s"ttSC${_name}"), lbl) with Bindings {
-                                protected override def _get() = value = if (t._7.isDefined && t._7.get()) _ini else getInt(_getVal())
+                                protected override def _get() = value = if (t._7.getOrElse(() => false)()) value.asInstanceOf[java.lang.Number].intValue()/*_ini*/ else getInt(_getVal())
                                 protected override def _set() = _setVal(value.asInstanceOf[java.lang.Number].intValue().toByte)
                                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
+
+                                protected override def setValue(): Unit = {
+                                    val self = this
+                                    EditHistory.add(new HistoryAction {
+                                        val valueBefore = getInt(_getVal())
+                                        val valueAfter = value.asInstanceOf[java.lang.Number].intValue()
+                                        val actionName = s"action${_name}"
+                                        def urSetVal(value: Int) = {
+                                            try {
+                                                deafTo(jTrapKATEditor)
+                                                deafTo(self)
+                                                _setVal(value.toByte)
+                                                _get()
+                                            }
+                                            catch { case e: Exception => e.printStackTrace() }
+                                            finally { listenTo(self); listenTo(jTrapKATEditor) }
+
+                                        }
+                                        def undoAction = urSetVal(valueBefore)
+                                        def redoAction = urSetVal(valueAfter)
+                                    })
+                                    super.setValue()
+                                }
 
                                 reactions += {
                                     case e: CurrentSoundControlChanged => setDisplay()
@@ -628,39 +653,42 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             }
 
                             val ckb: Option[CheckBox] = (t._7, t._8) match {
-                                // Very similar to VarXCheckBox - maybe abstract to a supertype?
-                                case (Some(_isOff), Some(_toOff)) => Some(new CheckBox(L.G("ckbSCOff")) {
+                                case (Some(_isOff), Some(_toOff)) => Some(new CheckBox(L.G("ckbSCOff")) with Bindings {
                                     name = s"ckb${_name}"
 
-                                    private[this] def setDisplay(): Unit = {
-                                        try {
-                                            deafTo(this)
-                                            selected = _isOff()
-                                        }
-                                        catch { case e: Exception => e.printStackTrace() }
-                                        finally { listenTo(this) }
-                                        spn.enabled = !selected
-                                    }
-                                    private[this] def setValue(): Unit = {
-                                        if (selected && !_isOff() && !okToGoSCOff(_name)) {
-                                            // changed to Off, was !Off, not OK, abort...
-                                            try {
-                                                deafTo(this)
-                                                selected = true
+                                    protected override def _get() = { selected = _isOff(); spn.enabled = !selected }
+                                    protected override def _set() = { spn.enabled = !selected; _toOff(selected) }
+                                    protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
+
+                                    protected override def setValue(): Unit = {
+                                        val self = this
+                                        val valueBefore = getInt(_getVal())
+                                        super.setValue()
+                                        val valueAfter = getInt(_getVal())
+
+                                        EditHistory.add(new HistoryAction {
+                                            val stateBefore = !selected
+                                            val stateAfter = selected
+                                            val actionName = s"action${_name}Off"
+                                            def urSetVal(state: Boolean, value: Int) = {
+                                                try {
+                                                    // Restore state
+                                                    deafTo(self)
+                                                    selected = state
+                                                    // Act on restored state
+                                                    deafTo(jTrapKATEditor)
+                                                    _set()
+                                                    // Restore value
+                                                    _setVal(value.toByte)
+                                                }
+                                                catch { case e: Exception => e.printStackTrace() }
+                                                finally { listenTo(self); listenTo(jTrapKATEditor) }
+                                                // Let the spinner know something happened
+                                                _chg()
                                             }
-                                            catch { case e: Exception => e.printStackTrace() }
-                                            finally { listenTo(this) }
-                                        }
-                                        else {
-                                            spn.enabled = !selected
-                                            try {
-                                                deafTo(jTrapKATEditor)
-                                                _toOff(selected)
-                                                jTrapKATEditor.kitChangedBy(this)
-                                            }
-                                            catch { case e: Exception => e.printStackTrace() }
-                                            finally { listenTo(jTrapKATEditor) }
-                                        }
+                                            def undoAction = urSetVal(stateBefore, valueBefore)
+                                            def redoAction = urSetVal(stateAfter, valueAfter)
+                                        })
                                     }
 
                                     listenTo(jTrapKATEditor)

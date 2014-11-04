@@ -53,12 +53,13 @@ trait Bindings extends Publisher {
     protected def setUndoRedo(action: () => Unit) = {
         try {
             deafTo(jTrapKATEditor)
+            deafTo(this)
             action()
             _get()
             _chg()
         }
         catch { case e: Exception => e.printStackTrace() }
-        finally { listenTo(jTrapKATEditor) }
+        finally { listenTo(this); listenTo(jTrapKATEditor) }
     }
 
     listenTo(jTrapKATEditor)
@@ -66,6 +67,12 @@ trait Bindings extends Publisher {
     reactions += {
         case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
         case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+    }
+}
+
+trait ValueChangedBindings extends Bindings {
+    reactions += {
+        case e: ValueChanged => setValue()
     }
 }
 
@@ -84,7 +91,7 @@ trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
             super.setUndoRedo(action)
         }
         catch { case e: Exception => e.printStackTrace() }
-        finally { listenTo(selection); }
+        finally { listenTo(selection) }
     }
 
     listenTo(selection)
@@ -94,11 +101,7 @@ trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
     }
 }
 
-trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] {
-    reactions += {
-        case e: ValueChanged => setValue()
-    }
-}
+trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] with ValueChangedBindings
 
 trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends V3V4ComboBox[T, TP, T3, T4] with Bindings {
     protected override def setDisplay(): Unit = {
@@ -129,22 +132,67 @@ trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends V3V
     }
 }
 
+trait PadBindings extends Bindings  {
+    protected def _setHelper(update: (model.Pad, Byte) => Unit, before: Byte, after: Byte, name: String): Unit = {
+        val currentPad = jTrapKATEditor.currentPad
+        if (before != after) {
+            EditHistory.add(new HistoryAction {
+                val actionName = s"actionPad${name}"
+                def undoAction = setUndoRedo(() => update(currentPad, before))
+                def redoAction = setUndoRedo(() => update(currentPad, after))
+            })
+            update(currentPad, after)
+        }
+    }
+}
+
 trait KitBindings extends Bindings {
     protected def _isKit(): Boolean
     protected def _toKit(): Unit
     protected def _cp(): Component
 
-    protected override def setValue(): Unit = {
-        val isKit = _isKit()
-        super.setValue()
-        if (isKit) {
-            _toKit()
-            jTrapKATEditor.padChangedBy(_cp())
+    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Byte) => Unit, before: Byte, after: Byte, name: String): Unit = {
+        val currentKit = jTrapKATEditor.currentKit
+        if (before != after) {
+            EditHistory.add(new HistoryAction {
+                val actionName = s"actionKit${name}"
+                def undoAction = setUndoRedo(() => update(currentKit, before))
+                def redoAction = setUndoRedo(() => update(currentKit, after))
+            })
+            val isKit = _isKit()
+            update(currentKit, after)
+            if (isKit) {
+                _toKit()
+                jTrapKATEditor.padChangedBy(_cp())
+            }
         }
+    }
+    protected override def setUndoRedo(action: () => Unit) = {
+        try {
+            val isKit = _isKit()
+            super.setUndoRedo(action)
+            if (isKit) {
+                _toKit()
+                jTrapKATEditor.padChangedBy(_cp())
+            }
+        }
+        catch { case e: Exception => e.printStackTrace() }
+        finally {}
     }
 }
 
 trait GlobalBindings extends Bindings {
+    protected def _setHelper(update: (Byte) => Unit, before: Byte, after: Byte, name: String): Unit = {
+        if (before != after) {
+            EditHistory.add(new HistoryAction {
+                val actionName = s"actionGlobal${name.capitalize}"
+                def undoAction = setUndoRedo(() => update(before))
+                def redoAction = setUndoRedo(() => update(after))
+            })
+            update(after)
+        }
+    }
+
     reactions += {
         case e: GlobalChanged if e.source == jTrapKATEditor => setDisplay()
     }

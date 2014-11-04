@@ -48,7 +48,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         protected override def _chg() = {}
 
         reactions += {
-            case e: CurrentKitChanged if e.source == txtKitName || e.source == jTrapKATEditor => { updateKitName(jTrapKATEditor.currentKitNumber); setDisplay() }
+            case e: CurrentKitChanged if e.source == txtKitName || e.source == jTrapKATEditor => { updateAllKitNames(); setDisplay() }
             case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor                     => { updateAllKitNames(); setDisplay() }
         }
 
@@ -75,7 +75,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     private[this] val lblKitName = new Label(L.G("lblKitName"))
     contents += (lblKitName, "cell 4 0,alignx right")
 
-    private[this] val txtKitName = new TextField with Bindings {
+    private[this] val txtKitName = new TextField with ValueChangedBindings {
         name = "txtKitName"
         columns = 16
         tooltip = L.G("ttKitName")
@@ -83,12 +83,18 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         lblKitName.tooltip = tooltip
 
         protected override def _get() = text = jTrapKATEditor.currentKit.kitName.trim()
-        protected override def _set() = jTrapKATEditor.currentKit.kitName = text
-        protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
-
-        reactions += {
-            case e: ValueChanged => setValue()
+        protected override def _set() = {
+            EditHistory.add(new HistoryAction {
+                val kit = jTrapKATEditor.currentKit
+                val valueBefore = jTrapKATEditor.currentKit.kitName
+                val valueAfter = text
+                val actionName = "actionKitName"
+                def undoAction = setUndoRedo(() => kit.kitName = valueBefore)
+                def redoAction = setUndoRedo(() => kit.kitName = valueAfter)
+            })
+            jTrapKATEditor.currentKit.kitName = text
         }
+        protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
 
         setDisplay()
     }

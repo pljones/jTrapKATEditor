@@ -263,7 +263,7 @@ abstract class PadSlotComboBoxV3V4(name: String, ttRoot: String, label: swing.La
     init()
 }
 
-trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] with ValueChangedBindings {
     protected def _getCurrentPad: model.Pad
     protected def _setHelper(slot: Int, valueAfter: Byte, name: String) = {
         val currentPad = _getCurrentPad
@@ -276,9 +276,6 @@ trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotCo
             })
             currentPad(slot) = valueAfter
         }
-    }
-    reactions += {
-        case e: ValueChanged => setValue()
     }
 }
 

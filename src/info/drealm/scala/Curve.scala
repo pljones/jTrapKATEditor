@@ -44,12 +44,19 @@ abstract class CurveComboBoxParent(seq: Seq[String], _name: String, tooltip: Str
 class CurveComboBoxV3(_name: String, tooltip: String) extends CurveComboBoxParent(CurveV3.curveSelection, _name + "V3", tooltip)
 class CurveComboBoxV4(_name: String, tooltip: String) extends CurveComboBoxParent(CurveV4.curveSelection, _name + "V4", tooltip)
 
-class CurveComboBoxV3V4(_name: String, tooltip: String, label: Label, _getVal: () => Byte, _setVal: Byte => Unit, _chgBy: CurveComboBoxParent => Unit)
-    extends V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] with Bindings {
-
+class CurveComboBoxV3V4(_name: String, tooltip: String, label: Label) extends V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] {
     val cbxV3: CurveComboBoxV3 = new CurveComboBoxV3(_name, tooltip)
     val cbxV4: CurveComboBoxV4 = new CurveComboBoxV4(_name, tooltip)
     val lbl: Label = label
+
+    init()
+}
+
+trait CurveComboBoxV3V4Bindings extends CurveComboBoxV3V4 with Bindings {
+    protected def _getVal(): Byte
+    protected def _setVal(value: Byte): Unit
+    protected def _chgBy(cbx: CurveComboBoxParent): Unit
+
     protected override def _get() = {
         try {
             deafTo(selection)
@@ -67,5 +74,4 @@ class CurveComboBoxV3V4(_name: String, tooltip: String, label: Label, _getVal: (
         case e: V3V4SelectionChanged => setValue()
     }
 
-    init()
 }

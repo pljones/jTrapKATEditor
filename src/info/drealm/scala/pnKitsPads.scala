@@ -76,11 +76,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mnePadCurve").charAt(0)) }
             contents += (lblPadCurve, "cell 4 0,alignx right")
 
-            private[this] val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", L.G("ttPadCurve"), lblPadCurve,
-                () => jTrapKATEditor.currentPad.curve,
-                (value: Byte) => jTrapKATEditor.currentPad.curve = value,
-                (cbx: Component) => jTrapKATEditor.padChangedBy(cbx)
-            ) {
+            private[this] val cbxPadCurve = new CurveComboBoxV3V4("cbxPadCurve", L.G("ttPadCurve"), lblPadCurve) with CurveComboBoxV3V4Bindings with PadBindings {
+                protected def _getVal(): Byte = jTrapKATEditor.currentPad.curve
+                protected def _setVal(value: Byte): Unit = _setHelper(_.curve = _, jTrapKATEditor.currentPad.curve, value, "Curve")
+                protected def _chgBy(cbx: CurveComboBoxParent): Unit = jTrapKATEditor.padChangedBy(cbx)
+
                 reactions += {
                     case e: CurrentPadChanged if e.source == jTrapKATEditor
                         || isSourceComponent(e.source, "cbxKitCurveV3", tpnKitPadsDetails)
@@ -96,9 +96,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadGate = new Label(L.G("lblXGate")) { peer.setDisplayedMnemonic(L.G("mnePadGate").charAt(0)) }
             contents += (lblPadGate, "cell 4 1,alignx right")
 
-            private[this] val cbxPadGate = new GateTimeComboBox("cbxPadGate", L.G("ttPadGate"), lblPadGate) with EditableComboBoxBindings[String] {
+            private[this] val cbxPadGate = new GateTimeComboBox("cbxPadGate", L.G("ttPadGate"), lblPadGate) with EditableComboBoxBindings[String] with PadBindings {
                 protected override def _get() = selection.item = GateTime.toString(jTrapKATEditor.currentPad.gate)
-                protected override def _set() = jTrapKATEditor.currentPad.gate = GateTime.toGateTime(selection.item)
+                protected override def _set() = _setHelper(_.gate = _, jTrapKATEditor.currentPad.gate, GateTime.toGateTime(selection.item), "Gate")
                 protected override def _chg() = jTrapKATEditor.padChangedBy(this)
 
                 reactions += {
@@ -114,16 +114,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblPadChannel = new Label(L.G("lblXChannel")) { peer.setDisplayedMnemonic(L.G("mnePadChannel").charAt(0)) }
             contents += (lblPadChannel, "cell 4 2,alignx right")
 
-            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", L.G("ttPadChannel"), lblPadChannel) with Bindings {
+            private[this] val spnPadChannel = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnPadChannel", L.G("ttPadChannel"), lblPadChannel) with PadBindings with ValueChangedBindings {
                 protected override def _get() = value = jTrapKATEditor.currentPad.channel + 1
-                protected override def _set() = jTrapKATEditor.currentPad.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
+                protected override def _set() = _setHelper(_.channel = _, jTrapKATEditor.currentPad.channel, (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte, "Channel")
                 protected override def _chg() = jTrapKATEditor.padChangedBy(this)
 
                 reactions += {
                     case e: CurrentPadChanged if e.source == jTrapKATEditor
                         || isSourceComponent(e.source, "spnKitChannel", tpnKitPadsDetails)
                         || isSourceComponent(e.source, "ckbVarChannel", tpnKitPadsDetails) => setDisplay()
-                    case e: ValueChanged => setValue()
                 }
 
                 setDisplay()
@@ -138,22 +137,21 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
                 Seq(
-                    (0, "Min", 1, () => jTrapKATEditor.currentPad.minVelocity, (value: Byte) => jTrapKATEditor.currentPad.minVelocity = value),
-                    (1, "Max", 127, () => jTrapKATEditor.currentPad.maxVelocity, (value: Byte) => jTrapKATEditor.currentPad.maxVelocity = value)
+                    (0, "Min", 1, () => jTrapKATEditor.currentPad.minVelocity, (pad: model.Pad, value: Byte) => pad.minVelocity = value),
+                    (1, "Max", 127, () => jTrapKATEditor.currentPad.maxVelocity, (pad: model.Pad, value: Byte) => pad.maxVelocity = value)
                 ) foreach { x =>
                         (x._1, x._2, x._3, x._4, x._5) match {
                             case (_x, _name, _ini, _getVel, _setVel) => {
                                 val lbl = new Label(L.G(s"lbl${_name}"))
-                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnPadVel${_name}", tooltip, lbl) with Bindings {
+                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnPadVel${_name}", tooltip, lbl) with PadBindings with ValueChangedBindings {
                                     protected override def _get() = value = _getVel()
-                                    protected override def _set() = _setVel(value.asInstanceOf[java.lang.Number].byteValue())
+                                    protected override def _set() = _setHelper(_setVel, _getVel(), value.asInstanceOf[java.lang.Number].byteValue(), s"Vel${_name}")
                                     protected override def _chg() = jTrapKATEditor.padChangedBy(this)
 
                                     reactions += {
                                         case e: CurrentPadChanged if e.source == jTrapKATEditor
                                             || isSourceComponent(e.source, s"spnKitVel${_name}", tpnKitPadsDetails)
                                             || isSourceComponent(e.source, s"ckbVarVel${_name}", tpnKitPadsDetails) => setDisplay()
-                                        case e: ValueChanged => setValue()
                                     }
 
                                     setDisplay()
@@ -181,7 +179,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         verticalTextPosition = Alignment.Top
 
                         protected override def _get() = selected = ((1 << flag) & jTrapKATEditor.currentPad.flags) != 0
-                        protected override def _set() = jTrapKATEditor.currentPad.flags = ((~(1 << flag) & jTrapKATEditor.currentPad.flags) | ((if (selected) 1 else 0) << flag)).toByte
+                        protected override def _set() = {
+                            def update(pad: model.Pad, flag: Int, state: Boolean) = pad.flags = ((~(1 << flag) & pad.flags) | ((if (state) 1 else 0) << flag)).toByte
+                            val currentPad = jTrapKATEditor.currentPad
+                            val state = selected
+                            EditHistory.add(new HistoryAction {
+                                val actionName = s"actionFlag"
+                                def undoAction = setUndoRedo(() => update(currentPad, flag, !state))
+                                def redoAction = setUndoRedo(() => update(currentPad, flag, state))
+                            })
+                            update(currentPad, flag, state)
+                        }
                         protected override def _chg() = jTrapKATEditor.padChangedBy(this)
 
                         listenTo(pnPedals.pnHH)
@@ -203,12 +211,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
                 private[this] class PadDynamicsSpinner(_name: String, label: Label, _getPD: () => Byte, _setPD: (Byte) => Unit)
-                    extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label) with Bindings {
+                    extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label) with GlobalBindings {
                     protected override def _get() = {
                         enabled = jTrapKATEditor.currentPadNumber < 25
                         value = if (enabled) getInt(_getPD()) else 0
                     }
-                    protected override def _set() = _setPD(value.asInstanceOf[java.lang.Number].byteValue())
+                    protected override def _set() = _setHelper(_setPD, _getPD(), value.asInstanceOf[java.lang.Number].byteValue(), _name)
                     protected override def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
 
                     reactions += {
@@ -279,19 +287,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
-            private[this] def okToGoKit(name: String): Boolean = {
-                Dialog.showConfirmation(tpnMain,
-                    L.G("ToKit", name),
-                    L.G("ApplicationProductName"),
-                    Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
-            }
-            private[this] def setPadEnabled(name: String, isVarious: Boolean): Unit = {
-                Focus.findInComponent(pnPadDetails, name) match {
-                    case Some(cp) => cp.enabled = isVarious
-                    case _        => Console.println(s"${name} not found")
-                }
-            }
-
             trait CanBeEnabled {
                 def enabled: Boolean
                 def enabled_=(value: Boolean): Unit
@@ -305,41 +300,42 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] class VarXCheckBox(_name: String, _cp: CanBeEnabled, _isKit: () => Boolean, _toKit: () => Unit, padCpName: String*) extends CheckBox(L.G("lblXVarious")) with Bindings {
                 name = s"ckbVar${_name}"
                 tooltip = _cp.tooltip
+
+                private[this] def okToGoKit(name: String): Boolean = {
+                    Dialog.showConfirmation(tpnMain,
+                        L.G("ToKit", name),
+                        L.G("ApplicationProductName"),
+                        Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
+                }
+                private[this] def setPadEnabled(name: String, isVarious: Boolean): Unit = {
+                    Focus.findInComponent(pnPadDetails, name) match {
+                        case Some(cp) => cp.enabled = isVarious
+                        case _        => Console.println(s"${name} not found")
+                    }
+                }
+
                 protected override def _get() = {
-                    val isKit = _isKit()
-                    selected = !isKit
+                    selected = !_isKit()
                     padCpName foreach (n => setPadEnabled(n, selected))
                     _cp.enabled = !selected
                 }
-
                 protected override def _set() = _toKit()
                 protected override def _chg() = jTrapKATEditor.padChangedBy(this)
-                protected override def setValue() = {
-                    val isKit = _isKit()
-                    if (!selected && !isKit && !okToGoKit(_name)) {
-                        // was checked -> various, now unchecked -> kit
-                        // currently various pad values
-                        // not okay to splat, so revert the checkbox (yuck!)
-                        try {
-                            deafTo(this)
-                            selected = true
-                        }
-                        catch { case e: Exception => e.printStackTrace() }
-                        finally { listenTo(this) }
-                    }
-                    else {
-                        padCpName foreach (n => setPadEnabled(n, selected))
-                        _cp.enabled = !selected
 
-                        if (!selected && !isKit) {
-                            // was checked -> various, now unchecked -> kit
-                            // currently various pad values
-                            // we got the okay to splat, so splat!
-                            super.setValue()
-                            // You cannot undo the splat...
-                            EditHistory.clear()
+                protected override def setValue() = {
+                    try {
+                        deafTo(this)
+                        if (!selected && !okToGoKit(_name)) selected = true
+                        else {
+                            if (!selected) {
+                                super.setValue()
+                                EditHistory.clear()
+                            }
+                            padCpName foreach (n => setPadEnabled(n, selected))
+                            _cp.enabled = !selected
                         }
                     }
+                    finally { listenTo(this) }
                 }
 
                 reactions += {
@@ -361,11 +357,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             private[this] val lblKitCurve = new Label(L.G("lblXCurve")) { peer.setDisplayedMnemonic(L.G("mneKitCurve").charAt(0)) }
             contents += (lblKitCurve, "cell 0 0,alignx right")
 
-            private[this] val cbxKitCurve: CurveComboBoxV3V4 = new CurveComboBoxV3V4("cbxKitCurve", L.G("ttKitCurve"), lblKitCurve,
-                () => jTrapKATEditor.currentKit.curve,
-                value => jTrapKATEditor.currentKit.curve = value,
-                cbx => jTrapKATEditor.kitChangedBy(cbx)
-            ) with KitBindings {
+            private[this] val cbxKitCurve: CurveComboBoxV3V4 = new CurveComboBoxV3V4("cbxKitCurve", L.G("ttKitCurve"), lblKitCurve) with CurveComboBoxV3V4Bindings with KitBindings {
+                protected def _getVal(): Byte = jTrapKATEditor.currentKit.curve
+                protected def _setVal(value: Byte): Unit = _setHelper(_.curve = _, jTrapKATEditor.currentKit.curve, value, "Curve")
+                protected def _chgBy(cbx: CurveComboBoxParent): Unit = jTrapKATEditor.kitChangedBy(cbx)
                 protected override def _isKit() = jTrapKATEditor.currentKit.isKitCurve
                 protected override def _toKit() = jTrapKATEditor.currentKit.toKitCurve()
                 protected override def _cp() = cbx
@@ -390,7 +385,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val cbxKitGate: GateTimeComboBox = new GateTimeComboBox("cbxKitGate", L.G("ttKitGate"), lblKitGate) with EditableComboBoxBindings[String] with KitBindings {
                 protected override def _get() = selection.item = GateTime.toString(jTrapKATEditor.currentKit.gate)
-                protected override def _set() = jTrapKATEditor.currentKit.gate = GateTime.toGateTime(selection.item)
+                protected override def _set() = _setHelper(_.gate = _, jTrapKATEditor.currentKit.gate, GateTime.toGateTime(selection.item), "Gate")
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
                 protected override def _isKit() = jTrapKATEditor.currentKit.isKitGate
                 protected override def _toKit() = jTrapKATEditor.currentKit.toKitGate()
@@ -414,7 +409,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             private[this] val spnKitChannel: Spinner = new Spinner(new javax.swing.SpinnerNumberModel(1, 1, 16, 1), "spnKitChannel", L.G("ttKitChannel"), lblKitChannel) with KitBindings {
                 protected override def _get() = value = jTrapKATEditor.currentKit.channel + 1
-                protected override def _set() = jTrapKATEditor.currentKit.channel = (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte
+                protected override def _set() = _setHelper(_.channel = _, jTrapKATEditor.currentKit.channel, (value.asInstanceOf[java.lang.Number].intValue() - 1).toByte, "Channel")
                 protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
                 protected override def _isKit() = jTrapKATEditor.currentKit.isKitChannel
                 protected override def _toKit() = jTrapKATEditor.currentKit.toKitChannel()
@@ -513,8 +508,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min", 1, () => jTrapKATEditor.currentKit.minVelocity, (value: Byte) => jTrapKATEditor.currentKit.minVelocity = value, () => jTrapKATEditor.currentKit.isKitMinVel, () => jTrapKATEditor.currentKit.toKitMinVel()),
-                    (1, "Max", 127, () => jTrapKATEditor.currentKit.maxVelocity, (value: Byte) => jTrapKATEditor.currentKit.maxVelocity = value, () => jTrapKATEditor.currentKit.isKitMaxVel, () => jTrapKATEditor.currentKit.toKitMaxVel())
+                Seq((0, "Min", 1, () => jTrapKATEditor.currentKit.minVelocity, (kit: model.Kit[_ <: model.Pad], value: Byte) => kit.minVelocity = value, () => jTrapKATEditor.currentKit.isKitMinVel, () => jTrapKATEditor.currentKit.toKitMinVel()),
+                    (1, "Max", 127, () => jTrapKATEditor.currentKit.maxVelocity, (kit: model.Kit[_ <: model.Pad], value: Byte) => kit.maxVelocity = value, () => jTrapKATEditor.currentKit.isKitMaxVel, () => jTrapKATEditor.currentKit.toKitMaxVel())
                 ) foreach { x =>
                         (x._1, x._2, x._3, x._4, x._5, x._6, x._7) match {
                             case (_x, _name, _ini, _getVel, _setVel, _isKitVel, _toKitVel) => {
@@ -522,17 +517,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                 val lbl = new Label(L.G(s"lbl${_name}"))
                                 contents += (lbl, s"cell ${_x} 1,alignx center")
 
-                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnKitVel${_name}", tooltip, lbl) with KitBindings {
+                                val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, 0, 127, 1), s"spnKitVel${_name}", tooltip, lbl) with KitBindings with ValueChangedBindings {
                                     protected override def _get() = value = _getVel()
-                                    protected override def _set() = _setVel(value.asInstanceOf[java.lang.Number].intValue().toByte)
+                                    protected override def _set() = _setHelper(_setVel(_, _), _getVel(), value.asInstanceOf[java.lang.Number].intValue().toByte, s"Vel${_name}")
                                     protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
                                     protected override def _isKit() = _isKitVel()
                                     protected override def _toKit() = _toKitVel()
                                     protected override def _cp() = this
-
-                                    reactions += {
-                                        case e: ValueChanged => setValue()
-                                    }
 
                                     setDisplay()
                                 }
@@ -573,12 +564,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             contents += (pnSoundControl, "cell 6 0 7 1,center,hidemode 0")
 
             //_name, _ini, _min, _max, _get, _set, ?_getIsOff, ?_setIsOff
-            Seq[(String, Int, Int, Int, () => Byte, Byte => Unit, Option[() => Boolean], Option[Boolean => Unit])](
+            Seq[(String, Int, Int, Int, () => Byte, (model.Kit[_ <: model.Pad], Int, Byte) => Unit, Option[() => Boolean], Option[Boolean => Unit])](
                 ("Volume", 127, 0, 127,
-                    () => jTrapKATEditor.sc.volume, (value: Byte) => jTrapKATEditor.sc.volume = value,
+                    () => jTrapKATEditor.sc.volume, (kit, sc, value) => kit.soundControls(sc).volume = value,
                     Some(() => getInt(jTrapKATEditor.sc.volume) >= 128), Some((value: Boolean) => jTrapKATEditor.sc.volume = (if (value) 128 else 127).toByte)),
                 ("PrgChg", 1, 1, 128,
-                    () => jTrapKATEditor.sc.prgChg, (value: Byte) => jTrapKATEditor.sc.prgChg = value,
+                    () => jTrapKATEditor.sc.prgChg, (kit, sc, value) => kit.soundControls(sc).prgChg = value,
                     Some(() => getInt(jTrapKATEditor.sc.prgChg) == 0),
                     Some((value: Boolean) => {
                         jTrapKATEditor.sc.prgChg == (if (value) 0 else 1).toByte
@@ -590,17 +581,17 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 ("PrgChgTxmChn", 10, 1, 16,
                     () => {
                         (jTrapKATEditor.sc.prgChgTxmChn + 1).toByte
-                    }, (value: Byte) => jTrapKATEditor.sc.prgChgTxmChn = (value - 1).toByte,
+                    }, (kit, sc, value: Byte) => kit.soundControls(sc).prgChgTxmChn = (value - 1).toByte,
                     None, None),
                 ("BankMSB", 0, 0, 127,
-                    () => jTrapKATEditor.sc.bankMSB, (value: Byte) => jTrapKATEditor.sc.bankMSB = value,
+                    () => jTrapKATEditor.sc.bankMSB, (kit, sc, value) => kit.soundControls(sc).bankMSB = value,
                     Some(() => getInt(jTrapKATEditor.sc.bankMSB) >= 128), Some((value: Boolean) => jTrapKATEditor.sc.bankMSB = (if (value) 128 else 0).toByte)),
                 ("BankLSB", 0, 0, 127,
-                    () => jTrapKATEditor.sc.bankLSB, (value: Byte) => jTrapKATEditor.sc.bankLSB = value,
+                    () => jTrapKATEditor.sc.bankLSB, (kit, sc, value) => kit.soundControls(sc).bankLSB = value,
                     Some(() => getInt(jTrapKATEditor.sc.bankLSB) >= 128), Some((value: Boolean) => jTrapKATEditor.sc.bankLSB = (if (value) 128 else 0).toByte)),
                 ("Bank", 0, 0, 127,
                     () => { jTrapKATEditor.doV3V4(jTrapKATEditor.currentKitV3.bank, 0) },
-                    (value: Byte) => jTrapKATEditor.doV3V4(jTrapKATEditor.scBank = value, {}),
+                    (kit, sc, value) => jTrapKATEditor.doV3V4(kit.asInstanceOf[model.KitV3].bank = value, {}),
                     jTrapKATEditor.doV3V4(Some(() => getInt(jTrapKATEditor.scBank) >= 128), None),
                     jTrapKATEditor.doV3V4(Some((value: Boolean) => jTrapKATEditor.scBank = (if (value) 128 else 0).toByte), None))
             ) map { t =>
@@ -614,38 +605,27 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                     case _                  => {}
                                 }
                             }
-                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", L.G(s"ttSC${_name}"), lbl) with Bindings {
-                                protected override def _get() = value = if (t._7.getOrElse(() => false)()) value.asInstanceOf[java.lang.Number].intValue()/*_ini*/ else getInt(_getVal())
-                                protected override def _set() = _setVal(value.asInstanceOf[java.lang.Number].intValue().toByte)
-                                protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
-
-                                protected override def setValue(): Unit = {
-                                    val self = this
-                                    EditHistory.add(new HistoryAction {
-                                        val valueBefore = getInt(_getVal())
-                                        val valueAfter = value.asInstanceOf[java.lang.Number].intValue()
-                                        val actionName = s"action${_name}"
-                                        def urSetVal(value: Int) = {
-                                            try {
-                                                deafTo(jTrapKATEditor)
-                                                deafTo(self)
-                                                _setVal(value.toByte)
-                                                _get()
-                                            }
-                                            catch { case e: Exception => e.printStackTrace() }
-                                            finally { listenTo(self); listenTo(jTrapKATEditor) }
-
-                                        }
-                                        def undoAction = urSetVal(valueBefore)
-                                        def redoAction = urSetVal(valueAfter)
-                                    })
-                                    super.setValue()
+                            val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", L.G(s"ttSC${_name}"), lbl) with Bindings with ValueChangedBindings {
+                                protected override def _get() = value = if (t._7.getOrElse(() => false)()) value.asInstanceOf[java.lang.Number].intValue() /*_ini*/ else getInt(_getVal())
+                                protected override def _set() = {
+                                    val currentKit = jTrapKATEditor.currentKit
+                                    val currentSCNo = jTrapKATEditor.currentSoundControlNumber
+                                    val before = _getVal()
+                                    val after = value.asInstanceOf[java.lang.Number].intValue().toByte
+                                    if (before != after) {
+                                        EditHistory.add(new HistoryAction {
+                                            val actionName = s"action${_name}"
+                                            def undoAction = setUndoRedo(() => _setVal(currentKit, currentSCNo, before))
+                                            def redoAction = setUndoRedo(() => _setVal(currentKit, currentSCNo, after))
+                                        })
+                                        _setVal(currentKit, currentSCNo, after)
+                                    }
                                 }
+                                protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
 
                                 reactions += {
                                     case e: CurrentSoundControlChanged => setDisplay()
                                     case e: CurrentKitChanged if isSourceComponent(e.source, s"ckb${_name}", pnKitDetails) => setDisplay()
-                                    case e: ValueChanged => setValue()
                                 }
 
                                 setDisplay()
@@ -660,33 +640,18 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                     protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
 
                                     protected override def setValue(): Unit = {
-                                        val self = this
+                                        val currentKit = jTrapKATEditor.currentKit
+                                        val currentSCNo = jTrapKATEditor.currentSoundControlNumber
+                                        val stateBefore = !selected
                                         val valueBefore = getInt(_getVal())
                                         super.setValue()
                                         val valueAfter = getInt(_getVal())
+                                        val stateAfter = selected
 
                                         EditHistory.add(new HistoryAction {
-                                            val stateBefore = !selected
-                                            val stateAfter = selected
                                             val actionName = s"action${_name}Off"
-                                            def urSetVal(state: Boolean, value: Int) = {
-                                                try {
-                                                    // Restore state
-                                                    deafTo(self)
-                                                    selected = state
-                                                    // Act on restored state
-                                                    deafTo(jTrapKATEditor)
-                                                    _set()
-                                                    // Restore value
-                                                    _setVal(value.toByte)
-                                                }
-                                                catch { case e: Exception => e.printStackTrace() }
-                                                finally { listenTo(self); listenTo(jTrapKATEditor) }
-                                                // Let the spinner know something happened
-                                                _chg()
-                                            }
-                                            def undoAction = urSetVal(stateBefore, valueBefore)
-                                            def redoAction = urSetVal(stateAfter, valueAfter)
+                                            def undoAction = setUndoRedo(() => { selected = stateBefore; _set(); _setVal(currentKit, currentSCNo, valueBefore.toByte) })
+                                            def redoAction = setUndoRedo(() => { selected = stateAfter; _set(); _setVal(currentKit, currentSCNo, valueAfter.toByte) })
                                         })
                                     }
 

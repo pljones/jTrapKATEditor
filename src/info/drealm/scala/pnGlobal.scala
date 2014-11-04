@@ -43,10 +43,11 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     case class EditableGlobalComboBoxParams(_toItem: (Byte, Seq[String]) => String, _fromItem: (Int, String) => Byte, items: Seq[String], _verifier: (Int, String) => Boolean) extends GlobalComponentParams
 
     private[this] class GlobalSpinner(_name: String, lbl: Label, _getVal: () => Byte, _setVal: (Byte) => Unit, params: GlobalSpinnerParams)
-        extends Spinner(new javax.swing.SpinnerNumberModel(params.ini, params.min, params.max, 1), s"spn${_name}", L.G(s"ttGlobal${_name}"), lbl) with GlobalBindings {
+        extends Spinner(new javax.swing.SpinnerNumberModel(params.ini, params.min, params.max, 1), s"spn${_name}", L.G(s"ttGlobal${_name}"), lbl)
+        with GlobalBindings with ValueChangedBindings {
 
         protected override def _get() = value = getInt(_getVal())
-        protected override def _set() = _setVal(value.asInstanceOf[java.lang.Number].byteValue())
+        protected override def _set() = _setHelper(_setVal, _getVal(), value.asInstanceOf[java.lang.Number].byteValue(), _name)
         protected override def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
 
         setDisplay()
@@ -56,7 +57,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         extends RichComboBox(params.items, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with ComboBoxBindings[String] with GlobalBindings {
 
         protected override def _get() = selection.item = params.items(_getVal())
-        protected override def _set() = _setVal(selection.index.toByte)
+        protected override def _set() = _setHelper(_setVal, _getVal(), selection.index.toByte, _name)
         protected override def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
 
         setDisplay()
@@ -69,7 +70,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         extends GlobalComboBox(_name, lbl, () => _getVal(), (value) => _setVal(value), GlobalComboBoxParams(params.items)) {
 
         protected override def _get() = selection.item = params._toItem(_getVal(), params.items)
-        protected override def _set() = _setVal(params._fromItem(selection.index, selection.item))
+        protected override def _set() = _setHelper(_setVal, _getVal(), params._fromItem(selection.index, selection.item), _name)
         protected override def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
 
         makeEditable()

@@ -85,8 +85,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     case e: CurrentPadChanged if e.source == jTrapKATEditor
                         || isSourceComponent(e.source, "cbxKitCurveV3", tpnKitPadsDetails)
                         || isSourceComponent(e.source, "cbxKitCurveV4", tpnKitPadsDetails)
-                        || isSourceComponent(e.source, "ckbVarCurveV3", tpnKitPadsDetails)
-                        || isSourceComponent(e.source, "ckbVarCurveV4", tpnKitPadsDetails) => setDisplay()
+                        || isSourceComponent(e.source, "ckbVarCurve", tpnKitPadsDetails) => setDisplay()
                 }
 
                 setDisplay()

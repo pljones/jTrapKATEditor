@@ -50,20 +50,24 @@ trait NoteNameToNumber {
      * @return        The integer note number (based on the octave set for middle C)
      */
     def toNumber(value: String): Int = {
-        val noteName = value.trim().toLowerCase().capitalize
-        val note = notes.indexOf(noteName.head)
-        if (note < 0) throw new IllegalArgumentException("Invalid note")
-        val sharp = noteName.drop(1).take(1) == "#"
-        val flat = noteName.drop(1).take(1) == "b"
-        val octaveNum = noteName.drop(1 + (if (sharp || flat) 1 else 0)).toInt - octave + 5
-        if (octaveNum < 0 || octaveNum > 10) throw new IllegalArgumentException("Invalid octave")
-        note +
-            (if (sharp) 1 else 0) +
-            (if (flat) -1 else 0) +
-            (octaveNum * 12) match {
-                case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
-                case good                        => good
+        (try { value.toInt } catch {
+            case _: Throwable => {
+                val noteName = value.trim().toLowerCase().capitalize
+                val note = notes.indexOf(noteName.head)
+                if (note < 0) throw new IllegalArgumentException("Invalid note")
+                val sharp = noteName.drop(1).take(1) == "#"
+                val flat = noteName.drop(1).take(1) == "b"
+                val octaveNum = noteName.drop(1 + (if (sharp || flat) 1 else 0)).toInt - octave + 5
+                if (octaveNum < 0 || octaveNum > 10) throw new IllegalArgumentException("Invalid octave")
+                note +
+                    (if (sharp) 1 else 0) +
+                    (if (flat) -1 else 0) +
+                    (octaveNum * 12)
             }
+        }) match {
+            case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
+            case good                        => good
+        }
     }
 }
 

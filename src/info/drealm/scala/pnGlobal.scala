@@ -87,7 +87,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
         def addSpinner(_name: String, _getVal: () => Byte, _setVal: (Byte) => Unit, _params: Option[GlobalSpinnerParams]): Unit = {
 
-            val lbl = new Label(L.G(s"ttGlobal${_name}"))
+            val lbl = new Label(L.G(s"lblGlobal${_name}"))
             this.contents += (lbl, s"cell 0 ${row},alignx right")
 
             val spn = _params match {
@@ -101,7 +101,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
         def addComboBox(_name: String, _getVal: () => Byte, _setVal: (Byte) => Unit, gcbp: GlobalComboBoxParams): Unit = {
 
-            val lbl = new Label(L.G(s"ttGlobal${_name}"))
+            val lbl = new Label(L.G(s"lblGlobal${_name}"))
             this.contents += (lbl, s"cell 0 ${row},alignx right")
 
             val cbx = new GlobalComboBox(_name, lbl, _getVal, _setVal, gcbp)
@@ -112,7 +112,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
         def addOffOnComboBox(_name: String, _getVal: () => Byte, _setVal: (Byte) => Unit): Unit = {
 
-            val lbl = new Label(L.G(s"ttGlobal${_name}"))
+            val lbl = new Label(L.G(s"lblGlobal${_name}"))
             this.contents += (lbl, s"cell 0 ${row},alignx right")
 
             val cbx = new OffOnGlobalComboBox(_name, lbl, _getVal, _setVal)
@@ -123,7 +123,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
         def addEditableComboBox(_name: String, _getVal: () => Byte, _setVal: (Byte) => Unit, gcbp: EditableGlobalComboBoxParams): Unit = {
 
-            val lbl = new Label(L.G(s"ttGlobal${_name}"))
+            val lbl = new Label(L.G(s"lblGlobal${_name}"))
             this.contents += (lbl, s"cell 0 ${row},alignx right")
 
             val cbx = new EditableGlobalComboBox(_name, lbl, _getVal, _setVal, gcbp)

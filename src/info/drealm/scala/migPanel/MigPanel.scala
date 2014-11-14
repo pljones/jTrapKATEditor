@@ -22,9 +22,6 @@
 
 package info.drealm.scala.migPanel
 
-/*
- */
-
 import swing._
 import net.miginfocom.swing._
 

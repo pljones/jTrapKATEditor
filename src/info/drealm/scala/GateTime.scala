@@ -21,6 +21,7 @@
  ****************************************************************************/
 
 package info.drealm.scala
+
 import info.drealm.scala.{ Localization => L }
 
 object GateTime {

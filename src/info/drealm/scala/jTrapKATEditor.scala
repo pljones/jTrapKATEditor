@@ -83,12 +83,14 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         allMemoryChangedBy(source)
     }
     def setKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
+        EditHistory.clear()
         if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
             _currentAllMemory(_currentKitNumber) = getKit
             publish(new CurrentKitChanged(this))
         }
     }
     def swapKits(source: Component, kitOther: Int) {
+        EditHistory.clear()
         doV3V4({
             val thisKit = currentKitV3
             _currentAllMemory(_currentKitNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV3]
@@ -135,46 +137,32 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentPadChanged(source))
         kitChangedBy(source)
     }
-    def setPadV3(source: Component, pad: model.PadV3) = {
-        currentKitV3.update(_currentPadNumber, pad)
-        updateHHPads(pad)
-        publish(new CurrentPadChanged(this))
-        kitChangedBy(source)
-    }
-    def setPadV4(source: Component, pad: model.PadV4) = {
-        currentKitV4.update(_currentPadNumber, pad)
-        updateHHPads(pad)
-        publish(new CurrentPadChanged(this))
-        kitChangedBy(source)
-    }
 
-    private[this] def updateHHPads(pad: model.Pad): Unit = {
-        val thisPadNo = (_currentPadNumber + 1).toByte
-        currentKit.hhPadNos(thisPadNo).foreach(currentKit.hhPads(_, 0))
-        if ((pad.flags & 0x80) != 0) currentKit.hhPadNos(0).headOption.foreach(currentKit.hhPads(_, thisPadNo))
-    }
-
-    def swapPads(source: Component, kitOther: Int, padOther: Int) = {
+    def swapPads(source: Component, leftKitNo: Int, leftPadNo: Int, rightKitNo: Int, rightPadNo: Int) = {
+        val leftKit = _currentAllMemory(leftKitNo)
+        val rightKit = _currentAllMemory(rightKitNo)
 
         // Handy names for linkTo (V4) and hhPad numbers
-        val thisPadNo = (_currentPadNumber + 1).toByte
-        val thatPadNo = (padOther + 1).toByte
+        val thisPadNo = (rightPadNo + 1).toByte
+        val thatPadNo = (leftPadNo + 1).toByte
 
         import scala.language.existentials
         val (thisKit, thisPad, thatKit, thatPad) = doV3V4({
-            val _thisPad = currentPadV3
-            val _thatKit = _currentAllMemory(kitOther).asInstanceOf[model.KitV3]
-            val _thatPad = _thatKit(padOther)
-            currentKitV3(_currentPadNumber) = _thatPad
-            _thatKit(padOther) = _thisPad
-            Tuple4(currentKitV3, _thisPad, _thatKit, _thatPad)
+            val _thatKit = leftKit.asInstanceOf[model.KitV3]
+            val _thatPad = _thatKit(leftPadNo)
+            val _thisKit = rightKit.asInstanceOf[model.KitV3]
+            val _thisPad = _thisKit(rightPadNo)
+            _thisKit(rightPadNo) = _thatPad
+            _thatKit(leftPadNo) = _thisPad
+            Tuple4(_thisKit, _thisPad, _thatKit, _thatPad)
         }, {
-            val _thisPad = currentPadV4
-            val _thatKit = _currentAllMemory(kitOther).asInstanceOf[model.KitV4]
-            val _thatPad = _thatKit(padOther)
+            val _thatKit = leftKit.asInstanceOf[model.KitV4]
+            val _thatPad = _thatKit(leftPadNo)
+            val _thisKit = rightKit.asInstanceOf[model.KitV4]
+            val _thisPad = _thisKit(rightPadNo)
 
             // Handle LinkTo.
-            if (_currentKitNumber != kitOther) {
+            if (rightKitNo != leftKitNo) {
                 // If changing kits, lose it.
                 _thisPad.linkTo = thatPadNo
                 _thatPad.linkTo = thisPadNo
@@ -196,9 +184,9 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                     _thatPad.linkTo = thatPadNo
             }
 
-            currentKitV4(_currentPadNumber) = _thatPad
-            _thatKit(padOther) = _thisPad
-            Tuple4(currentKitV4, _thisPad, _thatKit, _thatPad)
+            _thisKit(rightPadNo) = _thatPad
+            _thatKit(leftPadNo) = _thisPad
+            Tuple4(_thisKit, _thisPad, _thatKit, _thatPad)
         })
 
         // Remember whether a pad is a hhPad
@@ -221,12 +209,16 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             thatPad.flags = (0x80 | thatPad.flags).toByte
         }
 
-        // hackery and fakery
+        // hackery and fakery needed for undo action
         val _wasKit = _currentKitNumber
         val _wasPad = _currentPadNumber
         try {
-            _currentKitNumber = kitOther
-            _currentPadNumber = padOther
+            _currentKitNumber = leftKitNo
+            _currentPadNumber = leftPadNo
+            publish(new CurrentPadChanged(this))
+
+            _currentKitNumber = rightKitNo
+            _currentPadNumber = rightPadNo
             publish(new CurrentPadChanged(this))
         }
         catch { case e: Exception => {} }
@@ -235,12 +227,16 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             _currentPadNumber = _wasPad
         }
 
+        // Re-establish selected pad...
         publish(new CurrentPadChanged(this))
+
+        // Oh, and well, things may have changed...
         kitChangedBy(source)
 
     }
 
     def reinitV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+        EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV3
@@ -249,6 +245,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
 
     def reinitV4(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+        EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
         _currentAllMemory = new model.AllMemoryV4
@@ -256,6 +253,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
 
     def convertToV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+        EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.AllMemory
         _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
@@ -263,6 +261,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     }
 
     def convertToV4(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+        EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.AllMemory
         _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
@@ -278,21 +277,25 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
         dump match {
             case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
+                EditHistory.clear()
                 _currentType = model.DumpType.AllMemory
                 _currentAllMemory = allMemoryV3Dump.self
                 publish(new CurrentAllMemoryChanged(this))
             }
             case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
+                EditHistory.clear()
                 _currentType = model.DumpType.AllMemory
                 _currentAllMemory = allMemoryV4Dump.self
                 publish(new CurrentAllMemoryChanged(this))
             }
             case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 doV3V4({
+                    EditHistory.clear()
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
                     _currentAllMemory.global = globalV3Dump.self
                     publish(new GlobalChanged(this))
                 }, if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
+                    EditHistory.clear()
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
                     _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
                     publish(new GlobalChanged(this))
@@ -300,10 +303,12 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             }
             case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 doV3V4(if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
+                    EditHistory.clear()
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
                     _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
                     publish(new GlobalChanged(this))
                 }, {
+                    EditHistory.clear()
                     if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
                     _currentAllMemory.global = globalV4Dump.self
                     publish(new GlobalChanged(this))
@@ -314,6 +319,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
                 def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
                     if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
+                        EditHistory.clear()
                         if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
                         _currentAllMemory(_currentKitNumber) = getKit
                         publish(new CurrentKitChanged(this))
@@ -329,6 +335,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
                 def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
                     if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
+                        EditHistory.clear()
                         if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
                         _currentAllMemory(_currentKitNumber) = getKit
                         publish(new CurrentKitChanged(this))

@@ -193,6 +193,43 @@ object Clipboard extends ClipboardOwner with Publisher {
         }
         else true
     }
+    private[this] def setPad(source: Component, kitNo: Int, padNo: Int, pad: model.Pad) = {
+        val kit = jTrapKATEditor.currentAllMemory(kitNo)
+        jTrapKATEditor.currentPad match {
+            case v3: model.PadV3 => kit.asInstanceOf[model.KitV3].update(padNo, pad.asInstanceOf[model.PadV3])
+            case v4: model.PadV4 => kit.asInstanceOf[model.KitV4].update(padNo, pad.asInstanceOf[model.PadV4])
+        }
+
+        val p = (padNo + 1).toByte
+        kit.hhPadNos(p).foreach(kit.hhPads(_, 0))
+        if ((pad.flags & 0x80) != 0) kit.hhPadNos(0).headOption.foreach(kit.hhPads(_, p))
+
+        if (padNo == jTrapKATEditor.currentPadNumber)
+            publish(new eventX.CurrentPadChanged(jTrapKATEditor))
+        if (kitNo == jTrapKATEditor.currentKitNumber)
+            jTrapKATEditor.kitChangedBy(source)
+    }
+    private[this] class PastePadHistoryAction(source: Component, pad: model.Pad) extends HistoryAction {
+        val kitNoWas = jTrapKATEditor.currentKitNumber
+        val padNoWas = jTrapKATEditor.currentPadNumber
+
+        def clonePad(pad: model.Pad) = {
+            val stream = new java.io.ByteArrayOutputStream()
+            pad.serialize(stream)
+            pad match {
+                case v3: model.PadV3 => new model.PadV3(new java.io.ByteArrayInputStream(stream.toByteArray()))
+                case v4: model.PadV4 => new model.PadV4(new java.io.ByteArrayInputStream(stream.toByteArray()))
+            }
+        }
+
+        val padBefore = clonePad(jTrapKATEditor.currentPad)
+        val padAfter = clonePad(pad)
+
+        val actionName: String = "actionEditPastePad"
+        def undoAction(): Unit = setPad(source, kitNoWas, padNoWas, padBefore)
+        def redoAction(): Unit = setPad(source, kitNoWas, padNoWas, padAfter)
+    }
+
     private[this] def pastePadV3(source: Component) {
         val padV3Clip = getContentPadV3()
         val padV3 = padV3Clip.pad
@@ -200,11 +237,13 @@ object Clipboard extends ClipboardOwner with Publisher {
         padV3.flags = ((if (hhPad) 0x80 else 0) | padV3.flags).toByte
         if (pasteIfVarious(padV3)) jTrapKATEditor.doV3V4({
             // v3 -> v3
-            jTrapKATEditor.setPadV3(source, padV3)
-        }, {
+            EditHistory.add(new PastePadHistoryAction(source, padV3))
+            setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV3)
+        }, if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4"))) {
             // v3 -> v4
-            if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4")))
-                jTrapKATEditor.setPadV4(source, new model.PadV4(padV3, jTrapKATEditor.currentPadNumber.toByte))
+            val padV4 = new model.PadV4(padV3, jTrapKATEditor.currentPadNumber.toByte)
+            EditHistory.add(new PastePadHistoryAction(source, padV4))
+            setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
         })
     }
     private[this] def pastePadV4(source: Component) {
@@ -213,10 +252,11 @@ object Clipboard extends ClipboardOwner with Publisher {
         val hhPad = padV4Clip.hhPad
         val padNoWas = (padV4Clip.padNoWas + 1).toByte
         padV4.flags = ((if (hhPad) 0x80 else 0) | padV4.flags).toByte
-        if (pasteIfVarious(padV4)) jTrapKATEditor.doV3V4({
+        if (pasteIfVarious(padV4)) jTrapKATEditor.doV3V4(if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3"))) {
             // v4 -> v3
-            if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3")))
-                jTrapKATEditor.setPadV3(source, new model.PadV3(padV4))
+            val padV3 = new model.PadV3(padV4)
+            EditHistory.add(new PastePadHistoryAction(source, padV3))
+            setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV3)
         }, {
             // v4 -> v4
             def padName(p: Byte, l: Byte) = if (p == l) L.G("PastePadV4NotLinked") else L.G("PastePadV4Linked", s"${l}")
@@ -233,12 +273,15 @@ object Clipboard extends ClipboardOwner with Publisher {
                         case Dialog.Result.No     => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo
                         case Dialog.Result.Cancel => true // Link to oldPad.LinkTo
                         case _                    => false // Closed the window, so abort
-                    })
-                    jTrapKATEditor.setPadV4(source, padV4)
+                    }) {
+                    EditHistory.add(new PastePadHistoryAction(source, padV4))
+                    setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
+                }
             }
             else {
                 padV4.linkTo = padNoIs
-                jTrapKATEditor.setPadV4(source, padV4)
+                EditHistory.add(new PastePadHistoryAction(source, padV4))
+                setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
             }
 
         })
@@ -276,7 +319,16 @@ object Clipboard extends ClipboardOwner with Publisher {
 
                 // If it's the same kit, we're not changing the isKit-ness, otherwise we have to worry about it for both kits
                 if (content.kit == jTrapKATEditor.currentKitNumber || swapIfVarious(jTrapKATEditor.currentAllMemory(content.kit).asInstanceOf[model.Kit[model.Pad]], content.pad)) {
-                    jTrapKATEditor.swapPads(source, content.kit, content.pad)
+                    val leftKitNo = content.kit
+                    val rightKitNo = jTrapKATEditor.currentKitNumber
+                    val leftPadNo = content.pad
+                    val rightPadNo = jTrapKATEditor.currentPadNumber
+                    EditHistory.add(new HistoryAction {
+                        val actionName: String = "actionEditSwapPads"
+                        def undoAction(): Unit = jTrapKATEditor.swapPads(source, rightKitNo, rightPadNo, leftKitNo, leftPadNo)
+                        def redoAction(): Unit = jTrapKATEditor.swapPads(source, leftKitNo, leftPadNo, rightKitNo, rightPadNo)
+                    })
+                    jTrapKATEditor.swapPads(source, leftKitNo, leftPadNo, rightKitNo, rightPadNo)
                     clipboard.setContents(Empty, this)
                 }
 

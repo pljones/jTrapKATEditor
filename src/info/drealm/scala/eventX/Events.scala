@@ -40,6 +40,7 @@ trait ItemEvent extends ComponentEvent {
 class ItemDeselected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
 class ItemSelected(override val source: info.drealm.scala.RichComboBox[_], override val item: Any) extends ItemEvent
 class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
+class DocumentChanged(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
 
 class V3V4SelectionChanged(val source: info.drealm.scala.V3V4ComboBox[_, _, _, _]) extends Event
 

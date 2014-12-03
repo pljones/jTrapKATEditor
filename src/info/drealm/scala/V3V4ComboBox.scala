@@ -72,7 +72,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     def enabled_=(value: Boolean): Unit = { cbxV3.enabled = value; cbxV4.enabled = value }
 
     def requestFocusInWindow() = cbx.requestFocusInWindow()
-    
+
     def tooltip: String = cbx.tooltip
 
     private[this] def allMemoryChanged(toVisible: CP, toHidden: CP): Unit = {

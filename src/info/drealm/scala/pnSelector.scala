@@ -43,29 +43,27 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
 
         private[this] def updateKitName(idx: Int): Unit = kitNames(idx) = s"${idx + 1}: ${jTrapKATEditor.currentAllMemory(idx).kitName}"
         private[this] def updateAllKitNames(): Unit = (0 to 23) foreach updateKitName _
-        protected override def _get() = selection.index = jTrapKATEditor.currentKitNumber
-        protected override def _set() = jTrapKATEditor.currentKitNumber = selection.index
-        protected override def _chg() = {}
+        protected def _isChg = { updateAllKitNames(); jTrapKATEditor.currentKitNumber != selection.index }
+        protected def _get() = selection.index = jTrapKATEditor.currentKitNumber
+        protected def _set() = jTrapKATEditor.currentKitNumber = selection.index
+        protected def _chg() = {}
 
         reactions += {
-            case e: CurrentKitChanged if e.source == txtKitName || e.source == jTrapKATEditor => { updateAllKitNames(); setDisplay() }
-            case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor                     => { updateAllKitNames(); setDisplay() }
+            case e: CurrentKitChanged if e.source == txtKitName => setDisplay()
         }
 
-        updateAllKitNames()
+        updateAllKitNames();
         setDisplay()
     }
     contents += (cbxSelectKit, "cell 1 0")
 
-    private[this] val lblKitEdited = new Label(L.G("lblXEdited")) {
+    private[this] val lblKitEdited = new Label(L.G("lblXEdited")) with DisplayBindings {
         tooltip = L.G("ttKitEdited")
-        private[this] def setDisplay() = visible = jTrapKATEditor.currentKit.changed
-
-        listenTo(jTrapKATEditor)
+        protected def _isChg = visible != jTrapKATEditor.currentKit.changed
+        protected def _get(): Unit = visible = jTrapKATEditor.currentKit.changed
 
         reactions += {
-            case e: CurrentKitChanged                                     => setDisplay()
-            case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+            case e: CurrentKitChanged => setDisplay()
         }
 
         setDisplay()
@@ -82,8 +80,9 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         lblKitName.peer.setLabelFor(peer)
         lblKitName.tooltip = tooltip
 
-        protected override def _get() = text = jTrapKATEditor.currentKit.kitName.trim()
-        protected override def _set() = {
+        protected def _isChg = jTrapKATEditor.currentKit.kitName.trim() != text
+        protected def _get() = text = jTrapKATEditor.currentKit.kitName.trim()
+        protected def _set() = {
             EditHistory.add(new HistoryAction {
                 val kit = jTrapKATEditor.currentKit
                 val valueBefore = jTrapKATEditor.currentKit.kitName
@@ -94,7 +93,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
             })
             jTrapKATEditor.currentKit.kitName = text
         }
-        protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
+        protected def _chg() = jTrapKATEditor.kitChangedBy(this)
 
         setDisplay()
     }
@@ -105,13 +104,14 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
 
     private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
         case x if x < 25 => s"${x}"
-        case x           => L.G(s"lbPad${x}")
+        case x => L.G(s"lbPad${x}")
     }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with ComboBoxBindings[String] {
         peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("88 mmmm")
-        protected override def _get() = selection.index = jTrapKATEditor.currentPadNumber
-        protected override def _set() = jTrapKATEditor.currentPadNumber = selection.index
-        protected override def _chg() = {}
+        protected def _isChg = jTrapKATEditor.currentPadNumber != selection.index
+        protected def _get() = selection.index = jTrapKATEditor.currentPadNumber
+        protected def _set() = jTrapKATEditor.currentPadNumber = selection.index
+        protected def _chg() = {}
 
         reactions += {
             case e: CurrentPadChanged if e.source == jTrapKATEditor => setDisplay()
@@ -121,16 +121,15 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     }
     contents += (cbxSelectPad, "cell 8 0")
 
-    private[this] val lblPadEdited = new Label(L.G("lblXEdited")) {
+    private[this] val lblPadEdited = new Label(L.G("lblXEdited")) with Bindings {
         tooltip = L.G("ttPadEdited")
-        private[this] def setDisplay(): Unit = visible = jTrapKATEditor.currentPad.changed
-
-        listenTo(jTrapKATEditor)
+        protected def _isChg = visible != jTrapKATEditor.currentPad.changed
+        protected def _get(): Unit = visible = jTrapKATEditor.currentPad.changed
+        protected def _set(): Unit = {}
+        protected def _chg(): Unit = {}
 
         reactions += {
-            case e: CurrentPadChanged                                     => setDisplay()
-            case e: CurrentKitChanged if e.source == jTrapKATEditor       => setDisplay()
-            case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor => setDisplay()
+            case e: CurrentPadChanged => setDisplay()
         }
 
         setDisplay()

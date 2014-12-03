@@ -51,27 +51,3 @@ class CurveComboBoxV3V4(_name: String, tooltip: String, label: Label) extends V3
 
     init()
 }
-
-trait CurveComboBoxV3V4Bindings extends CurveComboBoxV3V4 with Bindings {
-    protected def _getVal(): Byte
-    protected def _setVal(value: Byte): Unit
-    protected def _chgBy(cbx: CurveComboBoxParent): Unit
-
-    protected override def _get() = {
-        try {
-            deafTo(selection)
-            selection.index = _getVal()
-        }
-        catch { case e: Exception => e.printStackTrace() }
-        finally { listenTo(selection) }
-    }
-    protected override def _set() = _setVal(selection.index.toByte)
-    protected override def _chg() = _chgBy(cbx)
-
-    listenTo(selection)
-
-    reactions += {
-        case e: V3V4SelectionChanged => setValue()
-    }
-
-}

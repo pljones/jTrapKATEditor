@@ -18,7 +18,7 @@
 			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/jna-platform-4.1.0-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/scala-swing.jar" sourcepath="/usr/share/scala/src/scala-swing-2.11.0-M7-sources.jar">
+	<classpathentry kind="lib" path="lib/scala-swing.jar" sourcepath="D:/Program Files/eclipse/plugins/org.scala-lang.modules.scala-swing.source_1.0.1.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/scala-swing-2.11.0-M7-javadoc.jar!/"/>
 		</attributes>

@@ -87,11 +87,11 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         }
     }
 
-    protected def init() = jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
+    protected final def init() = jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
 
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor => jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
+        case e: eventX.SelectedAllMemoryChanged => init()
     }
 }

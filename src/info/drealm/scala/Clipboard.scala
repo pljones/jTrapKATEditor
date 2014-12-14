@@ -123,14 +123,14 @@ object Clipboard extends ClipboardOwner with Publisher {
     import ClipboardType._
 
     def clipboardType: ClipboardType = clipboard.getAvailableDataFlavors().headOption match {
-        case Some(null)                             => { Console.println("Got a null data flavor!"); ClipboardType.NotSet }
-        case Some(pad) if pad == dfPadV3            => ClipboardType.Pad
-        case Some(pad) if pad == dfPadV4            => ClipboardType.Pad
+        case Some(null) => { Console.println("Got a null data flavor!"); ClipboardType.NotSet }
+        case Some(pad) if pad == dfPadV3 => ClipboardType.Pad
+        case Some(pad) if pad == dfPadV4 => ClipboardType.Pad
         case Some(padSwap) if padSwap == dfSwapPads => ClipboardType.PadSwap
-        case Some(kit) if kit == dfKitV3            => ClipboardType.Kit
-        case Some(kit) if kit == dfKitV4            => ClipboardType.Kit
+        case Some(kit) if kit == dfKitV3 => ClipboardType.Kit
+        case Some(kit) if kit == dfKitV4 => ClipboardType.Kit
         case Some(kitSwap) if kitSwap == dfSwapKits => ClipboardType.KitSwap
-        case otherwise                              => ClipboardType.NotSet
+        case otherwise => ClipboardType.NotSet
     }
 
     private[this] def getContentPadV3() = clipboard.getContents(this).getTransferData(dfPadV3).asInstanceOf[CopyPadV3]
@@ -142,8 +142,7 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     def copyPad(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
         CopyPadV3(jTrapKATEditor.currentPadV3, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty),
-        CopyPadV4(jTrapKATEditor.currentPadV4, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty, jTrapKATEditor.currentPadNumber.toByte)
-    ), this)
+        CopyPadV4(jTrapKATEditor.currentPadV4, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty, jTrapKATEditor.currentPadNumber.toByte)), this)
 
     def pastePad(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
         case Some(pad) if (pad == dfPadV3 || pad == dfPadV4) && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => {
@@ -171,8 +170,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         ("Gate", () => kit.isKitGate, isPadGateKit _, padToKitGate _),
         ("Channel", () => kit.isKitChannel, isPadChannelKit _, padToKitChannel _),
         ("MinVel", () => kit.isKitMinVel, isPadMinVelKit _, padToKitMinVel _),
-        ("MaxVel", () => kit.isKitMaxVel, isPadMaxVelKit _, padToKitMaxVel _)
-    ) map (t => {
+        ("MaxVel", () => kit.isKitMaxVel, isPadMaxVelKit _, padToKitMaxVel _)) map (t => {
             (!t._2() || t._3(kit, pad), L.G("PadKitStatus", t._1, L.G(if (!t._2() || t._3(kit, pad)) "PadKitStatusOK" else "PadKitStatusBad")), () => t._4(kit, pad))
         })
 
@@ -186,12 +184,11 @@ object Clipboard extends ClipboardOwner with Publisher {
                 L.G("PastePadOKToVarious", jTrapKATEditor.currentKit.kitName, incoming.map(t => t._2).mkString("\n")),
                 L.G("PastePadOKToVariousCaption"),
                 Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
-                    case Dialog.Result.No  => { incoming.foreach(t => t._3()); true } //... retain the kit values and then paste
+                    case Dialog.Result.No => { incoming.foreach(t => t._3()); true } //... retain the kit values and then paste
                     case Dialog.Result.Yes => true //... just paste (go to Various)
-                    case _                 => false //... do nothing
+                    case _ => false //... do nothing
                 }
-        }
-        else true
+        } else true
     }
     private[this] def setPad(source: Component, kitNo: Int, padNo: Int, pad: model.Pad) = {
         val kit = jTrapKATEditor.currentAllMemory(kitNo)
@@ -204,10 +201,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         kit.hhPadNos(p).foreach(kit.hhPads(_, 0))
         if ((pad.flags & 0x80) != 0) kit.hhPadNos(0).headOption.foreach(kit.hhPads(_, p))
 
-        if (padNo == jTrapKATEditor.currentPadNumber)
-            publish(new eventX.CurrentPadChanged(jTrapKATEditor))
-        if (kitNo == jTrapKATEditor.currentKitNumber)
-            jTrapKATEditor.kitChangedBy(source)
+        if (kitNo == jTrapKATEditor.currentKitNumber) jTrapKATEditor.padChangedBy(source)
     }
     private[this] class PastePadHistoryAction(source: Component, pad: model.Pad) extends HistoryAction {
         val kitNoWas = jTrapKATEditor.currentKitNumber
@@ -269,16 +263,15 @@ object Clipboard extends ClipboardOwner with Publisher {
                     (if (padNoWas == padV4.linkTo) Seq() else Seq(L.G("PastePadV4LinkToPad", s"${padV4.linkTo}")))
                 if (Dialog.showOptions(tpnMain, message = L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
                     title = L.G("PastePadV4Caption"), entries = entries, initial = 0) match {
-                        case Dialog.Result.Yes    => { padV4.linkTo = padNoIs; true } // Do Not Link
-                        case Dialog.Result.No     => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo
+                        case Dialog.Result.Yes => { padV4.linkTo = padNoIs; true } // Do Not Link
+                        case Dialog.Result.No => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo
                         case Dialog.Result.Cancel => true // Link to oldPad.LinkTo
-                        case _                    => false // Closed the window, so abort
+                        case _ => false // Closed the window, so abort
                     }) {
                     EditHistory.add(new PastePadHistoryAction(source, padV4))
                     setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
                 }
-            }
-            else {
+            } else {
                 padV4.linkTo = padNoIs
                 EditHistory.add(new PastePadHistoryAction(source, padV4))
                 setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
@@ -307,10 +300,9 @@ object Clipboard extends ClipboardOwner with Publisher {
                         true //... and then swap
                     }
                     case Dialog.Result.Yes => true //... just swap (go to Various)
-                    case _                 => false //... do nothing
+                    case _ => false //... do nothing
                 }
-        }
-        else true
+        } else true
     }
     def swapPads(source: Component) = clipboardType match {
         case PadSwap => {
@@ -339,8 +331,7 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     def copyKit(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
         CopyKitV3(jTrapKATEditor.currentKitV3, jTrapKATEditor.currentKitNumber.toByte),
-        CopyKitV4(jTrapKATEditor.currentKitV4, jTrapKATEditor.currentKitNumber.toByte)
-    ), this)
+        CopyKitV4(jTrapKATEditor.currentKitV4, jTrapKATEditor.currentKitNumber.toByte)), this)
 
     def pasteKit(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
         case Some(v3) if v3 == dfKitV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
@@ -348,16 +339,14 @@ object Clipboard extends ClipboardOwner with Publisher {
             jTrapKATEditor.doV3V4(
                 jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, kitV3Clip.kit),
                 if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4")))
-                    jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, new model.KitV4(kitV3Clip.kit))
-            )
+                    jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, new model.KitV4(kitV3Clip.kit)))
         }
         case Some(v4) if v4 == dfKitV4 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
             val kitV4Clip = getContentKitV4()
             jTrapKATEditor.doV3V4(
                 if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")))
                     jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, new model.KitV3(kitV4Clip.kit)),
-                jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, kitV4Clip.kit)
-            )
+                jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, kitV4Clip.kit))
         }
         case otherwise => {}
     }

@@ -30,12 +30,10 @@ import info.drealm.scala.migPanel.MigPanel
 import info.drealm.scala.spinner.Spinner
 import info.drealm.scala.eventX._
 import info.drealm.scala.{ Localization => L }
+import info.drealm.scala.util.getInt
 
 object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     name = "pnGlobal"
-
-    // Unsigned byte, please...
-    private[this] def getInt(value: Byte) = 0x000000ff & value
 
     trait GlobalComponentParams
     case class GlobalSpinnerParams(ini: Int, min: Int, max: Int) extends GlobalComponentParams

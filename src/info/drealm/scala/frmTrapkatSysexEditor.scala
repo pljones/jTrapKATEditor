@@ -32,7 +32,9 @@ import info.drealm.scala.{ Localization => L, Resource => R }
 import info.drealm.scala.prefs.{ Preferences => P }
 import info.drealm.scala.updateTool._
 
-object frmTrapkatSysexEditor extends Frame {
+object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with AnyValueReactor {
+    protected def _isChg = true
+    protected def _get = title = getTitle()
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
@@ -66,16 +68,13 @@ object frmTrapkatSysexEditor extends Frame {
 
     listenTo(jTrapKATEditor)
 
-    reactions += {
-        case e: SomethingChanged => title = getTitle()
-    }
+    setDisplay()
 
     private[this] def getTitle() = L.G("MainProgramTitle",
         L.G("ApplicationProductName"),
         if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
         jTrapKATEditor.doV3V4(L.G("V3"), L.G("V4")),
-        if (jTrapKATEditor.currentAllMemory.changed) "[*]" else ""
-    )
+        if (jTrapKATEditor.currentAllMemory.changed) "[*]" else "")
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(tpnMain,
         L.G("OKToSplat", to),

@@ -42,13 +42,19 @@ class ItemSelected(override val source: info.drealm.scala.RichComboBox[_], overr
 class CbxEditorFocused(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
 class DocumentChanged(override val source: info.drealm.scala.RichComboBox[_]) extends ComponentEvent
 
+class SelectedPadChanged extends Event
+class SelectedKitChanged extends Event
+class SelectedSoundControlChanged extends Event
+class SelectedGlobalChanged extends Event
+class SelectedAllMemoryChanged extends Event
+
 class V3V4SelectionChanged(val source: info.drealm.scala.V3V4ComboBox[_, _, _, _]) extends Event
 
-trait SomethingChanged extends Event { val source: AnyRef }
-case class CurrentAllMemoryChanged(override val source: AnyRef) extends SomethingChanged
-case class GlobalChanged(override val source: AnyRef) extends SomethingChanged
-case class CurrentKitChanged(override val source: AnyRef) extends SomethingChanged
-case class CurrentSoundControlChanged(override val source: AnyRef) extends SomethingChanged
-case class CurrentPadChanged(override val source: AnyRef) extends SomethingChanged
+trait SomethingChanged extends Event { val source: Component }
+case class CurrentAllMemoryChanged(override val source: Component) extends SomethingChanged
+case class CurrentGlobalChanged(override val source: Component) extends SomethingChanged
+case class CurrentKitChanged(override val source: Component) extends SomethingChanged
+case class CurrentSoundControlChanged(override val source: Component) extends SomethingChanged
+case class CurrentPadChanged(override val source: Component) extends SomethingChanged
 
 class AutoUpdateModeChanged(val oldMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode, val newMode: info.drealm.scala.updateTool.Checker.AutoUpdateMode.AutoUpdateMode) extends Event

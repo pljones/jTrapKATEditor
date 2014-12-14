@@ -51,37 +51,32 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
         contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
 
         (1 to 4) foreach { x =>
-            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with ComboBoxBindings[String] {
+            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with ComboBoxBindings[String] with KitSelectionReactor with KitValueReactor {
                 peer.setMaximumRowCount(13)
                 name = s"cbxHH${x}"
 
+                def update(kit: model.Kit[_ <: model.Pad], was: Int, now: Int) = {
+                    var padChg = false
+                    if (was > 0 && kit(was - 1).flags != (0x7f & kit(was - 1).flags).toByte) { padChg = true; kit(was - 1).flags = (0x7f & kit(was - 1).flags).toByte }
+                    if (now > 0 && kit(now - 1).flags != (0x80 | kit(now - 1).flags).toByte) { padChg = true; kit(now - 1).flags = (0x80 | kit(now - 1).flags).toByte }
+                    kit.hhPads(x - 1, now.toByte)
+                    if (padChg && (kit(was) == jTrapKATEditor.currentPad || kit(now) == jTrapKATEditor.currentPad))
+                        jTrapKATEditor.padChangedBy(this)
+                }
                 protected def _isChg = jTrapKATEditor.currentKit.hhPads(x - 1) != selection.index
                 protected def _get() = selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
                 protected def _set() = {
-                    def doSet(kit: model.Kit[_ <: model.Pad], was: Int, now: Int) = {
-                        if (was > 0) kit(was - 1).flags = (0x7f & kit(was - 1).flags).toByte
-                        if (now > 0) kit(now - 1).flags = (0x80 | kit(now - 1).flags).toByte
-                        kit.hhPads(x - 1, now.toByte)
-                    }
-
                     val kit = jTrapKATEditor.currentKit
                     val padNoWas = kit.hhPads(x - 1)
                     val padNo = this.selection.index
-
                     EditHistory.add(new HistoryAction {
                         val actionName = "actionHH"
-                        def undoAction = setUndoRedo(() => doSet(kit, padNo, padNoWas))
-                        def redoAction = setUndoRedo(() => doSet(kit, padNoWas, padNo))
+                        def undoAction = doUndoRedo(() => update(kit, padNo, padNoWas))
+                        def redoAction = doUndoRedo(() => update(kit, padNoWas, padNo))
                     })
-
-                    doSet(kit, padNoWas, padNo)
+                    update(kit, padNoWas, padNo)
                 }
                 protected def _chg() = jTrapKATEditor.kitChangedBy(pnHH)
-
-                // Must listen out for Clipboard.SwapPad...
-                reactions += {
-                    case e: CurrentKitChanged if e.source == jTrapKATEditorMenuBar.mnEdit => setDisplay()
-                }
 
                 setDisplay()
             }

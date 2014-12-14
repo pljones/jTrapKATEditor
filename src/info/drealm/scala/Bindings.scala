@@ -31,15 +31,73 @@ import info.drealm.scala.eventX._
 trait DisplayBindings extends Reactor {
     protected def _isChg: Boolean
     protected def _get(): Unit
-
     protected def setDisplay(): Unit = _get()
+}
 
+trait PadSelectionReactor extends DisplayBindings {
     reactions += {
-        case e: CurrentKitChanged if e.source == jTrapKATEditor && _isChg => setDisplay()
-        case e: CurrentAllMemoryChanged if e.source == jTrapKATEditor && _isChg => setDisplay()
+        case e: SelectedPadChanged if _isChg => setDisplay()
     }
+}
 
-    listenTo(jTrapKATEditor)
+trait KitSelectionReactor extends DisplayBindings {
+    reactions += {
+        case e: SelectedKitChanged if _isChg => setDisplay()
+    }
+}
+
+trait SoundControlSelectionReactor extends DisplayBindings {
+    reactions += {
+        case e: SelectedSoundControlChanged if _isChg => setDisplay()
+    }
+}
+
+trait GlobalSelectionReactor extends DisplayBindings {
+    reactions += {
+        case e: SelectedGlobalChanged if _isChg => setDisplay()
+    }
+}
+
+trait AllMemorySelectionReactor extends DisplayBindings {
+    reactions += {
+        case e: SelectedAllMemoryChanged if _isChg => setDisplay()
+    }
+}
+
+trait PadValueReactor extends DisplayBindings {
+    reactions += {
+        case e: CurrentPadChanged if _isChg => setDisplay()
+    }
+}
+
+trait KitValueReactor extends DisplayBindings {
+    reactions += {
+        case e: CurrentKitChanged if _isChg => setDisplay()
+    }
+}
+
+trait SoundControlValueReactor extends DisplayBindings {
+    reactions += {
+        case e: CurrentSoundControlChanged if _isChg => setDisplay()
+    }
+}
+
+trait GlobalValueReactor extends DisplayBindings {
+    reactions += {
+        case e: CurrentGlobalChanged if _isChg => setDisplay()
+    }
+}
+
+trait AllMemoryValueReactor extends DisplayBindings {
+    reactions += {
+        case e: CurrentAllMemoryChanged if _isChg => setDisplay()
+    }
+}
+
+trait AnyValueReactor extends DisplayBindings {
+    reactions += {
+        case e: SomethingChanged => setDisplay()
+    }
 }
 
 trait ValueBindings extends Publisher {
@@ -56,96 +114,103 @@ trait ValueBindings extends Publisher {
     }
 }
 
-trait Bindings extends DisplayBindings with ValueBindings {
+trait ValueChangedBindings extends ValueBindings {
+    reactions += {
+        case e: ValueChanged => setValue()
+    }
+}
+
+trait ButtonBindings extends ValueBindings {
+    reactions += {
+        case e: ButtonClicked => setValue()
+    }
+}
+
+trait DocumentChangedBindings extends ValueBindings {
+    reactions += {
+        case e: DocumentChanged => setValue()
+    }
+}
+
+trait Bindings extends AllMemorySelectionReactor with ValueBindings {
     override protected def setDisplay(): Unit = try {
         deafTo(this)
         super.setDisplay()
     } finally { listenTo(this) }
 
-    protected def setUndoRedo(action: () => Unit) = try {
+    protected def doUndoRedo(action: () => Unit) = try {
         deafTo(jTrapKATEditor)
         deafTo(this)
         action()
         _get()
         _chg()
     } finally { listenTo(this); listenTo(jTrapKATEditor) }
-}
 
-trait ValueChangedBindings extends Bindings {
-    reactions += {
-        case e: ValueChanged => setValue()
-    }
-}
-
-trait ButtonBindings extends Bindings {
-    protected def _isChg: Boolean = true // because we really did get clicked
+    listenTo(jTrapKATEditor)
 }
 
 trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
-    protected override def setDisplay(): Unit = try {
+    override protected def setDisplay(): Unit = try {
         deafTo(selection)
         super.setDisplay()
     } finally { listenTo(selection) }
 
-    protected override def setUndoRedo(action: () => Unit) = try {
+    override protected def doUndoRedo(action: () => Unit) = try {
         deafTo(selection)
-        super.setUndoRedo(action)
+        super.doUndoRedo(action)
     } finally { listenTo(selection) }
 
     listenTo(selection)
 
     reactions += {
-        case e: SelectionChanged => setValue()
+        case SelectionChanged(source) => setValue()
     }
 }
 
-trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] {
-    reactions += {
-        case e: DocumentChanged => setValue()
-    }
-}
+trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] with DocumentChangedBindings
 
 trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends V3V4ComboBox[T, TP, T3, T4] with Bindings {
-    protected override def setDisplay(): Unit = try {
+    override protected def setDisplay(): Unit = try {
         deafTo(selection)
         super.setDisplay()
     } finally { listenTo(selection) }
 
-    protected override def setUndoRedo(action: () => Unit) = try {
+    override protected def doUndoRedo(action: () => Unit) = try {
         deafTo(selection)
-        super.setUndoRedo(action)
+        super.doUndoRedo(action)
     } finally { listenTo(selection) }
 
     listenTo(selection)
 
     reactions += {
-        case e: eventX.V3V4SelectionChanged => setValue()
+        case e: V3V4SelectionChanged => setValue()
     }
 }
 
-trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] with Bindings
+trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4]
 
-trait PadBindings extends Bindings {
-    protected def _getBefore: () => Byte
+trait PadBindings extends Bindings with KitSelectionReactor with PadValueReactor {
+    protected def _getCurrentPad: () => model.Pad
+    protected def _getBefore: (model.Pad) => Byte
     protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = _getBefore() != _getAfter()
+    protected def _isChg: Boolean = _getBefore(_getCurrentPad()) != _getAfter()
 
     protected def _setHelper(update: (model.Pad, Byte) => Unit, name: String): Unit = {
-        val before = _getBefore()
-        val after = _getAfter()
-        val currentPad = jTrapKATEditor.currentPad
-        if (before != after) {
-            EditHistory.add(new HistoryAction {
-                val actionName = s"actionPad${name}"
-                def undoAction = setUndoRedo(() => update(currentPad, before))
-                def redoAction = setUndoRedo(() => update(currentPad, after))
-            })
-            update(currentPad, after)
-        }
+        val currentPad = _getCurrentPad()
+        val valueBefore = _getBefore(_getCurrentPad())
+        val valueAfter = _getAfter()
+        EditHistory.add(new HistoryAction {
+            val actionName = s"actionPad${name}"
+            def undoAction = doUndoRedo(() => update(currentPad, valueBefore))
+            def redoAction = doUndoRedo(() => update(currentPad, valueAfter))
+        })
+        update(currentPad, valueAfter)
     }
 }
 
-trait KitVariesBindings extends Bindings {
+trait SelectedPadBindings extends PadBindings with PadSelectionReactor
+
+trait KitVariesBindings extends Bindings with KitSelectionReactor {
     protected def _getBefore: (model.Kit[_ <: model.Pad]) => Byte
     protected def _getAfter: () => Byte
     protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit) != _getAfter()
@@ -159,8 +224,8 @@ trait KitVariesBindings extends Bindings {
         val after: Byte = _getAfter()
         EditHistory.add(new HistoryAction {
             val actionName = s"actionKit${name}"
-            def undoAction = setUndoRedo(() => _updateHelper(currentKit, before, update))
-            def redoAction = setUndoRedo(() => _updateHelper(currentKit, after, update))
+            def undoAction = doUndoRedo(() => _updateHelper(currentKit, before, update))
+            def redoAction = doUndoRedo(() => _updateHelper(currentKit, after, update))
         })
         _updateHelper(currentKit, after, update)
     }
@@ -176,25 +241,66 @@ trait KitVariesBindings extends Bindings {
     }
 }
 
-trait KitBindings extends Bindings {
+trait KitBindings extends Bindings with KitSelectionReactor {
     protected def _getBefore: (model.Kit[_ <: model.Pad]) => Byte
     protected def _getAfter: () => Byte
     protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit) != _getAfter()
 
     protected def _setHelper(update: (model.Kit[_ <: model.Pad], Byte) => Unit, name: String): Unit = {
-        val before: Byte = _getBefore(jTrapKATEditor.currentKit)
-        val after: Byte = _getAfter()
         val currentKit = jTrapKATEditor.currentKit
+        val before: Byte = _getBefore(currentKit)
+        val after: Byte = _getAfter()
         EditHistory.add(new HistoryAction {
             val actionName = s"actionKit${name}"
-            def undoAction = setUndoRedo(() => update(currentKit, before))
-            def redoAction = setUndoRedo(() => update(currentKit, after))
+            def undoAction = doUndoRedo(() => update(currentKit, before))
+            def redoAction = doUndoRedo(() => update(currentKit, after))
         })
         update(currentKit, after)
     }
 }
 
-trait GlobalPadDynamicsBindings extends Bindings {
+trait SoundControlEnabledBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor with ButtonBindings {
+    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber) != _getAfter()
+    protected def _getBefore: (model.Kit[_ <: model.Pad], Int) => Boolean
+    protected def _getAfter: () => Boolean
+    protected def _spn: spinner.Spinner
+
+    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Int, Boolean, spinner.Spinner, Int) => Unit, name: String): Unit = {
+        val currentKit = jTrapKATEditor.currentKit
+        val soundControl: Int = jTrapKATEditor.currentSoundControlNumber
+        val before: Boolean = _getBefore(currentKit, soundControl)
+        val after: Boolean = _getAfter()
+        val _spnBefore = _spn.value.asInstanceOf[java.lang.Number].intValue()
+        update(currentKit, soundControl, after, _spn, _spnBefore)
+        val _spnAfter = _spn.value.asInstanceOf[java.lang.Number].intValue()
+        EditHistory.add(new HistoryAction {
+            val actionName = s"actionSC${name}"
+            def undoAction = doUndoRedo(() => update(currentKit, soundControl, before, _spn, _spnBefore))
+            def redoAction = doUndoRedo(() => update(currentKit, soundControl, after, _spn, _spnAfter))
+        })
+    }
+}
+
+trait SoundControlBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor {
+    protected def _getBefore: (model.Kit[_ <: model.Pad], Int) => Byte
+    protected def _getAfter: () => Byte
+    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber) != _getAfter()
+
+    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Int, Byte) => Unit, name: String): Unit = {
+        val currentKit = jTrapKATEditor.currentKit
+        val soundControl: Int = jTrapKATEditor.currentSoundControlNumber
+        val before: Byte = _getBefore(currentKit, soundControl)
+        val after: Byte = _getAfter()
+        EditHistory.add(new HistoryAction {
+            val actionName = s"actionSC${name}"
+            def undoAction = doUndoRedo(() => update(currentKit, soundControl, before))
+            def redoAction = doUndoRedo(() => update(currentKit, soundControl, after))
+        })
+        update(currentKit, soundControl, after)
+    }
+}
+
+trait GlobalPadDynamicsBindings extends Bindings with PadSelectionReactor with GlobalSelectionReactor {
     protected def _getBefore: (model.PadDynamics) => Byte
     protected def _getAfter: () => Byte
     protected def _isChg: Boolean = jTrapKATEditor.currentPadNumber < 24 && _getBefore(jTrapKATEditor.pd) != _getAfter()
@@ -205,18 +311,14 @@ trait GlobalPadDynamicsBindings extends Bindings {
         val after = _getAfter()
         EditHistory.add(new HistoryAction {
             val actionName = s"actionGlobal${name.capitalize}"
-            def undoAction = setUndoRedo(() => update(currentPD, before))
-            def redoAction = setUndoRedo(() => update(currentPD, after))
+            def undoAction = doUndoRedo(() => update(currentPD, before))
+            def redoAction = doUndoRedo(() => update(currentPD, after))
         })
         update(currentPD, after)
     }
-
-    reactions += {
-        case e: GlobalChanged if e.source == jTrapKATEditor && _isChg => setDisplay()
-    }
 }
 
-trait GlobalBindings extends Bindings {
+trait GlobalBindings extends Bindings with GlobalSelectionReactor {
     protected def _getBefore: (model.Global[_ <: model.Pad]) => Byte
     protected def _getAfter: () => Byte
     protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentGlobal) != _getAfter()
@@ -227,13 +329,9 @@ trait GlobalBindings extends Bindings {
         val after = _getAfter()
         EditHistory.add(new HistoryAction {
             val actionName = s"actionGlobal${name.capitalize}"
-            def undoAction = setUndoRedo(() => update(global, before))
-            def redoAction = setUndoRedo(() => update(global, after))
+            def undoAction = doUndoRedo(() => update(global, before))
+            def redoAction = doUndoRedo(() => update(global, after))
         })
         update(global, after)
-    }
-
-    reactions += {
-        case e: GlobalChanged if e.source == jTrapKATEditor && _isChg => setDisplay()
     }
 }

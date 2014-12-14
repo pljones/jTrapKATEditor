@@ -36,12 +36,11 @@ object util {
     def getHome: java.io.File = {
         if (!com.sun.jna.Platform.isWindows()) {
             new java.io.File(System.getProperty("user.home"))
-        }
-        else {
+        } else {
             val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
             new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_MYDOCUMENTS, false) match {
                 case true => new String(pszPath.takeWhile(c => c != '\u0000'))
-                case _    => System.getProperty("user.home")
+                case _ => System.getProperty("user.home")
             })
         }
     }
@@ -54,12 +53,11 @@ object util {
         val prefix = s"${
             if (!com.sun.jna.Platform.isWindows()) {
                 new java.io.File(System.getProperty("system.config", "/etc"), _vendor)
-            }
-            else {
+            } else {
                 val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
                 new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_COMMON_APPDATA, false) match {
                     case true => new String(pszPath.takeWhile(c => c != '\u0000'))
-                    case _    => System.getProperty("system.config", "/")
+                    case _ => System.getProperty("system.config", "/")
                 }, _vendowWindows)
             }.getCanonicalPath()
         }"
@@ -71,12 +69,11 @@ object util {
         val prefix = s"${
             if (!com.sun.jna.Platform.isWindows()) {
                 new java.io.File(System.getProperty("user.home", ""), s".${_vendor}")
-            }
-            else {
+            } else {
                 val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
                 new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_APPDATA, false) match {
                     case true => new String(pszPath.takeWhile(c => c != '\u0000'))
-                    case _    => System.getProperty("user.home", "/")
+                    case _ => System.getProperty("user.home", "/")
                 }, _vendowWindows)
             }.getCanonicalPath()
         }"
@@ -86,7 +83,7 @@ object util {
     def createUserStore() = {
         getUserStore match {
             case exists if exists.isDirectory() => {}
-            case create                         => {create.mkdirs()}
+            case create => { create.mkdirs() }
         }
     }
 
@@ -95,8 +92,7 @@ object util {
         import info.drealm.scala.{ Localization => L }
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             Desktop.getDesktop().browse(new java.net.URL(target).toURI())
-        }
-        else {
+        } else {
             import swing._
             Dialog.showMessage(null, new info.drealm.scala.migPanel.MigPanel("insets 5", "[]", "[]") {
                 name = "pnNoDesktopBrowse"
@@ -115,4 +111,7 @@ object util {
     }
 
     @inline def dateToDay(value: java.util.Date): java.util.Date = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(new java.text.SimpleDateFormat("yyyy-MM-dd").format(value))
+
+    // Unsigned byte, please...
+    @inline def getInt(value: Byte) = 0x000000ff & value
 }

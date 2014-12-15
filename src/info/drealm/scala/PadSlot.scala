@@ -238,36 +238,6 @@ abstract class PadSlotComboBoxV3V4(name: String, ttRoot: String, label: swing.La
     init()
 }
 
-trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] with PadBindings with DocumentChangedBindings {
-    protected def _setPadSlot(slot: Int, name: String) = _setHelper((pad, value) => pad(slot) = value, name)
-
-    override protected def setDisplay(): Unit = try {
-        deafTo(cbxV3)
-        deafTo(cbxV4)
-        super.setDisplay()
-    } finally { listenTo(cbxV3); listenTo(cbxV4) }
-
-    override protected def doUndoRedo(action: () => Unit): Unit = try {
-        deafTo(cbxV3)
-        deafTo(cbxV4)
-        super.doUndoRedo(action)
-    } finally { listenTo(cbxV3); listenTo(cbxV4) }
-
-    override protected def setValue(): Unit = try {
-        deafTo(cbxV3)
-        deafTo(cbxV4)
-        super.setValue()
-    } finally { listenTo(cbxV3); listenTo(cbxV4) }
-
-    listenTo(cbxV3)
-    listenTo(cbxV4)
-
-    reactions += {
-        case e: eventX.CbxEditorFocused if e.source == cbxV3 || e.source == cbxV4 => try { deafTo(this); publish(e) } finally { listenTo(this) }
-    }
-
-}
-
 object Pad {
     val padColorSelected = java.awt.SystemColor.textHighlight
     val padColorSelectedText = java.awt.SystemColor.textHighlightText

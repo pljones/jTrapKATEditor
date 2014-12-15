@@ -212,6 +212,38 @@ trait PadBindings extends Bindings with KitSelectionReactor with PadValueReactor
 
 trait SelectedPadBindings extends PadBindings with PadSelectionReactor
 
+trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] with PadBindings with DocumentChangedBindings {
+    this: V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] =>
+
+    protected def _setPadSlot(slot: Int, name: String) = _setHelper((pad, value) => pad(slot) = value, name)
+
+    override protected def setDisplay(): Unit = try {
+        deafTo(cbxV3)
+        deafTo(cbxV4)
+        super.setDisplay()
+    } finally { listenTo(cbxV3); listenTo(cbxV4) }
+
+    override protected def doUndoRedo(action: () => Unit): Unit = try {
+        deafTo(cbxV3)
+        deafTo(cbxV4)
+        super.doUndoRedo(action)
+    } finally { listenTo(cbxV3); listenTo(cbxV4) }
+
+    override protected def setValue(): Unit = try {
+        deafTo(cbxV3)
+        deafTo(cbxV4)
+        super.setValue()
+    } finally { listenTo(cbxV3); listenTo(cbxV4) }
+
+    listenTo(cbxV3)
+    listenTo(cbxV4)
+
+    reactions += {
+        case e: eventX.CbxEditorFocused if e.source == cbxV3 || e.source == cbxV4 => try { deafTo(this); publish(e) } finally { listenTo(this) }
+    }
+
+}
+
 trait KitVariesBindings extends Bindings with KitSelectionReactor {
     protected def _getBefore: (model.Kit[_ <: model.Pad]) => Byte
     protected def _getAfter: () => Byte

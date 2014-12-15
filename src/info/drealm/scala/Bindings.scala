@@ -149,7 +149,8 @@ trait Bindings extends AllMemorySelectionReactor with ValueBindings {
     listenTo(jTrapKATEditor)
 }
 
-trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
+trait ComboBoxBindings[T] extends Bindings {
+    this: RichComboBox[T] =>
     override protected def setDisplay(): Unit = try {
         deafTo(selection)
         super.setDisplay()
@@ -167,9 +168,10 @@ trait ComboBoxBindings[T] extends RichComboBox[T] with Bindings {
     }
 }
 
-trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] with DocumentChangedBindings
+trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] with DocumentChangedBindings { this: RichComboBox[T] => }
 
-trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends V3V4ComboBox[T, TP, T3, T4] with Bindings {
+trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends Bindings {
+    this: V3V4ComboBox[T, TP, T3, T4] =>
     override protected def setDisplay(): Unit = try {
         deafTo(selection)
         super.setDisplay()
@@ -187,7 +189,7 @@ trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends V3V
     }
 }
 
-trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4]
+trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] { this: V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] => }
 
 trait PadBindings extends Bindings with KitSelectionReactor with PadValueReactor {
     protected def _getCurrentPad: () => model.Pad

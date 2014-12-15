@@ -210,10 +210,15 @@ object Clipboard extends ClipboardOwner with Publisher {
         def clonePad(pad: model.Pad) = {
             val stream = new java.io.ByteArrayOutputStream()
             pad.serialize(stream)
-            pad match {
-                case v3: model.PadV3 => new model.PadV3(new java.io.ByteArrayInputStream(stream.toByteArray()))
-                case v4: model.PadV4 => new model.PadV4(new java.io.ByteArrayInputStream(stream.toByteArray()))
+            stream.flush()
+            val in = new java.io.ByteArrayInputStream(stream.toByteArray())
+            stream.close()
+            val newPad = pad match {
+                case v3: model.PadV3 => new model.PadV3(in)
+                case v4: model.PadV4 => new model.PadV4(in)
             }
+            in.close
+            newPad
         }
 
         val padBefore = clonePad(jTrapKATEditor.currentPad)
@@ -329,34 +334,94 @@ object Clipboard extends ClipboardOwner with Publisher {
         case _ => clipboard.setContents(SwapPads(jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber), this)
     }
 
+    // Because we may never want it, use a method to get the kit
+    def setKit(source: Component, kitNo: Int, kitName: String, getKit: () => model.Kit[_ <: model.Pad]): Unit = {
+        if ((kitNo == jTrapKATEditor.currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(jTrapKATEditor.currentKitNumber + 1, jTrapKATEditor.currentKit.kitName, kitNo + 1, kitName))) {
+
+            jTrapKATEditor.currentAllMemory.update(jTrapKATEditor.currentKitNumber, getKit())
+
+            jTrapKATEditor.publish(new eventX.SelectedKitChanged)
+            jTrapKATEditor.kitChangedBy(source)
+        }
+    }
+
     def copyKit(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
         CopyKitV3(jTrapKATEditor.currentKitV3, jTrapKATEditor.currentKitNumber.toByte),
         CopyKitV4(jTrapKATEditor.currentKitV4, jTrapKATEditor.currentKitNumber.toByte)), this)
 
+    private[this] class PasteKitHistoryAction(source: Component, kitNo: Int, kit: model.Kit[_ <: model.Pad]) extends HistoryAction {
+        val kitNoBefore = jTrapKATEditor.currentKitNumber
+
+        def cloneKit(kit: model.Kit[_ <: model.Pad]) = {
+            val stream = new java.io.ByteArrayOutputStream()
+            kit.serialize(stream)
+            kit.serializeKitName(stream)
+            stream.flush()
+            val in = new java.io.ByteArrayInputStream(stream.toByteArray())
+            stream.close()
+            val newKit = kit match {
+                case v3: model.KitV3 => new model.KitV3(in)
+                case v4: model.KitV4 => new model.KitV4(in)
+            }
+            newKit.deserializeKitName(in)
+            in.close()
+            newKit
+        }
+
+        val kitBefore = cloneKit(jTrapKATEditor.currentKit)
+        val kitNameBefore = kitBefore.kitName
+        val kitAfter = cloneKit(kit)
+        val kitNameAfter = kitAfter.kitName
+
+        val actionName: String = "actionEditPasteKit"
+        def undoAction(): Unit = setKit(source, kitNoBefore, kitNameBefore, () => kitBefore)
+        def redoAction(): Unit = setKit(source, kitNo, kitNameAfter, () => kitAfter)
+    }
+
     def pasteKit(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
         case Some(v3) if v3 == dfKitV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
             val kitV3Clip = getContentKitV3()
-            jTrapKATEditor.doV3V4(
-                jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, kitV3Clip.kit),
-                if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4")))
-                    jTrapKATEditor.setKit(kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, new model.KitV4(kitV3Clip.kit)))
+            jTrapKATEditor.doV3V4({
+                // v3 -> v3
+                val kitV3 = kitV3Clip.kit
+                EditHistory.add(new PasteKitHistoryAction(source, kitV3Clip.kitNoWas, kitV3))
+                setKit(source, kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, () => kitV3)
+            }, if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) {
+                // v3 -> v4
+                val kitV4 = new model.KitV4(kitV3Clip.kit)
+                EditHistory.add(new PasteKitHistoryAction(source, kitV3Clip.kitNoWas, kitV4))
+                setKit(source, kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, () => kitV4)
+            })
         }
         case Some(v4) if v4 == dfKitV4 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
             val kitV4Clip = getContentKitV4()
-            jTrapKATEditor.doV3V4(
-                if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")))
-                    jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, new model.KitV3(kitV4Clip.kit)),
-                jTrapKATEditor.setKit(kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, kitV4Clip.kit))
+            jTrapKATEditor.doV3V4(if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3"))) {
+                // v4 -> v3
+                val kitV3 = new model.KitV3(kitV4Clip.kit)
+                EditHistory.add(new PasteKitHistoryAction(source, kitV4Clip.kitNoWas, kitV3))
+                setKit(source, kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, () => kitV3)
+            }, {
+                // v4 -> v4
+                val kitV4 = kitV4Clip.kit
+                EditHistory.add(new PasteKitHistoryAction(source, kitV4Clip.kitNoWas, kitV4))
+                setKit(source, kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, () => kitV4)
+            })
+
         }
         case otherwise => {}
     }
 
     def swapKits(source: Component) = clipboardType match {
         case KitSwap => {
-            val kit = getContentSwapKits().kit
-            if (kit != jTrapKATEditor.currentKitNumber) {
-                jTrapKATEditor.swapKits(source, kit)
-                clipboard.setContents(Empty, this)
+            val leftKitNo = getContentSwapKits().kit
+            val rightKitNo = jTrapKATEditor.currentKitNumber
+            if (leftKitNo != rightKitNo) {
+                EditHistory.add(new HistoryAction {
+                    val actionName: String = "actionEditSwapKits"
+                    def undoAction(): Unit = jTrapKATEditor.swapKits(source, leftKitNo, rightKitNo)
+                    def redoAction(): Unit = jTrapKATEditor.swapKits(source, rightKitNo, leftKitNo)
+                })
+                jTrapKATEditor.swapKits(source, leftKitNo, rightKitNo)
             }
         }
         case _ => clipboard.setContents(SwapKits(jTrapKATEditor.currentKitNumber), this)
@@ -364,7 +429,7 @@ object Clipboard extends ClipboardOwner with Publisher {
 
     listenTo(jTrapKATEditor)
     reactions += {
-        case e: eventX.CurrentAllMemoryChanged if e.source == jTrapKATEditor && (clipboardType == ClipboardType.PadSwap || clipboardType == ClipboardType.KitSwap) => clipboard.setContents(Empty, this)
+        case e: eventX.SelectedAllMemoryChanged if (clipboardType == ClipboardType.PadSwap || clipboardType == ClipboardType.KitSwap) => clipboard.setContents(Empty, this)
     }
 
     if (clipboardType == ClipboardType.PadSwap || clipboardType == ClipboardType.KitSwap) clipboard.setContents(Empty, this)

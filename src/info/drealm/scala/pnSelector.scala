@@ -49,7 +49,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         protected def _chg() = {}
 
         reactions += {
-            case CurrentKitChanged(source) if source == txtKitName => { updateAllKitNames(); setDisplay() }
+            case CurrentKitChanged(source) if source == txtKitName || source == jTrapKATEditorMenuBar.mnEdit => { updateAllKitNames(); setDisplay() }
             case e: SelectedAllMemoryChanged => { updateAllKitNames(); setDisplay() }
         }
 

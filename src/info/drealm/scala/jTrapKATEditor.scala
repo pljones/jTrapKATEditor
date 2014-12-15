@@ -79,34 +79,19 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
     }
-    def setKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
-        EditHistory.clear()
-        if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
-            _currentAllMemory(_currentKitNumber) = getKit
-            publish(new SelectedKitChanged)
-        }
-    }
-    def swapKits(source: Component, kitOther: Int) {
-        EditHistory.clear()
+    def swapKits(source: Component, leftKitNo: Int, rightKitNo: Int) {
         doV3V4({
-            val thisKit = currentKitV3
-            _currentAllMemory(_currentKitNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV3]
-            _currentAllMemory(kitOther) = thisKit
+            val leftKit = _currentAllMemory(leftKitNo).asInstanceOf[model.KitV3]
+            _currentAllMemory(leftKitNo) = _currentAllMemory(rightKitNo).asInstanceOf[model.KitV3]
+            _currentAllMemory(rightKitNo) = leftKit
         }, {
-            val thisKit = currentKitV4
-            _currentAllMemory(_currentKitNumber) = _currentAllMemory(kitOther).asInstanceOf[model.KitV4]
-            _currentAllMemory(kitOther) = thisKit
+            val leftKit = _currentAllMemory(leftKitNo).asInstanceOf[model.KitV4]
+            _currentAllMemory(leftKitNo) = _currentAllMemory(rightKitNo).asInstanceOf[model.KitV4]
+            _currentAllMemory(rightKitNo) = leftKit
         })
 
-        // hackery and fakery
-        val _wasKit = _currentKitNumber
-        try {
-            _currentKitNumber = kitOther
-            publish(new SelectedKitChanged)
-        } catch { case e: Exception => {} }
-        finally { _currentKitNumber = _wasKit }
-
         publish(new SelectedKitChanged)
+        kitChangedBy(source)
     }
 
     private[this] var _currentSoundControl = 0
@@ -202,29 +187,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             thatPad.flags = (0x80 | thatPad.flags).toByte
         }
 
-        // hackery and fakery needed for undo action
-        val _wasKit = _currentKitNumber
-        val _wasPad = _currentPadNumber
-        try {
-            _currentKitNumber = leftKitNo
-            _currentPadNumber = leftPadNo
-            publish(new SelectedPadChanged)
-
-            _currentKitNumber = rightKitNo
-            _currentPadNumber = rightPadNo
-            publish(new SelectedPadChanged)
-        } catch { case e: Exception => {} }
-        finally {
-            _currentKitNumber = _wasKit
-            _currentPadNumber = _wasPad
-        }
-
-        // Re-establish selected pad...
-        publish(new SelectedPadChanged)
-
-        // Oh, and well, things may have changed...
-        kitChangedBy(source)
-
+        padChangedBy(source)
     }
 
     def reinitV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {

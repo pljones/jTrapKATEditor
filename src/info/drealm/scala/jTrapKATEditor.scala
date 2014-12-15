@@ -71,7 +71,14 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private[this] var _currentKitNumber: Int = 0
     def currentKitNumber: Int = _currentKitNumber
-    def currentKitNumber_=(value: Int): Unit = { _currentKitNumber = value; publish(new SelectedKitChanged) }
+    // Urrrrrghhh... well, okay, this "debugging code" appears to fix the problem being debugged...
+    var lastSet = scala.collection.mutable.Set.empty[PartialFunction[Event, Unit]]
+    def currentKitNumber_=(value: Int): Unit = {
+        for (l <- lastSet) if (!listeners.contains(l)) Console.println(s"${l.toString()} is no longer a listener")
+        lastSet = for (l <- listeners) yield l
+        _currentKitNumber = value
+        publish(new SelectedKitChanged)
+    }
     def currentKit: model.Kit[_ <: model.Pad] = currentAllMemory(_currentKitNumber)
     def currentKitV3: model.KitV3 = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3]
     def currentKitV4: model.KitV4 = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV4]

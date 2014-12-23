@@ -51,30 +51,33 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
         contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
 
         (1 to 4) foreach { x =>
-            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with ComboBoxBindings[String] with KitSelectionReactor with KitValueReactor {
+            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with Bindings with KitSelectionReactor with RichComboBoxReactor[String] {
                 peer.setMaximumRowCount(13)
                 name = s"cbxHH${x}"
 
-                def update(kit: model.Kit[_ <: model.Pad], was: Int, now: Int) = {
-                    var padChg = false
-                    if (was > 0 && kit(was - 1).flags != (0x7f & kit(was - 1).flags).toByte) { padChg = true; kit(was - 1).flags = (0x7f & kit(was - 1).flags).toByte }
-                    if (now > 0 && kit(now - 1).flags != (0x80 | kit(now - 1).flags).toByte) { padChg = true; kit(now - 1).flags = (0x80 | kit(now - 1).flags).toByte }
-                    kit.hhPads(x - 1, now.toByte)
-                    if (padChg && (kit(was) == jTrapKATEditor.currentPad || kit(now) == jTrapKATEditor.currentPad))
-                        jTrapKATEditor.padChangedBy(this)
-                }
-                protected def _isChg = jTrapKATEditor.currentKit.hhPads(x - 1) != selection.index
-                protected def _get() = selection.index = jTrapKATEditor.currentKit.hhPads(x - 1)
-                protected def _set() = {
+                protected final def _modelValue: Byte = jTrapKATEditor.currentKit.hhPads(x - 1)
+                protected final def _modelValue_=(value: Byte) = {
                     val kit = jTrapKATEditor.currentKit
-                    val padNoWas = kit.hhPads(x - 1)
-                    val padNo = this.selection.index
+                    val modelValue = _modelValue
                     EditHistory.add(new HistoryAction {
                         val actionName = "actionHH"
-                        def undoAction = doUndoRedo(() => update(kit, padNo, padNoWas))
-                        def redoAction = doUndoRedo(() => update(kit, padNoWas, padNo))
+                        def undoAction = doUndoRedo(() => _setModelValue(kit, value, modelValue))
+                        def redoAction = doUndoRedo(() => _setModelValue(kit, modelValue, value))
                     })
-                    update(kit, padNoWas, padNo)
+                    _setModelValue(kit, modelValue, value)
+                }
+
+                protected def _uiValue: Byte = selection.index.toByte
+                protected def _uiValue_=(_value: Byte): Unit = selection.index = _value
+
+                // This mess needs to happen on undo/redo as well as UI updates
+                def _setModelValue(kit: model.Kit[_ <: model.Pad], was: Byte, now: Byte) = {
+                    val padChangeSideEffect =
+                        (if (was > 0 && kit(was - 1).flags != (0x7f & kit(was - 1).flags).toByte) { kit(was - 1).flags = (0x7f & kit(was - 1).flags).toByte; true } else false) ||
+                            (if (now > 0 && kit(now - 1).flags != (0x80 | kit(now - 1).flags).toByte) { kit(now - 1).flags = (0x80 | kit(now - 1).flags).toByte; true } else false)
+                    kit.hhPads(x - 1, now)
+                    if (padChangeSideEffect && (kit(was) == jTrapKATEditor.currentPad || kit(now) == jTrapKATEditor.currentPad))
+                        jTrapKATEditor.padChangedBy(this)
                 }
                 protected def _chg() = jTrapKATEditor.kitChangedBy(pnHH)
 

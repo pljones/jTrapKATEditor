@@ -27,345 +27,463 @@ package info.drealm.scala
 import scala.swing._
 import scala.swing.event._
 import info.drealm.scala.eventX._
+import info.drealm.scala.util.getInt
 
-trait DisplayBindings extends Reactor {
-    protected def _isChg: Boolean
-    protected def _get(): Unit
-    protected def setDisplay(): Unit = _get()
-}
+/*
+ * A base trait for UI-affecting reactions
+ * All events come from jTrapKATEditor
+ * Nothing done in _uiReaction() should trigger the same event from jTrapKATEditor
+ * 
+ * Applied to publishers, including Components and a few special classes
+ */
 
-trait PadSelectionReactor extends DisplayBindings {
-    reactions += {
-        case e: SelectedPadChanged if _isChg => setDisplay()
-    }
-}
+trait UIReactor extends Publisher {
 
-trait KitSelectionReactor extends DisplayBindings {
-    reactions += {
-        case e: SelectedKitChanged if _isChg => setDisplay()
-    }
-}
+    protected def _isUIChange: Boolean
+    protected def _uiReaction(): Unit
 
-trait SoundControlSelectionReactor extends DisplayBindings {
-    reactions += {
-        case e: SelectedSoundControlChanged if _isChg => setDisplay()
-    }
-}
-
-trait GlobalSelectionReactor extends DisplayBindings {
-    reactions += {
-        case e: SelectedGlobalChanged if _isChg => setDisplay()
-    }
-}
-
-trait AllMemorySelectionReactor extends DisplayBindings {
-    reactions += {
-        case e: SelectedAllMemoryChanged if _isChg => setDisplay()
-    }
-}
-
-trait PadValueReactor extends DisplayBindings {
-    reactions += {
-        case e: CurrentPadChanged if _isChg => setDisplay()
-    }
-}
-
-trait KitValueReactor extends DisplayBindings {
-    reactions += {
-        case e: CurrentKitChanged if _isChg => setDisplay()
-    }
-}
-
-trait SoundControlValueReactor extends DisplayBindings {
-    reactions += {
-        case e: CurrentSoundControlChanged if _isChg => setDisplay()
-    }
-}
-
-trait GlobalValueReactor extends DisplayBindings {
-    reactions += {
-        case e: CurrentGlobalChanged if _isChg => setDisplay()
-    }
-}
-
-trait AllMemoryValueReactor extends DisplayBindings {
-    reactions += {
-        case e: CurrentAllMemoryChanged if _isChg => setDisplay()
-    }
-}
-
-trait AnyValueReactor extends DisplayBindings {
-    reactions += {
-        case e: SomethingChanged => setDisplay()
-    }
-}
-
-trait ValueBindings extends Publisher {
-    protected def _isChg: Boolean
-    protected def _set(): Unit
-    protected def _chg(): Unit
-
-    protected def setValue(): Unit = if (_isChg) {
-        _set()
+    protected def setDisplay(): Unit = {
         try {
             deafTo(this)
-            _chg()
+            _uiReaction()
         } finally { listenTo(this) }
     }
+
+    listenTo(this)
+    listenTo(jTrapKATEditor)
 }
 
-trait ValueChangedBindings extends ValueBindings {
+/*
+ * A set of reactions to selected item events that require a UI update
+ */
+
+trait PadSelectionReactor extends UIReactor {
     reactions += {
-        case e: ValueChanged => setValue()
+        case e: SelectedPadChanged if _isUIChange => setDisplay()
     }
 }
 
-trait ButtonBindings extends ValueBindings {
+trait KitSelectionReactor extends UIReactor {
     reactions += {
-        case e: ButtonClicked => setValue()
+        case e: SelectedKitChanged if _isUIChange => setDisplay()
     }
 }
 
-trait DocumentChangedBindings extends ValueBindings {
+trait SoundControlSelectionReactor extends UIReactor {
     reactions += {
-        case e: DocumentChanged => setValue()
+        case e: SelectedSoundControlChanged if _isUIChange => setDisplay()
     }
 }
 
-trait Bindings extends AllMemorySelectionReactor with ValueBindings {
-    override protected def setDisplay(): Unit = try {
-        deafTo(this)
-        super.setDisplay()
-    } finally { listenTo(this) }
+trait GlobalSelectionReactor extends UIReactor {
+    reactions += {
+        case e: SelectedGlobalChanged if _isUIChange => setDisplay()
+    }
+}
 
-    protected def doUndoRedo(action: () => Unit) = try {
-        deafTo(jTrapKATEditor)
-        deafTo(this)
-        action()
-        _get()
-        _chg()
-    } finally { listenTo(this); listenTo(jTrapKATEditor) }
+trait AllMemorySelectionReactor extends UIReactor {
+    reactions += {
+        case e: SelectedAllMemoryChanged if _isUIChange => setDisplay()
+    }
+}
+
+/*
+ * A set of reactions to Model events that require a UI update
+ */
+
+trait PadValueReactor extends UIReactor {
+    reactions += {
+        case e: CurrentPadChanged if _isUIChange => setDisplay()
+    }
+}
+
+trait KitValueReactor extends UIReactor {
+    reactions += {
+        case e: CurrentKitChanged if _isUIChange => setDisplay()
+    }
+}
+
+trait SoundControlValueReactor extends UIReactor {
+    reactions += {
+        case e: CurrentSoundControlChanged if _isUIChange => setDisplay()
+    }
+}
+
+trait GlobalValueReactor extends UIReactor {
+    reactions += {
+        case e: CurrentGlobalChanged if _isUIChange => setDisplay()
+    }
+}
+
+trait AllMemoryValueReactor extends UIReactor {
+    reactions += {
+        case e: CurrentAllMemoryChanged if _isUIChange => setDisplay()
+    }
+}
+
+trait AnyValueReactor extends UIReactor {
+    reactions += {
+        case e: SomethingChanged if _isUIChange => setDisplay()
+    }
+}
+
+/*
+ * A base trait for Model-affecting reactions
+ * All related events come from jTrapKATEditor
+ */
+
+trait ModelReactor extends Reactor {
+
+    protected def _isModelChange: Boolean
+    protected def _modelReaction(): Unit
+
+    protected def setValue(): Unit = {
+        try {
+            deafTo(jTrapKATEditor)
+            _modelReaction()
+        } finally { listenTo(jTrapKATEditor) }
+    }
 
     listenTo(jTrapKATEditor)
 }
 
-trait ComboBoxBindings[T] extends Bindings {
-    this: RichComboBox[T] =>
+/*
+ * A set of reactions to UI events used to trigger a Model update
+ */
+
+trait ValueChangedReactor extends ModelReactor {
+    reactions += {
+        case e: ValueChanged if _isModelChange => setValue()
+    }
+}
+
+trait ButtonClickedReactor extends ModelReactor {
+    reactions += {
+        case e: ButtonClicked if _isModelChange => setValue()
+    }
+}
+
+trait DocumentChangedReactor extends ModelReactor {
+    reactions += {
+        case e: DocumentChanged if _isModelChange => setValue()
+    }
+}
+
+/*
+ * RichComboBox needs to have its selection handled with care
+ */
+
+trait RichComboBoxReactor[T] extends UIReactor with ModelReactor { this: RichComboBox[T] =>
+
+    override protected def setValue(): Unit = {
+        try {
+            deafTo(selection)
+            super.setValue()
+        } finally { listenTo(selection) }
+    }
+
     override protected def setDisplay(): Unit = try {
         deafTo(selection)
         super.setDisplay()
     } finally { listenTo(selection) }
 
-    override protected def doUndoRedo(action: () => Unit) = try {
-        deafTo(selection)
-        super.doUndoRedo(action)
-    } finally { listenTo(selection) }
-
     listenTo(selection)
 
     reactions += {
-        case SelectionChanged(source) => setValue()
+        case e: SelectionChanged if _isModelChange => setValue()
     }
 }
 
-trait EditableComboBoxBindings[T] extends ComboBoxBindings[T] with DocumentChangedBindings { this: RichComboBox[T] => }
+/*
+ * No comment required... 
+ */
 
-trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends Bindings {
-    this: V3V4ComboBox[T, TP, T3, T4] =>
-    override protected def setDisplay(): Unit = try {
-        deafTo(selection)
-        super.setDisplay()
-    } finally { listenTo(selection) }
+trait EditableComboBoxReactor[T] extends RichComboBoxReactor[T] with DocumentChangedReactor { this: RichComboBox[T] => }
 
-    override protected def doUndoRedo(action: () => Unit) = try {
-        deafTo(selection)
-        super.doUndoRedo(action)
-    } finally { listenTo(selection) }
+/*
+ * The majority of UI components bound to model values
+ * -> require updating when the current all memory sysex dump changes (if not also global, kit or pad)
+ * -> affect the model
+ * so they use this base trait or one of the specialisations
+ */
 
-    listenTo(selection)
+trait Bindings extends AllMemorySelectionReactor with ModelReactor {
+    // These are defined here as they're not as useful before this point in the model - and we can now more happily say "Byte"
+    protected def _modelValue: Byte
+    protected def _modelValue_=(value: Byte): Unit
+    protected def _uiValue: Byte
+    protected def _uiValue_=(value: Byte): Unit
 
-    reactions += {
-        case e: V3V4SelectionChanged => setValue()
-    }
+    // In terms of change, model != UI?
+    // Keep the getters as "cheap" as possible
+    protected def _isUIChange: Boolean = _modelValue != _uiValue
+    protected def _isModelChange: Boolean = _modelValue != _uiValue
+
+    // And we may want to notify the change
+    protected def _chg(): Unit
+
+    // With the above in place, we have
+    protected def _uiReaction() = _uiValue = _modelValue
+    protected def _modelReaction() = _modelValue = _uiValue
+
+    // We want all model-changing UI components to support undo/redo but how is specific to the component:
+    // "action" has to reflect the state at the time of the original action and how to undo or redo it -
+    // there may be a different current kit or pad, etc.
+    protected def doUndoRedo(action: () => Unit) = try {
+        deafTo(jTrapKATEditor)
+        deafTo(this)
+        action()
+        _uiReaction()
+        _chg()
+    } finally { listenTo(this); listenTo(jTrapKATEditor) }
 }
 
-trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] { this: V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] => }
+/*
+ * No comment required... 
+ */
+
+trait EditableComboBoxBindings[T] extends Bindings with RichComboBoxReactor[T] { this: RichComboBox[T] => }
+
+/*
+ * Base trait for all model.Pad-affecting UI components.
+ * Any change of selected kit or the value of the pad will need checking by the component.
+ */
 
 trait PadBindings extends Bindings with KitSelectionReactor with PadValueReactor {
-    protected def _getCurrentPad: () => model.Pad
-    protected def _getBefore: (model.Pad) => Byte
-    protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = _getBefore(_getCurrentPad()) != _getAfter()
+    // We have the following in place to work with
+    //protected def _modelReaction() = _modelValue = _uiValue
+    // _uiValue remains the component's responsibility for now
 
-    protected def _setHelper(update: (model.Pad, Byte) => Unit, name: String): Unit = {
-        val currentPad = _getCurrentPad()
-        val valueBefore = _getBefore(_getCurrentPad())
-        val valueAfter = _getAfter()
+    protected def _pad: model.Pad
+    protected def _padActionName: String
+    protected final def _modelValue: Byte = _getModelValue(_pad)
+    protected final def _modelValue_=(value: Byte) = {
+        val currentPad = _pad
+        val modelValue = _modelValue
         EditHistory.add(new HistoryAction {
-            val actionName = s"actionPad${name}"
-            def undoAction = doUndoRedo(() => update(currentPad, valueBefore))
-            def redoAction = doUndoRedo(() => update(currentPad, valueAfter))
+            val actionName = s"actionPad${_padActionName}"
+            def undoAction = doUndoRedo(() => _setModelValue(currentPad, modelValue))
+            def redoAction = doUndoRedo(() => _setModelValue(currentPad, value))
         })
-        update(currentPad, valueAfter)
-    }
-}
-
-trait SelectedPadBindings extends PadBindings with PadSelectionReactor
-
-trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] with PadBindings with DocumentChangedBindings {
-    this: V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] =>
-
-    protected def _setPadSlot(slot: Int, name: String) = _setHelper((pad, value) => pad(slot) = value, name)
-
-    override protected def setDisplay(): Unit = try {
-        deafTo(cbxV3)
-        deafTo(cbxV4)
-        super.setDisplay()
-    } finally { listenTo(cbxV3); listenTo(cbxV4) }
-
-    override protected def doUndoRedo(action: () => Unit): Unit = try {
-        deafTo(cbxV3)
-        deafTo(cbxV4)
-        super.doUndoRedo(action)
-    } finally { listenTo(cbxV3); listenTo(cbxV4) }
-
-    override protected def setValue(): Unit = try {
-        deafTo(cbxV3)
-        deafTo(cbxV4)
-        super.setValue()
-    } finally { listenTo(cbxV3); listenTo(cbxV4) }
-
-    listenTo(cbxV3)
-    listenTo(cbxV4)
-
-    reactions += {
-        case e: eventX.CbxEditorFocused if e.source == cbxV3 || e.source == cbxV4 => try { deafTo(this); publish(e) } finally { listenTo(this) }
+        _setModelValue(currentPad, value)
+        _chg()
     }
 
+    protected def _getModelValue: (model.Pad) => Byte
+    protected def _setModelValue: (model.Pad, Byte) => Unit
 }
 
-trait KitVariesBindings extends Bindings with KitSelectionReactor {
-    protected def _getBefore: (model.Kit[_ <: model.Pad]) => Byte
-    protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit) != _getAfter()
+/*
+ * No comment required... 
+ */
+
+trait SelectedPadBindings extends PadBindings with PadSelectionReactor {
+    protected def _pad = jTrapKATEditor.currentPad
+}
+
+/*
+ * Where the kit setting does not affect pad settings, this trait is used
+ */
+trait KitBindings extends Bindings with KitSelectionReactor {
+    protected def _kitActionName: String
+    protected final def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentKit)
+    protected def _modelValue_=(value: Byte) = {
+        val currentKit = jTrapKATEditor.currentKit
+        val modelValue: Byte = _modelValue
+        EditHistory.add(new HistoryAction {
+            val actionName = s"actionKit${_kitActionName}"
+            def undoAction = doUndoRedo(() => _setModelValue(currentKit, modelValue))
+            def redoAction = doUndoRedo(() => _setModelValue(currentKit, value))
+        })
+        _setModelValue(currentKit, value)
+        _chg()
+    }
+
+    protected def _getModelValue: (model.Kit[_ <: model.Pad]) => Byte
+    protected def _setModelValue: (model.Kit[_ <: model.Pad], Byte) => Unit
+}
+
+/*
+ * A number of kit settings may overrule the pad settings and use this trait
+ */
+trait KitVariesBindings extends KitBindings {
+
+    // This is where KitVariesBindings inserts its _updateHelper call
+    override protected final def _modelValue_=(value: Byte) = {
+        val currentKit = jTrapKATEditor.currentKit
+        val modelValue: Byte = _modelValue
+        EditHistory.add(new HistoryAction {
+            val actionName = s"actionKit${_kitActionName}"
+            def undoAction = doUndoRedo(() => _updateHelper(currentKit, modelValue))
+            def redoAction = doUndoRedo(() => _updateHelper(currentKit, value))
+        })
+        _updateHelper(currentKit, value)
+    }
+
+    // Here are the extra bits for a pad-affecting kit binding
+    protected def _cp: Component
     protected def _isKit: (model.Kit[_ <: model.Pad]) => Boolean
     protected def _toKit: (model.Kit[_ <: model.Pad]) => Unit
-    protected def _cp(): Component
 
-    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Byte) => Unit, name: String): Unit = {
-        val currentKit = jTrapKATEditor.currentKit
-        val before: Byte = _getBefore(currentKit)
-        val after: Byte = _getAfter()
-        EditHistory.add(new HistoryAction {
-            val actionName = s"actionKit${name}"
-            def undoAction = doUndoRedo(() => _updateHelper(currentKit, before, update))
-            def redoAction = doUndoRedo(() => _updateHelper(currentKit, after, update))
-        })
-        _updateHelper(currentKit, after, update)
-    }
-
-    private[this] def _updateHelper(kit: model.Kit[_ <: model.Pad], value: Byte, update: (model.Kit[_ <: model.Pad], Byte) => Unit) = {
+    // This is where _setModelValue is called for KitVariesBindings
+    private[this] def _updateHelper(kit: model.Kit[_ <: model.Pad], value: Byte) = {
         val isKit = _isKit(kit)
-        update(kit, value)
+        _setModelValue(kit, value)
         if (isKit) {
             _toKit(kit)
             if (kit == jTrapKATEditor.currentKit)
-                jTrapKATEditor.padChangedBy(_cp())
+                jTrapKATEditor.padChangedBy(_cp)
+            _chg()
         }
     }
 }
 
-trait KitBindings extends Bindings with KitSelectionReactor {
-    protected def _getBefore: (model.Kit[_ <: model.Pad]) => Byte
-    protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit) != _getAfter()
-
-    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Byte) => Unit, name: String): Unit = {
-        val currentKit = jTrapKATEditor.currentKit
-        val before: Byte = _getBefore(currentKit)
-        val after: Byte = _getAfter()
-        EditHistory.add(new HistoryAction {
-            val actionName = s"actionKit${name}"
-            def undoAction = doUndoRedo(() => update(currentKit, before))
-            def redoAction = doUndoRedo(() => update(currentKit, after))
-        })
-        update(currentKit, after)
-    }
-}
-
-trait SoundControlEnabledBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor with ButtonBindings {
-    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber) != _getAfter()
-    protected def _getBefore: (model.Kit[_ <: model.Pad], Int) => Boolean
-    protected def _getAfter: () => Boolean
-    protected def _spn: spinner.Spinner
-
-    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Int, Boolean, spinner.Spinner, Int) => Unit, name: String): Unit = {
+trait SoundControlBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor { this: info.drealm.scala.spinner.Spinner =>
+    protected def _scActionName: String
+    protected final def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber)
+    protected final def _modelValue_=(value: Byte): Unit = {
         val currentKit = jTrapKATEditor.currentKit
         val soundControl: Int = jTrapKATEditor.currentSoundControlNumber
-        val before: Boolean = _getBefore(currentKit, soundControl)
-        val after: Boolean = _getAfter()
-        val _spnBefore = _spn.value.asInstanceOf[java.lang.Number].intValue()
-        update(currentKit, soundControl, after, _spn, _spnBefore)
-        val _spnAfter = _spn.value.asInstanceOf[java.lang.Number].intValue()
+        val modelValue: Byte = _modelValue
         EditHistory.add(new HistoryAction {
-            val actionName = s"actionSC${name}"
-            def undoAction = doUndoRedo(() => update(currentKit, soundControl, before, _spn, _spnBefore))
-            def redoAction = doUndoRedo(() => update(currentKit, soundControl, after, _spn, _spnAfter))
+            val actionName = s"actionSC${_scActionName}"
+            def undoAction = doUndoRedo(() => _setModelValue(currentKit, soundControl, modelValue))
+            def redoAction = doUndoRedo(() => _setModelValue(currentKit, soundControl, value))
         })
+        _setModelValue(currentKit, soundControl, value)
+        _chg()
     }
+
+    protected final def _uiValue = value.asInstanceOf[java.lang.Number].intValue().toByte
+    protected final def _chg() = jTrapKATEditor.soundControlChangedBy(this)
+
+    protected def _getModelValue: (info.drealm.scala.model.Kit[_ <: info.drealm.scala.model.Pad], Int) => Byte
+    protected def _setModelValue: (info.drealm.scala.model.Kit[_ <: info.drealm.scala.model.Pad], Int, Byte) => Unit
 }
 
-trait SoundControlBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor {
-    protected def _getBefore: (model.Kit[_ <: model.Pad], Int) => Byte
-    protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber) != _getAfter()
-
-    protected def _setHelper(update: (model.Kit[_ <: model.Pad], Int, Byte) => Unit, name: String): Unit = {
+trait SoundControlEnabledBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor with ButtonClickedReactor { this: CheckBox =>
+    protected def _sceActionName: String
+    protected def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber)
+    protected def _modelValue_=(value: Byte): Unit = {
         val currentKit = jTrapKATEditor.currentKit
         val soundControl: Int = jTrapKATEditor.currentSoundControlNumber
-        val before: Byte = _getBefore(currentKit, soundControl)
-        val after: Byte = _getAfter()
+        val modelValue: Byte = _modelValue
         EditHistory.add(new HistoryAction {
-            val actionName = s"actionSC${name}"
-            def undoAction = doUndoRedo(() => update(currentKit, soundControl, before))
-            def redoAction = doUndoRedo(() => update(currentKit, soundControl, after))
+            val actionName = s"actionSC${_sceActionName}"
+            def undoAction = doUndoRedo(() => _setModelValue(currentKit, soundControl, modelValue))
+            def redoAction = doUndoRedo(() => _setModelValue(currentKit, soundControl, value))
         })
-        update(currentKit, soundControl, after)
+        _setModelValue(currentKit, soundControl, value)
+        _chg()
     }
+
+    protected def _uiValue: Byte = if (selected) 1 else 0
+    protected def _chg() = jTrapKATEditor.soundControlChangedBy(this)
+
+    protected def _getModelValue: (model.Kit[_ <: model.Pad], Int) => Byte
+    protected def _setModelValue: (model.Kit[_ <: model.Pad], Int, Byte) => Unit
 }
 
-trait GlobalPadDynamicsBindings extends Bindings with PadSelectionReactor with GlobalSelectionReactor {
-    protected def _getBefore: (model.PadDynamics) => Byte
-    protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = jTrapKATEditor.currentPadNumber < 24 && _getBefore(jTrapKATEditor.pd) != _getAfter()
-
-    protected def _setHelper(update: (model.PadDynamics, Byte) => Unit, name: String): Unit = {
-        val currentPD = jTrapKATEditor.pd
-        val before = _getBefore(currentPD)
-        val after = _getAfter()
-        EditHistory.add(new HistoryAction {
-            val actionName = s"actionGlobal${name.capitalize}"
-            def undoAction = doUndoRedo(() => update(currentPD, before))
-            def redoAction = doUndoRedo(() => update(currentPD, after))
-        })
-        update(currentPD, after)
-    }
-}
-
-trait GlobalBindings extends Bindings with GlobalSelectionReactor {
-    protected def _getBefore: (model.Global[_ <: model.Pad]) => Byte
-    protected def _getAfter: () => Byte
-    protected def _isChg: Boolean = _getBefore(jTrapKATEditor.currentGlobal) != _getAfter()
-
-    protected def _setHelper(update: (model.Global[_ <: model.Pad], Byte) => Unit, name: String): Unit = {
+trait GlobalBindings extends Bindings with GlobalSelectionReactor with GlobalValueReactor {
+    protected def _globalActionName: String
+    protected def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentGlobal)
+    protected def _modelValue_=(value: Byte): Unit = {
         val global = jTrapKATEditor.currentGlobal
-        val before = _getBefore(global)
-        val after = _getAfter()
+        val modelValue = _modelValue
+        val value = _uiValue
         EditHistory.add(new HistoryAction {
-            val actionName = s"actionGlobal${name.capitalize}"
-            def undoAction = doUndoRedo(() => update(global, before))
-            def redoAction = doUndoRedo(() => update(global, after))
+            val actionName = s"actionGlobal${_globalActionName.capitalize}"
+            def undoAction = doUndoRedo(() => _setModelValue(global, modelValue))
+            def redoAction = doUndoRedo(() => _setModelValue(global, value))
         })
-        update(global, after)
+        _setModelValue(global, value)
+        _chg()
     }
+
+    protected def _getModelValue: model.Global[_ <: model.Pad] => Byte
+    protected def _setModelValue: (model.Global[_ <: model.Pad], Byte) => Unit
+}
+
+trait GlobalPadDynamicsBindings extends Bindings with GlobalSelectionReactor with PadSelectionReactor with GlobalValueReactor with ValueChangedReactor { this: info.drealm.scala.spinner.Spinner =>
+    protected def _pdActionName: String
+    protected def _modelValue: Byte = _getModelValue(jTrapKATEditor.pd)
+    protected def _modelValue_=(value: Byte): Unit = {
+        val currentPD = jTrapKATEditor.pd
+        val modelValue = _modelValue
+        val value = _uiValue
+        EditHistory.add(new HistoryAction {
+            val actionName = s"actionGlobal${_pdActionName.capitalize}"
+            def undoAction = doUndoRedo(() => _setModelValue(currentPD, modelValue))
+            def redoAction = doUndoRedo(() => _setModelValue(currentPD, value))
+        })
+        _setModelValue(currentPD, value)
+        _chg()
+    }
+
+    protected def _uiValue: Byte = value.asInstanceOf[java.lang.Number].byteValue()
+    protected def _uiValue_=(_value: Byte): Unit = value = getInt(_value)
+
+    override protected def _isUIChange = {
+        enabled = jTrapKATEditor.currentPadNumber < 25
+        enabled && _uiValue != _modelValue
+    }
+
+    override protected def _uiReaction() = _uiValue = if (enabled) _modelValue else 0
+
+    protected def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
+
+    protected def _getModelValue: (info.drealm.scala.model.PadDynamics) => Byte
+    protected def _setModelValue: (info.drealm.scala.model.PadDynamics, Byte) => Unit
+}
+
+/*
+ * As V3V4ComboBox is two things at once, it is easier to treat it specially to start with
+ * It mirrors a RichComboBox - and this mirrors Bindings
+ */
+
+trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends Bindings {
+    this: V3V4ComboBox[T, TP, T3, T4] =>
+
+    override protected def setDisplay(): Unit = try {
+        deafTo(selection)
+        super.setDisplay()
+    } finally { listenTo(selection) }
+
+    override protected def doUndoRedo(action: () => Unit) = try {
+        deafTo(selection)
+        super.doUndoRedo(action)
+    } finally { listenTo(selection) }
+
+    listenTo(selection)
+
+    reactions += {
+        case e: V3V4SelectionChanged if _isModelChange => setValue()
+    }
+}
+
+/*
+ * No comment required... 
+ */
+
+trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] {
+    this: V3V4ComboBox[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] =>
+}
+
+/*
+ * PadSlotComboBoxV3V4 is the 28 pads/rims/pedals plus the additional 15 slots for each
+ * Much of this may not be needed... it's just protecting stuff from the cbx events
+ */
+
+trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] with PadBindings with DocumentChangedReactor {
+    this: PadSlotComboBoxV3V4 =>
+
+    protected def _slot: Int
+    protected def _getModelValue = _(_slot)
+    protected def _setModelValue = (p, v) => p(_slot) = v
+
+    // For a PadSlotComboBoxV3V4, value is magic
+    protected def _uiValue: Byte = value.toByte
+    protected def _uiValue_=(_value: Byte): Unit = value = _value
+
+    protected def _chg() = jTrapKATEditor.padChangedBy(cbx)
 }

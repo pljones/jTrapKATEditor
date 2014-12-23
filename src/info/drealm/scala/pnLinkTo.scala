@@ -38,52 +38,47 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
     contents += (lblLinkTo, "cell 0 0")
 
     private[this] val linkTo: Array[String] = new Array[String](28)
-    private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", tooltip, lblLinkTo) with ComboBoxBindings[String] with SelectedPadBindings {
+    private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", tooltip, lblLinkTo) with SelectedPadBindings with RichComboBoxReactor[String] {
         prototypeDisplayValue = Some("88 mmmm")
         peer.setMaximumRowCount(24)
 
-        protected def _setHelper(update: (model.PadV4, Int, Byte) => Unit): Unit = {
-            val currentPad = _getCurrentPad()
-            val currentPadNo = _currentPadNo()
-            val valueBefore = _getBefore(currentPad)
-            val valueAfter = _getAfter()
-            EditHistory.add(new HistoryAction {
-                val actionName = "actionLinkTo"
-                def undoAction = doUndoRedo(() => update(currentPad, currentPadNo, valueBefore))
-                def redoAction = doUndoRedo(() => update(currentPad, currentPadNo, valueAfter))
-            })
-            update(currentPad, currentPadNo, valueAfter)
+        protected def _padActionName = "LinkTo"
+        protected def _getModelValue = _.asInstanceOf[model.PadV4].linkTo
+        protected def _setModelValue = _.asInstanceOf[model.PadV4].linkTo = _
+
+        protected def _uiValue: Byte = {
+            val padNo = jTrapKATEditor.currentPadNumber + 1
+            (selection.index match {
+                case 0 => padNo
+                case e if e < padNo => e
+                case e => e + 1
+            }).toByte
+        }
+        protected def _uiValue_=(_value: Byte): Unit = {
+            val padNo = jTrapKATEditor.currentPadNumber
+            selection.index = _value - 1 match {
+                case e if e == padNo => 0 // Equal means Off
+                case e if e < padNo => e + 1 // Before
+                case e => e // After
+            }
         }
 
-        protected def _getCurrentPad = () => jTrapKATEditor.currentKitV4(_currentPadNo())
-        protected def _currentPadNo = () => jTrapKATEditor.currentPadNumber
-        protected def _getBefore = _.asInstanceOf[model.PadV4].linkTo
-        protected def _getAfter = () => getLinkTo(_currentPadNo(), selection.index)
-        override protected def _isChg = jTrapKATEditor.doV3V4(false, super._isChg)
-
-        protected def _get() = selection.index = getSelectionIndex(_getBefore(_getCurrentPad()))
-        protected def _set() = _setHelper((p, n, v) => p.linkTo = getLinkTo(n, v))
         protected def _chg() = jTrapKATEditor.padChangedBy(this)
 
         protected override def setDisplay = jTrapKATEditor.doV3V4({}, super.setDisplay())
         protected override def setValue = jTrapKATEditor.doV3V4({}, super.setValue())
-
-        private[this] def getSelectionIndex(linkTo: Byte): Int = linkTo - 1 match {
-            case e if e == _currentPadNo() => 0 // Equal means Off
-            case e if e < _currentPadNo() => e + 1 // Before
-            case e => e // After
-        }
-        private[this] def getLinkTo(padNo: Int, selectionIndex: Int): Byte = (selectionIndex match {
-            case 0 => padNo + 1
-            case e if e + 1 < padNo => e
-            case e => e + 1
-        }).toByte
 
         private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
             case 0 => L.G("cbxLinkToOff")
             case x if x < 25 => s"${x}"
             case x => L.G(s"lbPad${x}")
         }) zip (0 to 27)) foreach (x => linkTo(x._2) = x._1)
+
+        reactions += {
+            case e: SelectedPadChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
+            case e: SelectedKitChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
+            case e: SelectedAllMemoryChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
+        }
 
         jTrapKATEditor.doV3V4({}, {
             setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)

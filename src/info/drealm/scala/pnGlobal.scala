@@ -42,24 +42,30 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
     private[this] class GlobalSpinner(_name: String, lbl: Label, _getVal: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: GlobalSpinnerParams)
         extends Spinner(new javax.swing.SpinnerNumberModel(params.ini, params.min, params.max, 1), s"spn${_name}", L.G(s"ttGlobal${_name}"), lbl)
-        with GlobalBindings with ValueChangedBindings {
+        with GlobalBindings with ValueChangedReactor {
 
-        protected def _getBefore = _getVal
-        protected def _getAfter = () => value.asInstanceOf[java.lang.Number].byteValue()
-        protected def _get() = value = getInt(_getBefore(jTrapKATEditor.currentAllMemory.global))
-        protected def _set() = _setHelper(_setVal, _name)
+        protected def _globalActionName = _name
+        protected def _getModelValue = _getVal
+        protected def _setModelValue = _setVal
+
+        protected def _uiValue: Byte = value.asInstanceOf[java.lang.Number].byteValue()
+        protected def _uiValue_=(_value: Byte): Unit = value = getInt(_getModelValue(jTrapKATEditor.currentAllMemory.global))
+
         protected def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
 
         setDisplay()
     }
 
     private[this] class GlobalComboBox(_name: String, lbl: Label, _getVal: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: GlobalComboBoxParams)
-        extends RichComboBox(params.items, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with ComboBoxBindings[String] with GlobalBindings {
+        extends RichComboBox(params.items, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with RichComboBoxReactor[String] with GlobalBindings {
 
-        protected def _getBefore = _getVal
-        protected def _getAfter = () => selection.index.toByte
-        protected def _get() = selection.item = params.items(_getBefore(jTrapKATEditor.currentAllMemory.global))
-        protected def _set() = _setHelper(_setVal, _name)
+        protected def _getModelValue = _getVal
+        protected def _setModelValue = _setVal
+
+        protected def _uiValue: Byte = selection.index.toByte
+        protected def _uiValue_=(_value: Byte): Unit = selection.item = params.items(_value)
+
+        protected def _globalActionName = _name
         protected def _chg() = jTrapKATEditor.globalMemoryChangedBy(this)
 
         setDisplay()
@@ -71,8 +77,8 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     private[this] class EditableGlobalComboBox(_name: String, lbl: Label, _before: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: EditableGlobalComboBoxParams)
         extends GlobalComboBox(_name, lbl, _before, _setVal, GlobalComboBoxParams(params.items)) {
 
-        protected override def _getAfter = () => params._fromItem(selection.index, selection.item)
-        protected override def _get() = selection.item = params._toItem(_getBefore(jTrapKATEditor.currentAllMemory.global), params.items)
+        override protected def _uiValue: Byte = params._fromItem(selection.index, selection.item)
+        override protected def _uiValue_=(_value: Byte): Unit = selection.item = params._toItem(_value, params.items)
 
         makeEditable()
         editorPeer.setInputVerifier(new javax.swing.InputVerifier {

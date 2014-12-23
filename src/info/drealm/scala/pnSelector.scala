@@ -37,15 +37,16 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     contents += (lblSelectKit, "cell 0 0,alignx right")
 
     private[this] val kitNames = new Array[String](24)
-    private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", L.G("ttSelectKit"), lblSelectKit) with ComboBoxBindings[String] {
+    private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", L.G("ttSelectKit"), lblSelectKit) with RichComboBoxReactor[String] {
         peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("WWWWWWWWWWWW")
 
         private[this] def updateKitName(idx: Int): Unit = kitNames(idx) = s"${idx + 1}: ${jTrapKATEditor.currentAllMemory(idx).kitName}"
         private[this] def updateAllKitNames(): Unit = (0 to 23) foreach updateKitName _
-        protected def _isChg = jTrapKATEditor.currentKitNumber != selection.index
-        protected def _get() = selection.index = jTrapKATEditor.currentKitNumber
-        protected def _set() = jTrapKATEditor.currentKitNumber = selection.index
+        protected def _isUIChange = jTrapKATEditor.currentKitNumber != selection.index
+        protected def _isModelChange = jTrapKATEditor.currentKitNumber != selection.index
+        protected def _uiReaction() = selection.index = jTrapKATEditor.currentKitNumber
+        protected def _modelReaction() = jTrapKATEditor.currentKitNumber = selection.index
         protected def _chg() = {}
 
         reactions += {
@@ -60,8 +61,8 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
 
     private[this] val lblKitEdited = new Label(L.G("lblXEdited")) with KitSelectionReactor with AllMemorySelectionReactor with KitValueReactor {
         tooltip = L.G("ttKitEdited")
-        protected def _isChg = visible != jTrapKATEditor.currentKit.changed
-        protected def _get(): Unit = visible = jTrapKATEditor.currentKit.changed
+        protected def _isUIChange = visible != jTrapKATEditor.currentKit.changed
+        protected def _uiReaction(): Unit = visible = jTrapKATEditor.currentKit.changed
 
         listenTo(jTrapKATEditor)
 
@@ -72,27 +73,42 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     private[this] val lblKitName = new Label(L.G("lblKitName"))
     contents += (lblKitName, "cell 4 0,alignx right")
 
-    private[this] val txtKitName = new TextField with Bindings with KitSelectionReactor with ValueChangedBindings {
+    private[this] val txtKitName = new TextField with AllMemorySelectionReactor with ModelReactor with KitSelectionReactor with ValueChangedReactor {
         name = "txtKitName"
         columns = 16
         tooltip = L.G("ttKitName")
         lblKitName.peer.setLabelFor(peer)
         lblKitName.tooltip = tooltip
 
-        protected def _isChg = jTrapKATEditor.currentKit.kitName.trim() != text
-        protected def _get() = text = jTrapKATEditor.currentKit.kitName.trim()
-        protected def _set() = {
+        protected def _modelValue = jTrapKATEditor.currentKit.kitName.trim()
+        protected def _modelValue_=(value: String) = jTrapKATEditor.currentKit.kitName = value
+        protected def _uiValue = text
+        protected def _uiValue_=(value: String) = text = value
+
+        protected def _isUIChange = _modelValue != text
+        protected def _isModelChange = _modelValue != text
+
+        protected def _modelReaction() = {
+            val kit = jTrapKATEditor.currentKit
+            val modelValue = _modelValue
+            val uiValue = _uiValue
             EditHistory.add(new HistoryAction {
-                val kit = jTrapKATEditor.currentKit
-                val valueBefore = jTrapKATEditor.currentKit.kitName
-                val valueAfter = text
                 val actionName = "actionKitName"
-                def undoAction = doUndoRedo(() => kit.kitName = valueBefore)
-                def redoAction = doUndoRedo(() => kit.kitName = valueAfter)
+                def undoAction = doUndoRedo(() => kit.kitName = modelValue)
+                def redoAction = doUndoRedo(() => kit.kitName = uiValue)
             })
-            jTrapKATEditor.currentKit.kitName = text
+            kit.kitName = uiValue
         }
+        protected def _uiReaction() = _uiValue = _modelValue
         protected def _chg() = jTrapKATEditor.kitChangedBy(this)
+
+        protected def doUndoRedo(action: () => Unit) = try {
+            deafTo(jTrapKATEditor)
+            deafTo(this)
+            action()
+            _uiReaction()
+            _chg()
+        } finally { listenTo(this); listenTo(jTrapKATEditor) }
 
         setDisplay()
     }
@@ -104,13 +120,14 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
         case x if x < 25 => s"${x}"
         case x => L.G(s"lbPad${x}")
-    }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with ComboBoxBindings[String] with PadSelectionReactor {
+    }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with RichComboBoxReactor[String] with PadSelectionReactor {
         peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("88 mmmm")
 
-        protected def _isChg = jTrapKATEditor.currentPadNumber != selection.index
-        protected def _get() = selection.index = jTrapKATEditor.currentPadNumber
-        protected def _set() = jTrapKATEditor.currentPadNumber = selection.index
+        protected def _isUIChange = jTrapKATEditor.currentPadNumber != selection.index
+        protected def _isModelChange = jTrapKATEditor.currentPadNumber != selection.index
+        protected def _uiReaction() = selection.index = jTrapKATEditor.currentPadNumber
+        protected def _modelReaction() = jTrapKATEditor.currentPadNumber = selection.index
         protected def _chg() = {}
 
         setDisplay()
@@ -119,8 +136,8 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
 
     private[this] val lblPadEdited = new Label(L.G("lblXEdited")) with PadSelectionReactor with KitSelectionReactor with AllMemorySelectionReactor with PadValueReactor {
         tooltip = L.G("ttPadEdited")
-        protected def _isChg = visible != jTrapKATEditor.currentPad.changed
-        protected def _get(): Unit = visible = jTrapKATEditor.currentPad.changed
+        protected def _isUIChange = visible != jTrapKATEditor.currentPad.changed
+        protected def _uiReaction(): Unit = visible = jTrapKATEditor.currentPad.changed
 
         listenTo(jTrapKATEditor)
 

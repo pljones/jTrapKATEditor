@@ -249,16 +249,16 @@ object Pad {
 class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right][fill,left]", "[]") with PadSelectionReactor {
     name = s"pnPad${pad}"
 
-    protected def _isChg = true
-    protected def _get = background = if (selected) Pad.padColorSelected else { if (pad < 11) Pad.padColorPad else { if (pad < 25) Pad.padColorRim else Pad.padColorPedal } }
+    protected def _isUIChange = true
+    protected def _uiReaction = background = if (selected) Pad.padColorSelected else { if (pad < 11) Pad.padColorPad else { if (pad < 25) Pad.padColorRim else Pad.padColorPedal } }
 
     private[this] def selected = jTrapKATEditor.currentPadNumber == pad - 1
 
     private[this] val lblPad = new Label(if (pad < 25) s"${pad}" else L.G(s"lbPad${pad}")) with PadSelectionReactor {
         name = s"lblPad${pad}"
 
-        protected def _isChg = true
-        protected def _get = foreground = if (selected) Pad.padColorSelectedText else Pad.padColorText
+        protected def _isUIChange = true
+        protected def _uiReaction = foreground = if (selected) Pad.padColorSelectedText else Pad.padColorText
 
         listenTo(jTrapKATEditor)
 
@@ -267,18 +267,41 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
     contents += (lblPad, "cell 0 0,alignx trailing,aligny baseline")
 
     private[this] val cbxPad = new PadSlotComboBoxV3V4(s"cbxPad${pad}", "Pad", lblPad, true) with PadSlotComboBoxV3V4Bindings {
-        protected def _getCurrentPad = () => jTrapKATEditor.currentKit(pad - 1)
-        protected def _getBefore = _.apply(0)
-        protected def _getAfter = () => value.toByte
-        protected def _get() = value = _getBefore(_getCurrentPad())
-        protected def _set() = _setPadSlot(0, "Value")
-        protected def _chg() = jTrapKATEditor.padChangedBy(cbx)
-
-        reactions += {
-            case e: eventX.CbxEditorFocused if jTrapKATEditor.currentPadNumber != pad - 1 => jTrapKATEditor.currentPadNumber = pad - 1
-        }
+        protected def _pad = jTrapKATEditor.currentKit(pad - 1)
+        protected def _slot: Int = 0
+        protected def _padActionName = "Value"
 
         setDisplay()
+
+        override protected def setDisplay(): Unit = try {
+            deafTo(cbxV3)
+            deafTo(cbxV4)
+            super.setDisplay()
+        } finally { listenTo(cbxV3); listenTo(cbxV4) }
+
+        override protected def setValue(): Unit = try {
+            deafTo(cbxV3)
+            deafTo(cbxV4)
+            super.setValue()
+        } finally { listenTo(cbxV3); listenTo(cbxV4) }
+
+        override protected def doUndoRedo(action: () => Unit): Unit = try {
+            deafTo(cbxV3)
+            deafTo(cbxV4)
+            super.doUndoRedo(action)
+        } finally { listenTo(cbxV3); listenTo(cbxV4) }
+
+        listenTo(cbxV3)
+        listenTo(cbxV4)
+
+        reactions += {
+            case e: eventX.CbxEditorFocused if (e.source == cbxV3 || e.source == cbxV4) && (jTrapKATEditor.currentPadNumber != pad - 1) => try {
+                deafTo(this)
+                deafTo(cbxV3)
+                deafTo(cbxV4)
+                jTrapKATEditor.currentPadNumber = pad - 1
+            } finally { listenTo(this); listenTo(cbxV3); listenTo(cbxV4) }
+        }
     }
     contents += (cbxPad.cbxV3, "cell 1 0,grow")
     contents += (cbxPad.cbxV4, "cell 1 0,grow")
@@ -297,15 +320,9 @@ class Pad(pad: Int) extends MigPanel("insets 4 2 4 2, hidemode 3", "[grow,right]
 
 class Slot(slot: Int) {
     val lblSlot = new Label(s"${slot}") { name = s"lblSlot${slot}"; peer.setDisplayedMnemonic(s"${slot}".last) }
-    val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", "Slot", lblSlot) with PadSlotComboBoxV3V4Bindings with PadSelectionReactor {
-        protected def _getCurrentPad = () => jTrapKATEditor.currentPad
-        protected def _getBefore = _.apply(slot - 1)
-        protected def _getAfter = () => value.toByte
-        override protected def _isChg = jTrapKATEditor.doV3V4(if (slot <= 6) super._isChg else false, super._isChg)
-
-        protected def _get() = value = _getBefore(_getCurrentPad())
-        protected def _set() = _setPadSlot(slot - 1, "Slot")
-        protected def _chg() = jTrapKATEditor.padChangedBy(cbx)
+    val cbxSlot = new PadSlotComboBoxV3V4(s"cbxSlot${slot}", "Slot", lblSlot) with PadSlotComboBoxV3V4Bindings with SelectedPadBindings {
+        protected def _slot: Int = slot - 1
+        protected def _padActionName = "Slot"
 
         private[this] def v3v4(f: () => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f(), f())
         protected override def setValue = v3v4(super.setValue)

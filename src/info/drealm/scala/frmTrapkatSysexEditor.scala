@@ -33,8 +33,8 @@ import info.drealm.scala.prefs.{ Preferences => P }
 import info.drealm.scala.updateTool._
 
 object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with AnyValueReactor {
-    protected def _isChg = true
-    protected def _get = title = getTitle()
+    protected def _isUIChange = true
+    protected def _uiReaction = title = getTitle()
 
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {

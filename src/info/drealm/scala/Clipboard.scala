@@ -422,6 +422,7 @@ object Clipboard extends ClipboardOwner with Publisher {
                     def redoAction(): Unit = jTrapKATEditor.swapKits(source, rightKitNo, leftKitNo)
                 })
                 jTrapKATEditor.swapKits(source, leftKitNo, rightKitNo)
+                clipboard.setContents(Empty, this)
             }
         }
         case _ => clipboard.setContents(SwapKits(jTrapKATEditor.currentKitNumber), this)

@@ -63,10 +63,10 @@ protected[model] class PadDynamicsContainer(_padLevels: Array[Byte], _userMargin
     def apply(idx: Int): PadDynamics = _padDynamics.apply(idx)
 
     def deserialize(in: InputStream): Unit = throw new UnsupportedOperationException("This should never happen")
-    def serialize(out: OutputStream, saving: Boolean): Unit = throw new UnsupportedOperationException("This should never happen")
+    def serialize(out: OutputStream, saving: Boolean): Unit = {}// Needed to clear _changed
 
     private[this] val _padDynamics: Seq[PadDynamics] = (0 to 24) map (x => new PadDynamics(x, this))
-    
+
     def changed = _changed
 
 }

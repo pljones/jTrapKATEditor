@@ -204,7 +204,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         out.write(_motifNumberMel)
         out.write(_midiMergeStatus)
         out.write(_fcOpenRegion)
-        
+
         out.write(_padLevels)
 
         out.write(_trigGain)
@@ -232,6 +232,8 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         out.write(_userMargin)
         out.write(_unused4)
         out.write(_thresholdActual)
+
+        if (saving) _padDynamics.save(out) // purely to clear _padDynamics.changed
     }
 
     def beeperStatus: Byte = _beeperStatus
@@ -310,7 +312,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     def changed = _changed || _ttPadData.changed || _padDynamics.changed
 }
 
-class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
+class GlobalV3 private (p: PadV3) extends Global[PadV3](p) {
     def this() = this(new PadV3)
     def this(in: InputStream) = {
         this()
@@ -338,7 +340,7 @@ class GlobalV3 private(p: PadV3) extends Global[PadV3](p) {
     protected val _unused1: Array[Byte] = new Array[Byte](160)
 }
 
-class GlobalV4 private(p: PadV4) extends Global[PadV4](p) {
+class GlobalV4 private (p: PadV4) extends Global[PadV4](p) {
     def this() = this(new PadV4(0.toByte))
     def this(in: InputStream) = {
         this()

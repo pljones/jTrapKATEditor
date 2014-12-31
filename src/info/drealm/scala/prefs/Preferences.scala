@@ -42,7 +42,7 @@ object Preferences extends swing.Publisher {
     //lazy val systemPreferences = java.util.prefs.Preferences.systemNodeForPackage(classOf[PreferenceChanged])
 
     def currentWorkingDirectory: java.io.File = userPreferences.get("currentWorkingDirectory", "") match {
-        case ""   => util.getHome
+        case "" => util.getHome
         case some => new java.io.File(some)
     }
     def currentWorkingDirectory_=(value: java.io.File): Unit = {
@@ -60,6 +60,9 @@ object Preferences extends swing.Publisher {
     }
     def notesAs_=(value: DisplayMode.DisplayMode): Unit = {
         userPreferences.putInt("notesAs", value.id)
+        // These must be in place before the change notification goes out
+        PadSlotV3.displayMode = value
+        PadSlotV4.displayMode = value
         publish(new NotesAsPreferencChanged)
     }
 

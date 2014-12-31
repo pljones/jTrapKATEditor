@@ -485,5 +485,12 @@ trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotCo
     protected def _uiValue: Byte = value.toByte
     protected def _uiValue_=(_value: Byte): Unit = value = _value
 
+    override protected def _isUIChange: Boolean = cbx.selection.item != cbx.toString(_modelValue)
+
     protected def _chg() = jTrapKATEditor.padChangedBy(cbx)
+
+    listenTo(prefs.Preferences)
+    reactions += {
+        case e: prefs.Preferences.NotesAsPreferencChanged if _isUIChange => setDisplay()
+    }
 }

@@ -102,14 +102,15 @@ object DisplayMode extends Enumeration {
 }
 
 trait PadSlot {
-    val padFunction: Seq[String]
-
     import DisplayMode._
+
+    var displayMode: DisplayMode.DisplayMode = P.notesAs
+    val padFunction: Seq[String]
 
     val toNumberC3 = (new NoteNameToNumber { val octave = 3 }).toNumber _
     val toNumberC4 = (new NoteNameToNumber { val octave = 4 }).toNumber _
     def toPadSlot(value: String): Byte = (padFunction.indexOf(value) match {
-        case -1 => P.notesAs match {
+        case -1 => displayMode match {
             case AsNumber => value.toInt match {
                 case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
                 case good => good
@@ -123,7 +124,7 @@ trait PadSlot {
     val toNameC3 = (new NoteNumberToName { val octave = 3 }).toName _
     val toNameC4 = (new NoteNumberToName { val octave = 4 }).toName _
     def toString(value: Byte): String = (0x000000ff & value) match {
-        case x if x < 128 => P.notesAs match {
+        case x if x < 128 => displayMode match {
             case AsNumber => s"${x}"
             case AsNamesC3 => toNameC3(x)
             case AsNamesC4 => toNameC4(x)
@@ -153,7 +154,9 @@ abstract class PadSlotComboBoxParent(padSlot: PadSlot, name: String, tooltip: St
     }
 
     def value: Byte = padSlot.toPadSlot(selection.item)
-    def value_=(value: Byte): Unit = selection.item = padSlot.toString(value)
+    def value_=(_value: Byte): Unit = selection.item = padSlot.toString(_value)
+    
+    def toString(_value: Byte): String = padSlot.toString(_value)
 
     private[this] object Verifier extends InputVerifier {
 
@@ -200,27 +203,6 @@ abstract class PadSlotComboBoxParent(padSlot: PadSlot, name: String, tooltip: St
         }
     }
 
-    private[this] var _displayMode: DisplayMode.DisplayMode = P.notesAs
-    listenTo(prefs.Preferences)
-    reactions += {
-        case e: P.NotesAsPreferencChanged if _displayMode != P.notesAs => {
-            if (!padSlot.padFunction.contains(editorPeer.getText())) {
-                val oldVal: Byte = (_displayMode match {
-                    case DisplayMode.AsNumber => editorPeer.getText().toInt
-                    case DisplayMode.AsNamesC3 => padSlot.toNumberC3(editorPeer.getText())
-                    case DisplayMode.AsNamesC4 => padSlot.toNumberC4(editorPeer.getText())
-                }).toByte
-                val newVal: String = P.notesAs match {
-                    case DisplayMode.AsNumber => s"${oldVal}"
-                    case DisplayMode.AsNamesC3 => padSlot.toNameC3(oldVal)
-                    case DisplayMode.AsNamesC4 => padSlot.toNameC4(oldVal)
-                }
-                editorPeer.setText(newVal)
-                selection.item = newVal
-            }
-            _displayMode = P.notesAs
-        }
-    }
 }
 class PadSlotComboBoxV3(name: String, tooltip: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV3, name + "V3", tooltip, stepped)
 class PadSlotComboBoxV4(name: String, tooltip: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", tooltip, stepped)

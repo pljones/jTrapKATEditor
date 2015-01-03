@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>pljones&apos; jTrapKATEditor</title>
+<meta name="application-name" content="jTrapKATEditor">
+<meta name="author" content="Peter L Jones">
+<meta name="description" content="Cross-platform (JVM) TrapKAT SysEx Editor">
+<meta name="keywords" content="alternatemode,trapkat,sysex,jvm,scala">
+</head>
+<body>
+<h2><a href="../change_history.html">Back to Change History</a></h2>
+<h2>14-0901-2002</h2>
+<p>
+	This is an initial release to get feedback.
+	Note carefully that many things may change.
+	One that must be highlighted is how preferences are handled.
+	I have not yet written the custom handler I plan, so I am using
+	the default JVM preferences system.
+	On Windows, this uses the registry and
+	<strong>MAY WELL FAIL</strong>
+	unless you have the correct registry keys set up.
+	This is an issue with the JVM itself.
+	This will be resolved shortly, I hope, and because
+	it is not that simple a fix, I am not going to supply details.
+	If you are happy to find out what is needed using
+	<em>your favourite search engine</em>,
+	then please feel free to go ahead.
+</p>
+<p>
+	I am particularly looking for feedback from non-Windows
+	users.  I have a Windows machine and a Linux machine, so
+	really it is just Mac users I need to hear from.
+</p>
+<p>
+	I would appreciate also hearing from people with the V3 ROM as I only
+	have a limited amount of test data (i.e. what I saved before upgrading).
+</p>
+<p>
+	The program includes a feature to check online for new versions once a day.
+	I do recommend turning on this preference so you get to hear as
+	soon as possible about fixes and updates.
+</p>
+<h3>Current status</h3>
+<p>
+	This version "completes" the UI (*cough*) - including Pad and Kit copy/paste.
+	Edit Undo/Redo are not yet done (they never were in the C# version, either)
+	but I have some thoughts.
+	They may get enabled later.
+	Preference handling is next, though.
+</p>
+<p>
+	As ever, if you do spot something wrong, get in touch.
+</p>
+</body>
+</html>

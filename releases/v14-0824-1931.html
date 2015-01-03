@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>pljones&apos; jTrapKATEditor</title>
+<meta name="application-name" content="jTrapKATEditor">
+<meta name="author" content="Peter L Jones">
+<meta name="description" content="Cross-platform (JVM) TrapKAT SysEx Editor">
+<meta name="keywords" content="alternatemode,trapkat,sysex,jvm,scala">
+</head>
+<body>
+<h2><a href="../change_history.html">Back to Change History</a></h2>
+<h2>14-0824-1931</h2>
+<p>
+	This is an initial release to get feedback.
+	Note carefully that many things may change.
+	One that must be highlighted is how preferences are handled.
+	I have not yet written the custom handler I plan, so I am using
+	the default JVM preferences system.
+	On Windows, this uses the registry and
+	<strong>MAY WELL FAIL</strong>
+	unless you have the correct registry keys set up.
+	This is an issue with the JVM itself.
+	As this will be resolved at a later stage and because
+	it is not that simple a fix, I am not going to supply details.
+	If you are happy to find out what is needed using
+	<em>your favourite search engine</em>,
+	then please feel free to go ahead.
+</p>
+<p>
+	I am particularly looking for feedback from non-Windows
+	users.  I have a Windows machine and a Linux machine, so
+	really it is just Mac users I need to hear from.
+</p>
+<p>
+	This version of the program includes a feature to check online for
+	new versions.
+	Whilst noting the comment above, I do recommend turning on this
+	preference.
+</p>
+<h3>Current status</h3>
+<p>
+	This version has all the existing UI components "wired up"
+	- just the non-existent "Global" tab to go.
+	Once more, version has also been substantially rewritten...
+	partly to remove a rather glaring breakage of tabbing between
+	fields.
+	It does also include a rewrite of the code I rewrote for the last
+	version, so do please expect the same raised chance of bugs.
+	
+</p>
+<p>
+	Getting the "Global" tab finished is next and then I will be
+	doing more extensive testing (also known as using the software
+	for real...).
+</p>
+</body>
+</html>

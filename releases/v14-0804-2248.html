@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>pljones&apos; jTrapKATEditor</title>
+<meta name="application-name" content="jTrapKATEditor">
+<meta name="author" content="Peter L Jones">
+<meta name="description" content="Cross-platform (JVM) TrapKAT SysEx Editor">
+<meta name="keywords" content="alternatemode,trapkat,sysex,jvm,scala">
+</head>
+<body>
+<h2><a href="../change_history.html">Back to Change History</a></h2>
+</body>
+<h2>14-0804-2248</h2>
+<p>
+	This is an initial release to get feedback.
+	Note carefully that many things may change.
+	One that must be highlighted is how preferences are handled.
+	I have not yet written the custom handler I plan, so I am using
+	the default JVM preferences system.
+	On Windows, this uses the registry and
+	<strong>MAY WELL FAIL</strong>
+	unless you have the correct registry keys set up.
+	This is an issue with the JVM itself.
+	As this will be resolved at a later stage and because
+	it is not that simple a fix, I am not going to supply details.
+	If you are happy to find out what is needed using
+	<em>your favourite search engine</em>,
+	then please feel free to go ahead.
+</p>
+<p>
+	I am particularly looking for feedback from non-Windows
+	users.  I have a Windows machine and a Linux machine, so
+	really it is just Mac users I need to hear from.
+</p>
+<p>
+	This version of the program includes a feature to check online for
+	new versions.
+	Whilst noting the comment above, I do recommend turning on this
+	preference.
+</p>
+<h3>Current status</h3>
+<p>
+	The last few versions have been "wired up" - the user interface controls
+	actually affect the data loaded.
+	For the most part, this appears to be working safely but the program
+	is likely to be more crash-prone than it had been.
+</p>
+<p>
+	With this release, you should be able to edit all the <strong>Pad</strong>
+	parameters, including the Global pad dynamics (although I remain uncertain
+	as to whether this have the right names on the user interface).
+	As none of the kit functionality is in place, no checking is done yet to
+	disable editing of values that are meant to be in "Kit override" mode.
+	Kit-level concerns are coming soon!
+</p>
+</html>

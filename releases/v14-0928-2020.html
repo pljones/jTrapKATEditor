@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>pljones&apos; jTrapKATEditor</title>
+<meta name="application-name" content="jTrapKATEditor">
+<meta name="author" content="Peter L Jones">
+<meta name="description" content="Cross-platform (JVM) TrapKAT SysEx Editor">
+<meta name="keywords" content="alternatemode,trapkat,sysex,jvm,scala">
+</head>
+<body>
+<h2><a href="../change_history.html">Back to Change History</a></h2>
+<h2>14-0928-2020</h2>
+<h3>Visible changes</h3>
+<ol>
+	<li>Pad colour was wrong - pad 24 was pedal pad coloured</li>
+	<li>Pad flag 7 tracks whether it is set as a Hi-hat on the kit</li>
+	<li>Kit and pad details should update properly on swap...</li>
+	<li>Global tab has had some cosmetic changes</li>
+</ol>
+<p>Non-visible changes</p>
+<ol>
+	<li>Refactor pastePad for better readability</li>
+	<li>Make sure everything gets told about pad and kit swaps</li>
+</ol>
+<p>
+	Kit and pad swaps have some work outstanding on tracking whether the
+	the "Various" versus "Kit" settings for things like Curve need changing.
+	This will also include tracking whether a pad was a hi-hat pad and
+	doing something useful (hence the fix in this version).
+</p>
+</body>
+</html>

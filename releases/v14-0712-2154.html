@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>pljones&apos; jTrapKATEditor - 14-0712-2154</title>
+<meta name="application-name" content="jTrapKATEditor">
+<meta name="author" content="Peter L Jones">
+<meta name="description" content="Cross-platform (JVM) TrapKAT SysEx Editor">
+<meta name="keywords" content="alternatemode,trapkat,sysex,jvm,scala">
+</head>
+<body>
+<h2><a href="../change_history.html">Back to Change History</a></h2>
+<h2>14-0712-2154</h2>
+<p>
+	This is an initial release to get feedback.
+	Note carefully that many things may change.
+	One that must be highlighted is how preferences are handled.
+	I have not yet written the custom handler I plan, so I am using
+	the default JVM preferences system.
+	On Windows, this uses the registry and
+	<strong>MAY WELL FAIL</strong>
+	unless you have the correct registry keys set up.
+	This is an issue with the JVM itself.
+	As this will be resolved at a later stage and because
+	it is not that simple a fix, I am not going to supply details.
+	If you are happy to find out what is needed using
+	<em>your favourite search engine</em>,
+	then please feel free to go ahead.
+</p>
+<p>
+	I am particularly looking for feedback from non-Windows
+	users.  I have a Windows machine and a Linux machine, so
+	really it is just Mac users I need to hear from.
+</p>
+<p>
+	This version of the program includes a feature to check online for
+	new versions.
+	Whilst noting the comment above, I do recommend turning on this
+	preference.
+</p>
+<h3>Current status</h3>
+<p>
+	The program is stable - it does not generally crash all the time.
+	If you can find a repeatable way to crash it, let me know,
+	providing the console output.
+	Most importantly, if you find a valid TrapKAT V3 or V4 sysex dump that
+	it crashes on, please let me have the sysex dump with the console
+	output from the program along.
+</p>
+<p>
+	The program is almost non-functional.
+	It has the simple functions of converting between V3 and V4 implemented.
+	You can import a global dump into an existing (or new) all memory dump.
+	As selecting a kit is not yet supported, no kit dump functions yet work.
+	None of the user input fields displays values from the dump.
+</p>
+<p>
+	Switching between V3 and V4 now updates some of the user interface
+	to reflect the different facilities available.
+	This is not yet completed and is needed before I can start properly
+	"wiring up" the sysex data to the user interface.
+</p>
+</body>
+</html>

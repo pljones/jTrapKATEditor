@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>pljones&apos; jTrapKATEditor</title>
+<meta name="application-name" content="jTrapKATEditor">
+<meta name="author" content="Peter L Jones">
+<meta name="description" content="Cross-platform (JVM) TrapKAT SysEx Editor">
+<meta name="keywords" content="alternatemode,trapkat,sysex,jvm,scala">
+</head>
+<body>
+
+<h1>jTrapKATEditor</h1>
+
+<h2>What is it?</h2>
+<p>
+jTrapKATEditor is a full-featured, cross-platform Sysex Dump editor for SysEx dumps ("AllMemory", "Kit" and "Global").
+It works with dumps from V3 and V4 TrapKATs.  (I think the V5 dump format is the same as V4, so that should also work.)
+</p>
+
+<h2>What can it do?</h2>
+<p>
+As well as simply loading and allowing you to edit the settings for your TrapKAT from the comfort of your computer (rather than having to press pedals and hit pads),
+the editor provides a number of additional tools.
+</p>
+<ul>
+<li>Convert in both directions between V3 and V4, allowing you to transfer your saved Sysex dumps from V3 machines to V4 machines (or the other way).</li>
+<li>Copy and paste and swap pads and kits to help organise things to your liking.
+Copy and paste for both pads and kits works through the standard system clipboard, so you can copy, close the editor, open it and load a new dump and then paste.</li>
+<li>Import and export kit and global dumps to or from an all memory dump.</li>
+<li>See all those pad, kit and global settings on your computer screen!  Much easier than a two line display... :)</li>
+</ul>
+
+<h3>Just want to run it?</h3>
+<p>The download is here: <a href="jTrapKATEditor.jar">jTrapKATEditor.jar</a>.</p>
+
+<h3>Need help?</h3>
+<p>Please drop in over at the AlternateMode forum <a href="http://www.alternatemode.com/forum/index.php?topic=4140.0">topic</a> (registration required).</p>
+
+<h2>Why?</h2>
+<p>
+You may have been aware of my previous TrapKAT SysEx editor and be wondering why I chose to write another, almost identical one.  It does seem slightly mad...
+</p>
+<p>
+The primary reason is that the old version only really ran successfully on Windows and apparently people use other operating systems.
+The old version ran on Microsoft's .Net virtual machine, which they had hoped would be a competitor to the Sun/Oracle Java virtual machine.
+Unfortunately, apart from one poorly supported project, no one else was interested and Microsoft had no interest in promoting operating systems other than Windows.
+</p>
+<p>
+So, the new version runs on the Java virtual machine (JVM).  The JVM is available for all major computer operating systems
+- but iOS and Android devices will require another rewrite and ChromeOS devices are not likely to be supported.
+</p>
+<p>
+It is written in a language called <a href="http://www.scala-lang.org">Scala</a> that, fortunately, had enough similarities to C# I got started in it very quickly
+and gave me another programming language...
+</p>
+
+<h2>How do I get it?</h2>
+<h3>Compiled program</h3>
+<p>
+If you are a &quot;normal user&quot; who just wants to get on and edit their SysEx files, you probably just want to download from the link below.
+</p>
+<p>The download is here: <a href="jTrapKATEditor.jar">jTrapKATEditor.jar</a>.</p>
+
+<h3>Source code</h3>
+<p>Want to see how I did it?  With any luck, tell me how bad my Scala is and what I could do better?  Please do!</p>
+<p><a href="https://github.com/pljones/jTrapKATEditor">Github project</a>.</p>
+
+</body>
+</html>

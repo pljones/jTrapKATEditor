@@ -207,12 +207,12 @@ trait EditableComboBoxReactor[T] extends RichComboBoxReactor[T] with DocumentCha
  * so they use this base trait or one of the specialisations
  */
 
-trait Bindings extends AllMemorySelectionReactor with ModelReactor {
+trait Bindings[T] extends AllMemorySelectionReactor with ModelReactor {
     // These are defined here as they're not as useful before this point in the model - and we can now more happily say "Byte"
-    protected def _modelValue: Byte
-    protected def _modelValue_=(value: Byte): Unit
-    protected def _uiValue: Byte
-    protected def _uiValue_=(value: Byte): Unit
+    protected def _modelValue: T
+    protected def _modelValue_=(value: T): Unit
+    protected def _uiValue: T
+    protected def _uiValue_=(value: T): Unit
 
     // In terms of change, model != UI?
     // Keep the getters as "cheap" as possible
@@ -242,14 +242,14 @@ trait Bindings extends AllMemorySelectionReactor with ModelReactor {
  * No comment required... 
  */
 
-trait EditableComboBoxBindings[T] extends Bindings with RichComboBoxReactor[T] { this: RichComboBox[T] => }
+trait EditableComboBoxBindings[T] extends Bindings[Byte] with RichComboBoxReactor[T] { this: RichComboBox[T] => }
 
 /*
  * Base trait for all model.Pad-affecting UI components.
  * Any change of selected kit or the value of the pad will need checking by the component.
  */
 
-trait PadBindings extends Bindings with KitSelectionReactor with PadValueReactor {
+trait PadBindings extends Bindings[Byte] with KitSelectionReactor with PadValueReactor {
     // We have the following in place to work with
     //protected def _modelReaction() = _modelValue = _uiValue
     // _uiValue remains the component's responsibility for now
@@ -284,7 +284,7 @@ trait SelectedPadBindings extends PadBindings with PadSelectionReactor {
 /*
  * Where the kit setting does not affect pad settings, this trait is used
  */
-trait KitBindings extends Bindings with KitSelectionReactor {
+trait KitBindings extends Bindings[Byte] with KitSelectionReactor {
     protected def _kitActionName: String
     protected final def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentKit)
     protected def _modelValue_=(value: Byte) = {
@@ -338,7 +338,7 @@ trait KitVariesBindings extends KitBindings {
     }
 }
 
-trait SoundControlBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor { this: info.drealm.scala.spinner.Spinner =>
+trait SoundControlBindings extends Bindings[Byte] with SoundControlSelectionReactor with KitSelectionReactor { this: info.drealm.scala.spinner.Spinner =>
     protected def _scActionName: String
     protected final def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber)
     protected final def _modelValue_=(value: Byte): Unit = {
@@ -361,7 +361,7 @@ trait SoundControlBindings extends Bindings with SoundControlSelectionReactor wi
     protected def _setModelValue: (info.drealm.scala.model.Kit[_ <: info.drealm.scala.model.Pad], Int, Byte) => Unit
 }
 
-trait SoundControlEnabledBindings extends Bindings with SoundControlSelectionReactor with KitSelectionReactor with ButtonClickedReactor { this: CheckBox =>
+trait SoundControlEnabledBindings extends Bindings[Byte] with SoundControlSelectionReactor with KitSelectionReactor with ButtonClickedReactor { this: CheckBox =>
     protected def _sceActionName: String
     protected def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentKit, jTrapKATEditor.currentSoundControlNumber)
     protected def _modelValue_=(value: Byte): Unit = {
@@ -384,7 +384,7 @@ trait SoundControlEnabledBindings extends Bindings with SoundControlSelectionRea
     protected def _setModelValue: (model.Kit[_ <: model.Pad], Int, Byte) => Unit
 }
 
-trait GlobalBindings extends Bindings with GlobalSelectionReactor with GlobalValueReactor {
+trait GlobalBindings extends Bindings[Byte] with GlobalSelectionReactor with GlobalValueReactor {
     protected def _globalActionName: String
     protected def _modelValue: Byte = _getModelValue(jTrapKATEditor.currentGlobal)
     protected def _modelValue_=(value: Byte): Unit = {
@@ -404,7 +404,7 @@ trait GlobalBindings extends Bindings with GlobalSelectionReactor with GlobalVal
     protected def _setModelValue: (model.Global[_ <: model.Pad], Byte) => Unit
 }
 
-trait GlobalPadDynamicsBindings extends Bindings with GlobalSelectionReactor with PadSelectionReactor with GlobalValueReactor with ValueChangedReactor { this: info.drealm.scala.spinner.Spinner =>
+trait GlobalPadDynamicsBindings extends Bindings[Byte] with GlobalSelectionReactor with PadSelectionReactor with GlobalValueReactor with ValueChangedReactor { this: info.drealm.scala.spinner.Spinner =>
     protected def _pdActionName: String
     protected def _modelValue: Byte = _getModelValue(jTrapKATEditor.pd)
     protected def _modelValue_=(value: Byte): Unit = {
@@ -441,7 +441,7 @@ trait GlobalPadDynamicsBindings extends Bindings with GlobalSelectionReactor wit
  * It mirrors a RichComboBox - and this mirrors Bindings
  */
 
-trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends Bindings {
+trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends Bindings[Byte] {
     this: V3V4ComboBox[T, TP, T3, T4] =>
 
     override protected def setDisplay(): Unit = try {

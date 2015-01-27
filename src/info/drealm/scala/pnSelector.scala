@@ -73,7 +73,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     private[this] val lblKitName = new Label(L.G("lblKitName"))
     contents += (lblKitName, "cell 4 0,alignx right")
 
-    private[this] val txtKitName = new TextField with AllMemorySelectionReactor with ModelReactor with KitSelectionReactor with ValueChangedReactor {
+    private[this] val txtKitName = new TextField with Bindings[String] with KitSelectionReactor with ValueChangedReactor {
         name = "txtKitName"
         columns = 16
         tooltip = L.G("ttKitName")
@@ -81,14 +81,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
         lblKitName.tooltip = tooltip
 
         protected def _modelValue = jTrapKATEditor.currentKit.kitName.trim()
-        protected def _modelValue_=(value: String) = jTrapKATEditor.currentKit.kitName = value
-        protected def _uiValue = text
-        protected def _uiValue_=(value: String) = text = value
-
-        protected def _isUIChange = _modelValue != text
-        protected def _isModelChange = _modelValue != text
-
-        protected def _modelReaction() = {
+        protected def _modelValue_=(value: String) = {
             val kit = jTrapKATEditor.currentKit
             val modelValue = _modelValue
             val uiValue = _uiValue
@@ -97,18 +90,14 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
                 def undoAction = doUndoRedo(() => kit.kitName = modelValue)
                 def redoAction = doUndoRedo(() => kit.kitName = uiValue)
             })
-            kit.kitName = uiValue
-        }
-        protected def _uiReaction() = _uiValue = _modelValue
-        protected def _chg() = jTrapKATEditor.kitChangedBy(this)
-
-        protected def doUndoRedo(action: () => Unit) = try {
-            deafTo(jTrapKATEditor)
-            deafTo(this)
-            action()
-            _uiReaction()
+            jTrapKATEditor.currentKit.kitName = value
             _chg()
-        } finally { listenTo(this); listenTo(jTrapKATEditor) }
+        }
+
+        protected def _uiValue = text
+        protected def _uiValue_=(value: String) = text = value
+
+        protected def _chg() = jTrapKATEditor.kitChangedBy(this)
 
         setDisplay()
     }

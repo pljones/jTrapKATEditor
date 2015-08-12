@@ -1,0 +1,12 @@
+h1 { background-color: #eeeeff; }
+h2 { background-color: #eeeeee; }
+h3 { border: dotted 1pt #eeeedd; }
+dt { font-weight: bold; margin-top: 1em; }
+p.note:before { font-weight: bold; content: "Note: "; }
+table * p { margin: 0; }
+thead     { font-weight: bold; }
+.w3c { float: right; }
+.tt { font-family: monospace; }
+.ta_center { text-align: center; }
+.ta_right  { text-align: right; }
+* .play {	font-family: monospace;	font-weight: bold;	font-size: 7.5pt;	border: dotted .75pt #000;	background-color: #bbb;	color: inherit;	text-decoration: none;}.linkimg {	vertical-align: middle;	border: 1px dotted blue;}.linkimg:hover {	border-style: solid;}

@@ -36,183 +36,304 @@
                     <li><a href="#2_1_settingUpANewKitLayout">Setting up a new kit layout</a></li>
                     <li><a href="#2_2_loadTheDump">Load the dump</a></li>
                     <li><a href="#2_3_copyOneKitToAnother">Copy one kit to another</a></li>
-                    <li><a href="#2_4_changeTheKitLayout">Change the kit layout</a></li>
+                    <li>
+                        <div><a href="#2_4_changeTheKitLayout">Change the kit layout</a></div>
+                        <ul>
+                            <li><a href="#2_4_1_changeTheKitName">Change the kit name</a></li>
+                            <li><a href="#2_4_2_setUpTheNewHihat">Set up the new hi-hat</a></li>
+                            <li><a href="#2_4_3_swapTheChinaAndRideTriggers">Swap the China and Ride triggers</a></li>
+                            <li><a href="#22_4_4_setTheKickNote">Set the kick note</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#2_5_saveTheEditedKit">Save the edited kit</a></li>
                 </ul>
             </li>
             <li><a href="#3_features">Features</a></li>
             <li><a href="#4_details">Details</a></li>
         </ul>
 
-        <h1 id="1_theBasics">The basics</h1>
+        <div id="1_theBasics">
+            <h1>The basics</h1>
 
-        <h2 id="1_1_gettingTheProgram">Getting the program</h2>
-        <p>
-            You only need one file: <a href="jTrapKATEditor.jar" title="jTrapKATEditor.jar">jTrapKATEditor.jar</a>.
-        </p>
+            <div id="1_1_gettingTheProgram">
+                <h2>Getting the program</h2>
+                <p>
+                    You only need one file: <a href="jTrapKATEditor.jar" title="jTrapKATEditor.jar">jTrapKATEditor.jar</a>.
+                </p>
+            </div>
 
-        <h2 id="1_2_installingTheProgram">Installing the program</h2>
-        <p>
-            The program itself needs no installation.
-            However, it depends on Java Runtime 1.8, which is usually already installed but, if not, is available from
-            Oracle, at <a href="http://java.com/en/download/" target="_blank" title="Oracle Java Download">http://java.com/en/download/</a>.
-        </p>
+            <div id="1_2_installingTheProgram">
+                <h2>Installing the program</h2>
+                <p>
+                    The program itself needs no installation.
+                    However, it depends on Java Runtime 1.8, which is usually already installed but, if not, is available from
+                    Oracle, at <a href="http://java.com/en/download/" target="_blank" title="Oracle Java Download">http://java.com/en/download/</a>.
+                </p>
+            </div>
 
-        <h2 id="1_3_runningTheProgram">Running the program</h2>
-        <p>
-            Once you have downloaded the program, running it should just be a matter of double-clicking the <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span> file.
-            If installed correctly, the Java Runtime should execute the program.
-        </p>
-        <p>
-            The program can be run from the command line using the following command (assuming the java executable is in your PATH):
-            <span style="font-family: monospace;" class="hilite">java -jar jTrapKATEditor.jar</span>.
-        </p>
-
-        <h1 id="2_overview">Overview</h1>
-        <p>
-            This section briefly runs through how to use the program without stepping through each feature.
-            The <a href="#3_features">next section</a> covers each part of the program in more detail and then
-            <a href="#4_details">the final section</a> explains each element of the user interface.
-        </p>
-        <p>
-            Note that familiarity with both the TrapKAT and the TrapKAT manual are assumed (though some references are supplied).
-        </p>
-        <p>
-            The rest of this section also assumes you have the program installed and it starts up okay.
-        </p>
-
-        <h2 id="2_1_settingUpANewKitLayout">Setting up a new kit layout</h2>
-        <p>
-            Imagine you have a new sound source for your TrapKAT and the layout is similar but not exactly the same as another kit
-            you already have mapped up.
-            Let us assume you have no reason to change the sound source to match the TrapKAT and that the TrapKAT has a spare user kit.
-        </p>
-        <p>
-            Here are the steps you will need to follow to set up a new kit layout:
-        </p>
-        <ol>
-            <li>Get the current TrapKAT All Memory Dump onto your computer.</li>
-            <li>Edit the dump with <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span> to copy the similar kit and make changes.</li>
-            <li>Save the edited dump.</li>
-            <li>Send the updated dump back to the TrapKAT.</li>
-        </ol>
-        <p>
-            The first and last points are outside the scope of what jTrapKATEditor offers and differ substantially depending on whether you are running
-            on Windows, MacOS or Linux.
-        </p>
-        <p>
-            For Windows, I still recommend MIDI-OX for receiving and sending MIDI System Exclusive dumps such as these.
-            Receiving the dump using MIDI-OX is straight forward and no special settings are needed.
-            The transmit settings for sending the dump - which are &quot;delicate&quot; due to timing issues - are given at the bottom of the
-            <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span> main window.
-        </p>
-
-        <h2 id="2_2_loadTheDump">Load the dump</h2>
-        <p>
-            Once you have got the TrapKAT All Memory Dump onto your computer,
-            run <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span>.
-            It starts up with some rather useless default values but we are going to ignore those and load the dump.
-            You can use the <span class="hilite"><span class="u">F</span>ile</span> menu, <span class="hilite"><span class="u">O</span>pen...</span> entry
-            or press <span class="hilite">Ctrl/Cmd O</span>.
-            This will bring up the following dialog box (or appropriate windowing system-specific flavour).
-        </p>
-        <div>
-            <img src="img/LoadSysex.png" title="Loading a SysEx dump" />
+            <div id="1_3_runningTheProgram">
+                <h2>Running the program</h2>
+                <p>
+                    Once you have downloaded the program, running it should just be a matter of double-clicking the <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span> file.
+                    If installed correctly, the Java Runtime should execute the program.
+                </p>
+                <p>
+                    The program can be run from the command line using the following command (assuming the java executable is in your PATH):
+                    <span style="font-family: monospace;" class="hilite">java -jar jTrapKATEditor.jar</span>.
+                </p>
+            </div>
         </div>
-        <p>
-            You will notice that it filters for Sysex files.  It expects an extentions of &quot;syx&quot; to be used.
-            If you did not save the received dump with that extension, I would recommend doing so
-        </p>
-        <p>
-            Select the file you saved and press <span class="hilite">Enter</span> or click <span class="hilite">Open</span>.
-        </p>
 
-        <h2 id="2_3_copyOneKitToAnother">Copy one kit to another</h2>
-        <p>
-            The main display should now look similar to the following.
-        </p>
-        <div>
-            <img src="img/Pads_PadEdit.png" title="Pad editing view" />
-        </div>
-        <p>
-            Note that the <span class="hilite">Kits &amp; Pads</span> main tab is selected as is the <span class="hilite">Pad Details</span> subsidiary tab.
-            As this was a Version 4 TrapKAT All Memory Dump (indicated in the title bar as &quot;(V4)&quot;), the <span class="hilite">More Slots</span> tab is available
-            as well as <span class="hilite">Kit Details</span>.
-            For this example, we will leave the tabs alone.
-        </p>
-        <p>
-            Just below the <span class="hilite">Kits &amp; Pads</span> tab itself is the <span class="hilite">Select <span class="u">K</span>it</span> drop-down.
-            Select the base kit that is going to be copied.
-        </p>
-        <div>
-            <img src="img/SelectKit.png" title="Kit selection" />
-        </div>
-        <p>
-            The pads now show the values for this newly selected kit, including the kit name.
-            We want to copy this kit to one of the spare (&quot;Demo Kit #XX&quot;) entries.
-            For this, select <span class="hilite"><span class="u">E</span>dit</span>-&gt;<span class="hilite">Copy Kit</span>.
-            This places a copy of the kit on the system clip board, so it can be pasted elsewhere (even after closing the program).
-        </p>
-        <div>
-            <img src="img/EditCopyKit.png" title="Copying a kit" />
-        </div>
-        <p>
-            Next we need to switch kits and do just that.
-            So, use the <span class="hilite">Select <span class="u">K</span>it</span> drop-down to switch to the free kit and then
-            <span class="hilite"><span class="u">E</span>dit</span>-&gt;<span class="hilite">Paste Kit...</span>.
-            This pops up and dialog asking for confirmation of the action, as shown (with appropriate names and numbers).
-        </p>
-        <div>
-            <img src="img/RenumberKitOnPaste.png" title="Renumber on paste prompt" />
-        </div>
-        <p>
-            Select <span class="hilite"><span class="u">Y</span>es</span> and the kit is overwritten with the copy.
-            Note that the kit number is held for each kit - if you send a single kit to the TrapKAT, it uses this to know
-            which user kit to write into.
-        </p>
+        <div id="2_overview">
+            <h1>Overview</h1>
+            <p>
+                This section briefly runs through how to use the program without stepping through each feature.
+                The <a href="#3_features">next section</a> covers each part of the program in more detail and then
+                <a href="#4_details">the final section</a> explains each element of the user interface.
+            </p>
+            <p>
+                Note that familiarity with both the TrapKAT and the TrapKAT manual are assumed (though some references are supplied).
+            </p>
+            <p>
+                The rest of this section also assumes you have the program installed and it starts up okay.
+            </p>
 
-        <h2 id="2_4_changeTheKitLayout">Change the kit layout</h2>
-        <p>
-            We chose the source kit as &quot;similar but not the same&quot; as what we need.
-            The things we want to alter are as follows.
-        </p>
-        <ul>
-            <li>The kit name</li>
-            <li>The way the hi-hat works</li>
-            <li>The pads for china and ride</li>
-            <li>The note for the kick drum</li>
-        </ul>
-        <p>
-            Changing the kit name is as simple as entering the new name in the <span class="hilite">Name</span> text field.  Done!
-            Notice that the kit is marked &quot;Edited&quot; next to the <span class="hilite">Select <span class="u">K</span>it</span> drop-down.
-        </p>
-        <p>
-            For this example, assume the old kit only had &quot;closed&quot; and &quot;bell&quot; hi-hat sounds,
-            these mapped to pads 1 and 11.
-            For the new kit, we now have &quot;closed&quot; and &quot;variable (CC4)&quot; hi-hat sounds we want to trigger from pad 1
-            and the &quot;bell&quot; sound is unchanged.
-            This means pad 1 needs to be marked as a hi-hat pad and to trigger two notes: one for when the hi-hat pedal is closed and one
-            for when the hi-hat pedal is between (nearly) closed and fully open.
-            We will assume the kit was already set to use a variable CC4 hi-hat pedal.
-            The steps are as follows:
-        </p>
-        <ol>
-            <li>Set pad 1 to be a hi-hat pad</li>
-            <li>Select pad 1</li>
-            <li>Set slot 2 to be the variable note trigger</li>
-        </ol>
-        <p>
-            Which pads are considered hi-hat pads by the TrapKAT is an interesting subject examined in detail later.
-            For now, look near the middle of the window, where you should see a set of four drop-downs:
-        </p>
-        <div>
-            <img src="img/ExampleTooltip.png" title="Hi-hat pad selection" />
+            <div id="2_1_settingUpANewKitLayout">
+                <h2>Setting up a new kit layout</h2>
+                <p>
+                    Imagine you have a new sound source for your TrapKAT and the layout is similar but not exactly the same as another kit
+                    you already have mapped up.
+                    Let us assume you have no reason to change the sound source to match the TrapKAT and that the TrapKAT has a spare user kit.
+                </p>
+                <p>
+                    Here are the steps you will need to follow to set up a new kit layout:
+                </p>
+                <ol>
+                    <li>Get the current TrapKAT All Memory Dump onto your computer.</li>
+                    <li>Edit the dump with <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span> to copy the similar kit and make changes.</li>
+                    <li>Save the edited dump.</li>
+                    <li>Send the updated dump back to the TrapKAT.</li>
+                </ol>
+                <p>
+                    The first and last points are outside the scope of what jTrapKATEditor offers and differ substantially depending on whether you are running
+                    on Windows, MacOS or Linux.
+                </p>
+                <p>
+                    For Windows, I still recommend MIDI-OX for receiving and sending MIDI System Exclusive dumps such as these.
+                    Receiving the dump using MIDI-OX is straight forward and no special settings are needed.
+                    The transmit settings for sending the dump - which are &quot;delicate&quot; due to timing issues - are given at the bottom of the
+                    <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span> main window.
+                </p>
+            </div>
+
+            <div id="2_2_loadTheDump">
+                <h2>Load the dump</h2>
+                <p>
+                    Once you have got the TrapKAT All Memory Dump onto your computer,
+                    run <span style="font-family: monospace;" class="hilite">jTrapKATEditor.jar</span>.
+                    It starts up with some rather useless default values but we are going to ignore those and load the dump.
+                    You can use the <span class="hilite"><span class="u">F</span>ile</span> menu, <span class="hilite"><span class="u">O</span>pen...</span> entry
+                    or press <span class="hilite">Ctrl/Cmd O</span>.
+                    This will bring up the following dialog box (or appropriate windowing system-specific flavour).
+                </p>
+                <div>
+                    <img src="img/LoadSysex.png" title="Loading a SysEx dump" />
+                </div>
+                <p>
+                    You will notice that it filters for Sysex files.  It expects an extentions of &quot;syx&quot; to be used.
+                    If you did not save the received dump with that extension, I would recommend doing so.
+                </p>
+                <p>
+                    I also very strongly recommend having a separate &quot;working copy&quot; file that you use for testing new and changed layouts.
+                </p>
+                <p>
+                    Select the file you saved and press <span class="hilite">Enter</span> or click <span class="hilite">Open</span>.
+                </p>
+            </div>
+
+            <div id="2_3_copyOneKitToAnother">
+                <h2>Copy one kit to another</h2>
+                <p>
+                    The main display should now look similar to the following.
+                </p>
+                <div>
+                    <img src="img/Pads_PadEdit.png" title="Pad editing view" />
+                </div>
+                <p>
+                    Note that the <span class="hilite">Kits &amp; Pads</span> main tab is selected as is the <span class="hilite">Pad Details</span> subsidiary tab.
+                    As this was a Version 4 dump (indicated in the title bar as &quot;(V4)&quot; after the file name), the <span class="hilite">More Slots</span> tab is available
+                    as well as <span class="hilite">Kit Details</span>.
+                    For this example, we will leave the tabs alone.
+                </p>
+                <p>
+                    Just below the <span class="hilite">Kits &amp; Pads</span> tab itself is the <span class="hilite">Select <span class="u">K</span>it</span> drop-down.
+                    Select the base kit that is going to be copied.
+                </p>
+                <div>
+                    <img src="img/SelectKit.png" title="Kit selection" />
+                </div>
+                <p>
+                    The pads now show the values for this newly selected kit, including the kit name.
+                    We want to copy this kit to one of the spare (&quot;Demo Kit #XX&quot;) entries.
+                    For this, select <span class="hilite"><span class="u">E</span>dit</span>-&gt;<span class="hilite">Copy Kit</span>.
+                    This places a copy of the kit on the system clip board, so it can be pasted elsewhere (even after closing the program).
+                </p>
+                <div>
+                    <img src="img/EditCopyKit.png" title="Copying a kit" />
+                </div>
+                <p>
+                    Next we need to switch kits and do just that.
+                    So, use the <span class="hilite">Select <span class="u">K</span>it</span> drop-down to switch to the free kit and then
+                    <span class="hilite"><span class="u">E</span>dit</span>-&gt;<span class="hilite">Paste Kit...</span>.
+                    This pops up and dialog asking for confirmation of the action, as shown (with appropriate names and numbers).
+                </p>
+                <div>
+                    <img src="img/RenumberKitOnPaste.png" title="Renumber on paste prompt" />
+                </div>
+                <p>
+                    Select <span class="hilite"><span class="u">Y</span>es</span> and the kit is overwritten with the copy.
+                    Note that the kit number is held for each kit - if you send a single kit to the TrapKAT, it uses this to know
+                    which user kit to write into.
+                </p>
+                <p>
+                    Notice the title bar now has &quot;[*]&quot; at the end - indicating the file being edited has been altered but not saved.
+                </p>
+            </div>
+
+            <div id="2_4_changeTheKitLayout">
+                <h2>Change the kit layout</h2>
+                <p>
+                    We chose the source kit as &quot;similar to but not the same as&quot; what we need.
+                    The things we want to alter are as follows.
+                </p>
+                <ul>
+                    <li>The kit name</li>
+                    <li>The way the hi-hat works</li>
+                    <li>The pads for china and ride</li>
+                    <li>The note for the kick drum</li>
+                </ul>
+
+                <div id="2_4_1_changeTheKitName">
+                    <h3>Change the kit name</h3>
+                    <p>
+                        Changing the kit name is as simple as entering the new name in the <span class="hilite">Name</span> text field.  Done!
+                        Notice that the kit is marked &quot;Edited&quot; next to the <span class="hilite">Select <span class="u">K</span>it</span> drop-down.
+                    </p>
+                </div>
+
+                <div id="2_4_2_setUpTheNewHihat">
+                    <h3>Set up the new hi-hat</h3>
+                    <p>
+                        For this example, assume the old kit only had &quot;closed&quot; and &quot;bell&quot; hi-hat sounds,
+                        these mapped to pads 1 and 11.
+                        For the new kit, we now have &quot;closed&quot; and &quot;variable (CC4)&quot; hi-hat sounds we want to trigger from pad 1
+                        and the &quot;bell&quot; sound is unchanged.
+                        This means pad 1 needs to be marked as a hi-hat pad and to trigger two notes: one for when the hi-hat pedal is closed and one
+                        for when the hi-hat pedal is between (nearly) closed and fully open.
+                        We will assume the kit was already set to use a variable CC4 hi-hat pedal.
+                        The steps are as follows:
+                    </p>
+                    <ol>
+                        <li>Set pad 1 to be a hi-hat pad</li>
+                        <li>Select pad 1</li>
+                        <li>Set slot 2 to be the variable note trigger</li>
+                    </ol>
+                    <p>
+                        Which pads are considered hi-hat pads by the TrapKAT is an interesting subject examined in detail later.
+                        For now, look near the middle of the window, where you should see a set of four drop-downs.
+                        Hovering with the mouse gets a short tooltip.
+                    </p>
+                    <div>
+                        <img src="img/ExampleTooltip.png" title="Hi-hat pad selection" />
+                    </div>
+                    <p>
+                        Use the first box (although that is not important) to select pad 1.
+                    </p>
+                    <p>
+                        Now use the <span class="hilite">Select <span class="u">P</span>ad</span> drop-down to select pad 1 (if it is not already selected).
+                        Notice that the pad is marked &quot;Edited&quot;.
+                        (Note also the <span class="hilite">Flags</span> for the pad now have flag 7 checked.)
+                    </p>
+                    <p>
+                        Finally, we have to add the &quot;between (nearly) closed and fully open&quot; note.
+                        For a hi-hat pad, odd numbered slots represent closed sounds and even are when the pedal is not fully closed.
+                        So the new note needs to go into slot 2.
+                        If you click the slot 2 dropdown, you will see the following.
+                    </p>
+                    <div>
+                        <img src="img/SlotDropdown.png" title="Slot data entry" />
+                    </div>
+                    <p>
+                        For this example, we do not need to use the special values, just enter the note.
+                        I use note numbers - they are explicit and do not have octave offset confusion.
+                        I will use note 66 in this example, so that gets entered in the text box.
+                    </p>
+                    <p>
+                        And that is the hi-hat done.
+                    </p>
+                </div>
+
+                <div id="2_4_3_swapTheChinaAndRideTriggers">
+                    <h3>Swap the China and Ride triggers</h3>
+                    <p>
+                        Whilst this is pretty easy on the TrapKAT, remembering which edit mode to use and which pads to hit still takes some doing.
+                    </p>
+                    <p>
+                        All that is needed in jTrapKATEditor is to select the first trigger pad, then use
+                        <span class="hilite"><span class="u">E</span>dit</span>-&gt;<span class="hilite">Swap Pads</span> or <span class="hilite">Ctrl/Cmd B</span>.
+                        Switch to the second pad and repeat the action.
+                        If you use the menu, you will see there is a checkbox next to the <span class="hilite">Swap Pads</span> menu option.
+                        This is checked when you have selected the first pad and are ready to swap with a second pad by selecting the option again.
+                    </p>
+                    <p>
+                        Note that you can also swap pads between kits, although this is more complicated, especially if one of the pads involved was a hi-hat pad.
+                        See later in the help.
+                    </p>
+                </div>
+
+                <div id="2_4_4_setTheKickNote">
+                    <h3>Set the kick note</h3>
+                    <p>
+                        Similarly to setting the hi-hat second slot, this is just a matter of entering the required note in the <span class="hilite">Bass</span> pad
+                        text box.
+                    </p>
+                    <div>
+                        <img src="img/PadTooltip.png" title="A pad tooltip" />
+                    </div>
+                </div>
+            </div>
+
+            <div id="2_5_saveTheEditedKit">
+                <h2>Save the edited kit</h2>
+                <p>
+                    Now that the changes have been made, they can be saved to disk.
+                    You can either save the entire All Memory Dump or you can save just the kit that you have been working on.
+                    As we were working on an All Memory Dump, saving as a kit would need a name specified.
+                    For testing a single kit, it is probably worth doing as the kit sends to the TrapKAT more easily as it is smaller.
+                </p>
+                <div>
+                    <img src="img/FileSaveKit.png" title="Save the current kit" />
+                </div>
+                <p>
+                    The Save File dialog will appear with a suggested filename based on the kit name.
+                </p>
+                <p>
+                    Having saved to a new single kit file, that file becomes the current file being edited.
+                    The shortcut for save - <span class="hilite">Ctrl/Cmd S</span> - shown against &quot;Save All Memory&quot; above
+                    will then be against &quot;Save Current Kit&quot;.
+                </p>
+            </div>
+            
         </div>
-        <p>
-            Use the first box (although that is not important) to select pad 1.  (Note the <span class="hilite">Flags</span> for the pad now have flag 7 checked.)
-            Now use the <span class="hilite">Select <span class="u">P</span>ad</span> drop-down to select pad 1 (if it is not already selected).
-            Notice that the pad is marked &quot;Edited&quot;.
-        </p>
-        
+
+        <div id="3_features">
+            <h1>Features</h1>
+        </div>
+
+        <div id="4_details">
+            <h1>Details</h1>
+        </div>
+
         <hr/>
         <div class="w3c"><p>
             <a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml11" alt="Valid XHTML 1.1!" height="31" width="88" /></a>

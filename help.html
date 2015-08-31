@@ -12,6 +12,8 @@
             .hilite { background-color: #fffff0; color: maroon; border: dotted 1pt yellow; line-height: 1.5}
             .u { text-decoration: underline; }
             .right-align { text-align: right; }
+            .italic { font-style: italic; }
+            .bold { font-weight: bold; }
         </style>
     </head>
 
@@ -19,38 +21,99 @@
 
         <img style="float: right;" src="img/Pads_PadEdit.png" height="240px" title="Peter L Jones jTrapKATEditor"/>
 
-        <h1 id="0_contents">Contents</h1>
-        <ul>
-            <li><a href="#0_contents">Contents</a></li>
-            <li>
-                <div><a href="#1_theBasics">The basics</a></div>
-                <ul>
-                    <li><a href="#1_1_gettingTheProgram">Getting the program</a></li>
-                    <li><a href="#1_2_installingTheProgram">Installing the program</a></li>
-                    <li><a href="#1_3_runningTheProgram">Running the program</a></li>
-                </ul>
-            </li>
-            <li>
-                <div><a href="#2_overview">Overview</a></div>
-                <ul>
-                    <li><a href="#2_1_settingUpANewKitLayout">Setting up a new kit layout</a></li>
-                    <li><a href="#2_2_loadTheDump">Load the dump</a></li>
-                    <li><a href="#2_3_copyOneKitToAnother">Copy one kit to another</a></li>
-                    <li>
-                        <div><a href="#2_4_changeTheKitLayout">Change the kit layout</a></div>
-                        <ul>
-                            <li><a href="#2_4_1_changeTheKitName">Change the kit name</a></li>
-                            <li><a href="#2_4_2_setUpTheNewHihat">Set up the new hi-hat</a></li>
-                            <li><a href="#2_4_3_swapTheChinaAndRideTriggers">Swap the China and Ride triggers</a></li>
-                            <li><a href="#22_4_4_setTheKickNote">Set the kick note</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#2_5_saveTheEditedKit">Save the edited kit</a></li>
-                </ul>
-            </li>
-            <li><a href="#3_features">Features</a></li>
-            <li><a href="#4_details">Details</a></li>
-        </ul>
+        <div id="0_contents">
+            <h1>Contents</h1>
+            <ul>
+                <li><a href="#0_contents">Contents</a></li>
+                <li>
+                    <div><a href="#1_theBasics">The basics</a></div>
+                    <ul>
+                        <li><a href="#1_1_gettingTheProgram">Getting the program</a></li>
+                        <li><a href="#1_2_installingTheProgram">Installing the program</a></li>
+                        <li><a href="#1_3_runningTheProgram">Running the program</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <div><a href="#2_overview">Overview</a></div>
+                    <ul>
+                        <li><a href="#2_1_settingUpANewKitLayout">Setting up a new kit layout</a></li>
+                        <li><a href="#2_2_loadTheDump">Load the dump</a></li>
+                        <li><a href="#2_3_copyOneKitToAnother">Copy one kit to another</a></li>
+                        <li>
+                            <div><a href="#2_4_changeTheKitLayout">Change the kit layout</a></div>
+                            <ul>
+                                <li><a href="#2_4_1_changeTheKitName">Change the kit name</a></li>
+                                <li><a href="#2_4_2_setUpTheNewHihat">Set up the new hi-hat</a></li>
+                                <li><a href="#2_4_3_swapTheChinaAndRideTriggers">Swap the China and Ride triggers</a></li>
+                                <li><a href="#22_4_4_setTheKickNote">Set the kick note</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#2_5_saveTheEditedKit">Save the edited kit</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <div><a href="#3_features">Features</a></div>
+                    <ul>
+                        <li><a href="#3_1_gettingHelp">Getting Help</a></li>
+                        <li><a href="#3_2_programConfiguration">Program Configuration</a></li>
+                        <li><a href="#3_3_creatingAndLoading">Creating and Loading</a></li>
+                        <li><a href="#3_4_convertingAndSaving">Converting and Saving</a></li>
+                        <li><a href="#3_5_editingKitDetails">Editing Kit Details</a></li>
+                        <li><a href="#3_6_editingPadDetails">Editing Pad Details</a></li>
+                        <li><a href="#3_7_editingGlobalDetails">Editing Global Details</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <div><a href="#4_details">Details</a></div>
+                    <ul>
+                        <li>
+                            <div><a href="#4_1_kitsPads">Kits &amp; Pads</a></div>
+                            <ul>
+                                <li><a href="#4_1_1_topBar">Top Bar</a></li>
+                                <li><a href="#4_1_2_padsRimsAndPedals">Pads, Rims and Pedals</a></li>
+                                <li><a href="#4_1_3_hihatPads">Hi-hat Pads</a></li>
+                                <li>
+                                    <div><a href="#4_1_4_tabPane">Tab Pane</a></div>
+                                    <ul>
+                                        <li><a href="#4_1_4_1_padDetails">Pad Details</a></li>
+                                        <li><a href="#4_1_4_2_moreSlots">More Slots</a> <span class="italic">(V4 only)</span></li>
+                                        <li><a href="#4_1_4_3_kitDetails">Kit Details</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div><a href="#4_2_global">Global</a></div>
+                            <ul>
+                                <li><a href="#4_2_1_general">General</a></li>
+                                <li><a href="#4_2_2_hihatInput">Hi-hat input</a></li>
+                                <li><a href="#4_2_3_breathInput">Breath input</a></li>
+                                <li><a href="#4_2_4_kitSelection">Kit Selection</a></li>
+                                <li><a href="#4_2_5_grooveControl">Groove Control</a></li>
+                                <li><a href="#4_2_6_grooveSelection">Groove Selection</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div><a href="#4_3_menus">Menus</a></div>
+                            <ul>
+                                <li><a href="#4_3_1_file">File</a></li>
+                                <li><a href="#4_3_2_edit">Edit</a></li>
+                                <li><a href="#4_3_3_tools">Tools</a></li>
+                                <li><a href="#4_3_4_help">Help</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <div><a href="#5_legal">Legal</a></div>
+                    <ul>
+                        <li><a href="#5_1_warranty">Warranty</a></li>
+                        <li><a href="#5_2_licence">Licence</a></li>
+                        <li><a href="#5_3_sourceCode">Source Code</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
 
         <div id="1_theBasics">
             <h1>The basics</h1>
@@ -82,6 +145,7 @@
                     <span style="font-family: monospace;" class="hilite">java -jar jTrapKATEditor.jar</span>.
                 </p>
             </div>
+
         </div>
 
         <div id="2_overview">
@@ -328,10 +392,148 @@
 
         <div id="3_features">
             <h1>Features</h1>
+
+            <div id="3_1_gettingHelp">
+                <h2>Getting Help</h2>
+            </div>
+
+            <div id="3_2_programConfiguration">
+                <h2>Program Configuration</h2>
+            </div>
+
+            <div id="3_3_creatingAndLoading">
+                <h2>Creating and Loading</h2>
+            </div>
+
+            <div id="3_4_convertingAndSaving">
+                <h2>Converting and Saving</h2>
+            </div>
+
+            <div id="3_5_editingKitDetails">
+                <h2>Editing Kit Details</h2>
+            </div>
+
+            <div id="3_6_editingPadDetails">
+                <h2>Editing Pad Details</h2>
+            </div>
+
+            <div id="3_7_editingGlobalDetails">
+                <h2>Editing Global Details</h2>
+            </div>
+
         </div>
 
         <div id="4_details">
             <h1>Details</h1>
+
+            <div id="4_1_kitsPads">
+                <h2>Kits &amp; Pads</h2>
+                <div id="4_1_1_topBar">
+                    <h3>Top Bar</h3>
+                </div>
+                <div id="4_1_2_padsRimsAndPedals">
+                    <h3>Pads, Rims and Pedals</h3>
+                </div>
+                <div id="4_1_3_hihatPads">
+                    <h3>Hi-hat Pads</h3>
+                </div>
+                <div id="4_1_4_tabPane">
+                    <h3>Tab Pane</h3>
+                    <div id="4_1_4_1_padDetails">
+                        <h4>Pad Details</h4>
+                    </div>
+                    <div id="4_1_4_2_moreSlots">
+                        <h4>More Slots <span class="italic">(V4 only)</span></h4>
+                    </div>
+                    <div id="4_1_4_3_kitDetails">
+                        <h4>Kit Details</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div id="4_2_global">
+                <h2>Global</h2>
+                <div id="4_2_1_general">
+                    <h3>General</h3>
+                </div>
+                <div id="4_2_2_hihatInput">
+                    <h3>Hi-hat input</h3>
+                </div>
+                <div id="4_2_3_breathInput">
+                    <h3>Breath input</h3>
+                </div>
+                <div id="4_2_4_kitSelection">
+                    <h3>Kit Selection</h3>
+                </div>
+                <div id="4_2_5_grooveControl">
+                    <h3>Groove Control</h3>
+                </div>
+                <div id="4_2_6_grooveSelection">
+                    <h3>Groove Selection</h3>
+                </div>
+            </div>
+
+            <div id="4_3_menus">
+                <h2>Menus</h2>
+                <div id="4_3_1_file">
+                    <h3>File</h3>
+                </div>
+                <div id="4_3_2_edit">
+                    <h3>Edit</h3>
+                </div>
+                <div id="4_3_3_tools">
+                    <h3>Tools</h3>
+                </div>
+                <div id="4_3_4_help">
+                    <h3>Help</h3>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="5_legal">
+            <h1>Legal</h1>
+
+            <div id="5_1_warranty">
+                <h2>Warranty</h2>
+                <p><span class="bold">Disclaimer of Warranty.</span></p>
+                <p>
+                    THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED
+                    IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM &quot;AS IS&quot; WITHOUT WARRANTY OF ANY
+                    KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+                    FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.
+                    SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+                </p>
+                <p><span class="bold">Limitation of Liability.</span></p>
+                <p>
+                    IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER
+                    PARTY WHO MODIFIES AND/OR CONVEYS THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+                    GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM
+                    (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR
+                    THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER
+                    PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+                </p>
+            </div>
+
+            <div id="5_2_licence">
+                <h2>Licence</h2>
+                <p>
+                    This program is distributed under the terms of the GNU General Public Licence version 3.
+                </p>
+                <p>
+                    If you wish to see the full text of the licence, please visit
+                    <a href="http://www.fsf.org/licensing/licenses/gpl.html" title="Free Software Foundation Licencing" target="_blank">http://www.fsf.org/licensing/licenses/gpl.html</a>.
+                </p>
+            </div>
+
+            <div id="5_3_sourceCode">
+                <h2>Source Code</h2>
+                <p>
+                    The source code for this program is available to you for any purpose as permitted under the GNU General Public Licence version 3.
+                    To access the source code, please see <a href="https://github.com/pljones/jTrapKATEditor" title="Github jTrapKATEditor repository" target="_blank">https://github.com/pljones/jTrapKATEditor</a>.
+                </p>
+            </div>
+
         </div>
 
         <hr/>

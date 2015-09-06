@@ -93,20 +93,23 @@ object util {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             Desktop.getDesktop().browse(new java.net.URL(target).toURI())
         } else {
-            import swing._
-            Dialog.showMessage(null, new info.drealm.scala.migPanel.MigPanel("insets 5", "[]", "[]") {
-                name = "pnNoDesktopBrowse"
+            val p = new ProcessBuilder("x-www-browser", target).start()
+            if (!p.isAlive() && p.exitValue() != 0) {
+                import swing._
+                Dialog.showMessage(null, new info.drealm.scala.migPanel.MigPanel("insets 5", "[]", "[]") {
+                    name = "pnNoDesktopBrowse"
 
-                contents += (new Label(L.G("NoDesktopBrowse")), "cell 0 0")
+                    contents += (new Label(L.G("NoDesktopBrowse")), "cell 0 0")
 
-                contents += (new swing.TextField {
-                    editable = false
-                    focusable = true
-                    foreground = java.awt.Color.BLUE
-                    text = target
-                    preferredSize = new Dimension((preferredSize.getWidth() * 1.05).toInt, preferredSize.getHeight().toInt)
-                }, "cell 0 1")
-            }.peer, L.G("ApplicationProductName"), swing.Dialog.Message.Info)
+                    contents += (new swing.TextField {
+                        editable = false
+                        focusable = true
+                        foreground = java.awt.Color.BLUE
+                        text = target
+                        preferredSize = new Dimension((preferredSize.getWidth() * 1.05).toInt, preferredSize.getHeight().toInt)
+                    }, "cell 0 1")
+                }.peer, L.G("ApplicationProductName"), swing.Dialog.Message.Info)
+            }
         }
     }
 

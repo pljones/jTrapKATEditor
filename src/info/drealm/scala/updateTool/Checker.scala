@@ -48,7 +48,7 @@ object Checker extends Publisher {
         private[this] lazy val _update_txt: Seq[String] = {
             // No benefit having this in an ini file
             try {
-                val url = new java.net.URL("http://www.drealm.info/kat/TrapKATEditor/jTrapKATEditorUpdate.txt")
+                val url = new java.net.URL("http://pljones.github.io/jTrapKATEditor/jTrapKATEditorUpdate.txt")
                 val stream = url.openStream()
                 // Sadly need to force resolving this synchronously the first time it's mentioned
                 try { io.Source.fromInputStream(stream).getLines.toArray[String] } finally { stream.close() }

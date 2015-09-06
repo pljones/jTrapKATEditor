@@ -50,10 +50,8 @@ object Checker extends Publisher {
             try {
                 val url = new java.net.URL("http://www.drealm.info/kat/TrapKATEditor/jTrapKATEditorUpdate.txt")
                 val stream = url.openStream()
-                var result = Seq("")
                 // Sadly need to force resolving this synchronously the first time it's mentioned
-                try { result = io.Source.fromInputStream(stream).getLines.toArray[String] } finally { stream.close() }
-                result
+                try { io.Source.fromInputStream(stream).getLines.toArray[String] } finally { stream.close() }
             }
             catch {
                 case e: Throwable => {

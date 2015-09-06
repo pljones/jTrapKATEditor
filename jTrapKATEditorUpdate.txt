@@ -1,5 +1,5 @@
 False
-15-0127-1304
-http://www.drealm.info/kat/TrapKATEditor/15-0127-1304/index.html
+15-0906-1821
+http://pljones.github.io/jTrapKATEditor/releases/v15-0906-1821.html
 Please read the full version notice carefully before using.
-Minor fix to editing kit name.
+Migrate to GitHub for updates and help.  Fixes to both on Linux.

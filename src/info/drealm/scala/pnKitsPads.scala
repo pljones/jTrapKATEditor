@@ -578,7 +578,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                 protected def _setModelValue = _setVal
 
                                 // to save polluting SoundControlBindings too much...
-                                protected def _uiValue_=(_value: Byte): Unit = value = if (optMeansOff.map(f => f(getInt(_value))).getOrElse(false)) _ini.toByte else value
+                                protected def _uiValue_=(_value: Byte): Unit = value = if (optMeansOff.map(f => f(getInt(_value))).getOrElse(false)) _ini.toByte else _value
 
                                 setDisplay()
                             }

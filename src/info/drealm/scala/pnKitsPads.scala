@@ -544,9 +544,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
             //_name, _ini, _min, _max, _getModel, _setModel, ?_meansOff?, ?_offMeans?, ?_toOffCallback
             Seq[(String, Int, Int, Int, (model.Kit[_ <: model.Pad], Int) => Byte, (model.Kit[_ <: model.Pad], Int, Byte) => Unit, Option[Int => Boolean], Option[Boolean => Int], Option[Boolean => Unit])](
-                ("Volume", 127, 0, 127,
-                    _.soundControls(_).volume, _.soundControls(_).volume = _,
-                    Some(_ >= 128), Some(p => if (p) 128 else 127), None),
                 ("PrgChg", 1, 1, 128,
                     _.soundControls(_).prgChg, _.soundControls(_).prgChg = _,
                     Some(_ == 0), Some(p => if (p) 0 else 1), Some(p => Focus.findInComponent(tpnKitPadsDetails, "spnPrgChgTxmChn") foreach (cp => cp.enabled = !p))),
@@ -561,7 +558,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     Some(_ >= 128), Some(p => if (p) 128 else 0), None),
                 ("Bank", 0, 0, 127,
                     (kit, sc) => { jTrapKATEditor.doV3V4(kit.asInstanceOf[model.KitV3].bank, 0) }, (kit, sc, value) => jTrapKATEditor.doV3V4(kit.asInstanceOf[model.KitV3].bank = value, {}),
-                    jTrapKATEditor.doV3V4(Some(_ >= 128), None), jTrapKATEditor.doV3V4(Some(p => if (p) 128 else 0), None), None)) map { t =>
+                    jTrapKATEditor.doV3V4(Some(_ >= 128), None), jTrapKATEditor.doV3V4(Some(p => if (p) 128 else 0), None), None),
+                ("Volume", 127, 0, 127,
+                    _.soundControls(_).volume, _.soundControls(_).volume = _,
+                    Some(_ >= 128), Some(p => if (p) 128 else 127), None)
+                    ) map { t =>
                     (t._1, t._2, t._3, t._4, t._5, t._6, t._7) match {
                         case (_name, _ini, _min, _max, _getVal, _setVal, optMeansOff) => {
                             val lbl = new Label(L.G(s"lbl${_name}")) {
@@ -607,7 +608,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         }
                         case _ => (new Label, new Spinner(new javax.swing.SpinnerNumberModel), None)
                     }
-                } zip Seq((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)) foreach { t =>
+                } zip Seq((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)) foreach { t =>
                     contents += (t._1._1, s"cell ${6 + 3 * t._2._2} ${1 + t._2._1},alignx right,hidemode 0")
                     contents += (t._1._2, s"cell ${7 + 3 * t._2._2} ${1 + t._2._1},growx,hidemode 0")
                     order += t._1._2.name

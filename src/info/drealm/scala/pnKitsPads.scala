@@ -542,7 +542,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
             contents += (pnSoundControl, "cell 6 0 7 1,center,hidemode 0")
 
-            //_name, _ini, _min, _max, _getModel, _setModel, ?_meansOff?, ?_offMeans?, ?_toOffCallback
+            //_name, _ini, _min, _max, _getModel, _setModel, ?_meansOff?, ?_offMeans?, ?_ckbCallback
             Seq[(String, Int, Int, Int, (model.Kit[_ <: model.Pad], Int) => Byte, (model.Kit[_ <: model.Pad], Int, Byte) => Unit, Option[Int => Boolean], Option[Boolean => Int], Option[Boolean => Unit])](
                 ("PrgChg", 1, 1, 128,
                     _.soundControls(_).prgChg, _.soundControls(_).prgChg = _,
@@ -584,7 +584,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             }
 
                             val ckb: Option[CheckBox] = (t._7, t._8, t._9) match {
-                                case (Some(_meansOff), Some(_offMeans), optToOffCallback) => Some(new CheckBox(L.G("ckbSCOff")) with SoundControlEnabledBindings {
+                                case (Some(_meansOff), Some(_offMeans), _optCkbCallback) => Some(new CheckBox(L.G("ckbSCOff")) with SoundControlEnabledBindings {
                                     name = s"ckb${_name}"
 
                                     protected def _sceActionName = _name
@@ -594,11 +594,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                         _setVal(k, s, _offMeans(value).toByte)
                                         if (k.soundControls(s) == jTrapKATEditor.sc) {
                                             spn.enabled = !value
-                                            optToOffCallback foreach (_(value))
+                                            _optCkbCallback foreach (_(value))
                                         }
                                     }
 
-                                    protected def _uiValue_=(value: Byte): Unit = { selected = (value != 0); spn.enabled = !selected }
+                                    protected def _uiValue_=(value: Byte): Unit = {
+                                        selected = (value != 0)
+                                        spn.enabled = !selected
+                                        _optCkbCallback foreach (_(selected))
+                                    }
 
                                     setDisplay()
                                 })

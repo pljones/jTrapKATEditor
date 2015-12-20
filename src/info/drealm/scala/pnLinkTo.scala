@@ -65,8 +65,10 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
 
         protected def _chg() = jTrapKATEditor.padChangedBy(this)
 
-        protected override def setDisplay = jTrapKATEditor.doV3V4({}, super.setDisplay())
-        protected override def setValue = jTrapKATEditor.doV3V4({}, super.setValue())
+        override protected def setDisplay = jTrapKATEditor.doV3V4({}, super.setDisplay())
+        override protected def setValue = jTrapKATEditor.doV3V4({}, super.setValue())
+        override protected def _isUIChange = jTrapKATEditor.doV3V4(false, super._isUIChange)
+        override protected def _uiReaction = jTrapKATEditor.doV3V4({}, super._uiReaction)
 
         private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
             case 0           => L.G("cbxLinkToOff")

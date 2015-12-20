@@ -202,8 +202,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.NotSet
-        _currentAllMemory = new model.AllMemoryV3
         _currentSoundControl = 0
+        _currentAllMemory = new model.AllMemoryV3
         publish(new SelectedAllMemoryChanged)
     }
 

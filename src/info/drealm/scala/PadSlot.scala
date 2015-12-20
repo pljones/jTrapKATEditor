@@ -307,8 +307,10 @@ class Slot(slot: Int) {
         protected def _padActionName = "Slot"
 
         private[this] def v3v4(f: () => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f(), f())
-        protected override def setValue = v3v4(super.setValue)
-        protected override def setDisplay = v3v4(super.setDisplay)
+        override protected def setValue = v3v4(super.setValue)
+        override protected def setDisplay = v3v4(super.setDisplay)
+        override protected def _isUIChange = jTrapKATEditor.doV3V4(if (slot <= 6) super._isUIChange else false, super._isUIChange)
+        override protected def _uiReaction = v3v4(super._uiReaction)
 
         setDisplay()
     }

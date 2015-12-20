@@ -30,8 +30,7 @@ object Localization {
     private[this] val stringBundle = ResourceBundle.getBundle("info.drealm.scala.Localization", Locale.getDefault())
     def G(lookup: String): String = try {
         stringBundle.getString(lookup)
-    }
-    catch {
+    } catch {
         case e: java.util.MissingResourceException => "<<" + lookup + ">>"
     }
     def G(lookup: String, args: String*): String = {

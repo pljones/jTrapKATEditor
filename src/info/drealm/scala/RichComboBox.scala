@@ -98,7 +98,7 @@ class RichComboBox[A](_items: Seq[A], _name: String, tip: String = null, label: 
         }))
 
     def editorPeer: javax.swing.JTextField = editable match {
-        case true => peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField]
+        case true  => peer.getEditor().getEditorComponent().asInstanceOf[javax.swing.JTextField]
         case false => null
     }
 
@@ -106,7 +106,7 @@ class RichComboBox[A](_items: Seq[A], _name: String, tip: String = null, label: 
                            selected: java.awt.event.ItemEvent => Unit) = new java.awt.event.ItemListener {
         def itemStateChanged(e: java.awt.event.ItemEvent) = e.getStateChange() match {
             case java.awt.event.ItemEvent.DESELECTED => deselected(e)
-            case java.awt.event.ItemEvent.SELECTED => selected(e)
+            case java.awt.event.ItemEvent.SELECTED   => selected(e)
         }
     }
 

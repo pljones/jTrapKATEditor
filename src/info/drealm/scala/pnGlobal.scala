@@ -41,8 +41,8 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     case class EditableGlobalComboBoxParams(_toItem: (Byte, Seq[String]) => String, _fromItem: (Int, String) => Byte, items: Seq[String], _verifier: (Int, String) => Boolean) extends GlobalComponentParams
 
     private[this] class GlobalSpinner(_name: String, lbl: Label, _getVal: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: GlobalSpinnerParams)
-        extends Spinner(new javax.swing.SpinnerNumberModel(params.ini, params.min, params.max, 1), s"spn${_name}", L.G(s"ttGlobal${_name}"), lbl)
-        with GlobalBindings with ValueChangedReactor {
+            extends Spinner(new javax.swing.SpinnerNumberModel(params.ini, params.min, params.max, 1), s"spn${_name}", L.G(s"ttGlobal${_name}"), lbl)
+            with GlobalBindings with ValueChangedReactor {
 
         protected def _globalActionName = _name
         protected def _getModelValue = _getVal
@@ -57,7 +57,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     }
 
     private[this] class GlobalComboBox(_name: String, lbl: Label, _getVal: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: GlobalComboBoxParams)
-        extends RichComboBox(params.items, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with RichComboBoxReactor[String] with GlobalBindings {
+            extends RichComboBox(params.items, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with RichComboBoxReactor[String] with GlobalBindings {
 
         protected def _getModelValue = _getVal
         protected def _setModelValue = _setVal
@@ -75,7 +75,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         extends GlobalComboBox(_name, lbl, _getVal, _setVal, GlobalComboBoxParams(Seq(L.G("itemOff"), L.G("itemOn"))))
 
     private[this] class EditableGlobalComboBox(_name: String, lbl: Label, _before: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: EditableGlobalComboBoxParams)
-        extends GlobalComboBox(_name, lbl, _before, _setVal, GlobalComboBoxParams(params.items)) {
+            extends GlobalComboBox(_name, lbl, _before, _setVal, GlobalComboBoxParams(params.items)) {
 
         override protected def _uiValue: Byte = params._fromItem(selection.index, selection.item)
         override protected def _uiValue_=(_value: Byte): Unit = selection.item = params._toItem(_value, params.items)
@@ -99,7 +99,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
             val spn = _params match {
                 case Some(gsp) => new GlobalSpinner(_name, lbl, _getVal, _setVal, gsp)
-                case _ => new GlobalSpinner(_name, lbl, _getVal, _setVal, GlobalSpinnerParams(0, 0, 255))
+                case _         => new GlobalSpinner(_name, lbl, _getVal, _setVal, GlobalSpinnerParams(0, 0, 255))
             }
             this.contents += (spn, s"cell 1 ${row}")
 

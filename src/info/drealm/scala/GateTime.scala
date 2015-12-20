@@ -93,8 +93,7 @@ object GateTime {
                     case cb: JComboBox[_] => try {
                         toGateTime(e.getText())
                         true
-                    }
-                    catch {
+                    } catch {
                         case _: Throwable => false
                     }
                     case _ => false

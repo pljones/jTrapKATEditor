@@ -41,7 +41,7 @@ object EditHistory {
         _editHistory = action :: _editHistory.drop(_depth);
         _depth = 0
     }
-    
+
     def clear(): Unit = {
         _editHistory = List()
         _depth = 0

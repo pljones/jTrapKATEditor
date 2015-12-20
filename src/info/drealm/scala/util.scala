@@ -40,7 +40,7 @@ object util {
             val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
             new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_MYDOCUMENTS, false) match {
                 case true => new String(pszPath.takeWhile(c => c != '\u0000'))
-                case _ => System.getProperty("user.home")
+                case _    => System.getProperty("user.home")
             })
         }
     }
@@ -57,7 +57,7 @@ object util {
                 val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
                 new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_COMMON_APPDATA, false) match {
                     case true => new String(pszPath.takeWhile(c => c != '\u0000'))
-                    case _ => System.getProperty("system.config", "/")
+                    case _    => System.getProperty("system.config", "/")
                 }, _vendowWindows)
             }.getCanonicalPath()
         }"
@@ -73,7 +73,7 @@ object util {
                 val pszPath: Array[Char] = new Array[Char](WinDef.MAX_PATH)
                 new java.io.File(Shell32.INSTANCE.SHGetSpecialFolderPath(null, pszPath, ShlObj.CSIDL_APPDATA, false) match {
                     case true => new String(pszPath.takeWhile(c => c != '\u0000'))
-                    case _ => System.getProperty("user.home", "/")
+                    case _    => System.getProperty("user.home", "/")
                 }, _vendowWindows)
             }.getCanonicalPath()
         }"
@@ -83,7 +83,7 @@ object util {
     def createUserStore() = {
         getUserStore match {
             case exists if exists.isDirectory() => {}
-            case create => { create.mkdirs() }
+            case create                         => { create.mkdirs() }
         }
     }
 

@@ -52,7 +52,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
         private[this] def isSourceComponent(source: Any, value: String*): Boolean = source match {
             case target: Component => value.contains(target.name)
-            case _ => false
+            case _                 => false
         }
 
         private[this] object pnPadDetails extends MigPanel("insets 5, gapx 2, gapy 0, hidemode 3", "[][16px:n,right][][16px:n][][][16px:n][][16px:n][]", "[][][][][][][grow]") {
@@ -186,8 +186,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
                 private[this] class PadDynamicsSpinner(_name: String, label: Label, _getPD: (model.PadDynamics) => Byte, _setPD: (model.PadDynamics, Byte) => Unit)
-                    extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label)
-                    with GlobalPadDynamicsBindings {
+                        extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label)
+                        with GlobalPadDynamicsBindings {
 
                     protected def _pdActionName = _name
                     protected def _getModelValue = _getPD
@@ -257,12 +257,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 def tooltip: String
             }
             implicit def maybeItCanBeEnabled(o: AnyRef): CanBeEnabled = o match {
-                case cp: Component => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value; def tooltip = cp.tooltip }
+                case cp: Component                => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value; def tooltip = cp.tooltip }
                 case cp: V3V4ComboBox[_, _, _, _] => new CanBeEnabled { def enabled = cp.enabled; def enabled_=(value: Boolean): Unit = cp.enabled = value; def tooltip = cp.tooltip }
-                case _ => throw new ClassCastException(s"Class ${o.getClass().getName()} cannot be cast to CanBeEnabled")
+                case _                            => throw new ClassCastException(s"Class ${o.getClass().getName()} cannot be cast to CanBeEnabled")
             }
             private[this] class VarXCheckBox(_name: String, _cp: CanBeEnabled, _isKit: (model.Kit[_ <: model.Pad]) => Boolean, _toKit: (model.Kit[_ <: model.Pad]) => Unit, padCpName: String*) extends CheckBox(L.G("lblXVarious"))
-                with AllMemorySelectionReactor with KitSelectionReactor with ButtonClickedReactor {
+                    with AllMemorySelectionReactor with KitSelectionReactor with ButtonClickedReactor {
                 name = s"ckbVar${_name}"
                 tooltip = _cp.tooltip
 
@@ -305,7 +305,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] def setPadEnabled(name: String, isVarious: Boolean): Unit = {
                     Focus.findInComponent(pnPadDetails, name) match {
                         case Some(cp) => cp.enabled = isVarious
-                        case _ => Console.println(s"${name} not found")
+                        case _        => Console.println(s"${name} not found")
                     }
                 }
 
@@ -447,8 +447,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 protected def _uiValue = if (selected) 1 else 0
                 protected def _uiValue_=(_value: Byte): Unit = selected = _getModelValue(jTrapKATEditor.currentKit) != 0
 
-                protected override def _kitActionName = "FCAsChick"
-                protected override def _chg() = jTrapKATEditor.kitChangedBy(this)
+                override protected def _kitActionName = "FCAsChick"
+                override protected def _chg() = jTrapKATEditor.kitChangedBy(this)
 
                 setDisplay()
                 spnFCChannel.enabled = !selected
@@ -562,14 +562,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 ("Volume", 127, 0, 127,
                     _.soundControls(_).volume, _.soundControls(_).volume = _,
                     Some(_ >= 128), Some(p => if (p) 128 else 127), None)
-                    ) map { t =>
+            ) map { t =>
                     (t._1, t._2, t._3, t._4, t._5, t._6, t._7) match {
                         case (_name, _ini, _min, _max, _getVal, _setVal, optMeansOff) => {
                             val lbl = new Label(L.G(s"lbl${_name}")) {
                                 name = s"lbl${_name}"
                                 L.G(s"mne${_name}") match {
                                     case x if x.length != 0 => peer.setDisplayedMnemonic(x.charAt(0))
-                                    case _ => {}
+                                    case _                  => {}
                                 }
                             }
                             val spn = new Spinner(new javax.swing.SpinnerNumberModel(_ini, _min, _max, 1), s"spn${_name}", L.G(s"ttSC${_name}"), lbl) with SoundControlBindings with ValueChangedReactor with SoundControlValueReactor {
@@ -631,7 +631,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 case e: SelectedAllMemoryChanged => {
                     Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
                         case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
-                        case _ => {}
+                        case _        => {}
                     })
                 }
             }
@@ -641,13 +641,13 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             Focus.findInComponent(this, "ckbPrgChg") match {
                 case Some(ckb: CheckBox) => Focus.findInComponent(this, "spnPrgChgTxmChn") match {
                     case Some(cp: Spinner) => cp.enabled = !ckb.selected
-                    case _ => Console.println("spnPrgChgTxmChn not found")
+                    case _                 => Console.println("spnPrgChgTxmChn not found")
                 }
                 case _ => Console.println("ckbPrgChg not found")
             }
             Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
                 case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
-                case _ => {}
+                case _        => {}
             })
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, order))

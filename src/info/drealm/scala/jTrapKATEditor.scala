@@ -317,8 +317,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def saveFileAs(thing: model.DumpType.DumpType, file: java.io.File) = {
         thing match {
             case model.DumpType.AllMemory => _save(true, file, _currentAllMemory, thing, new SelectedAllMemoryChanged)
-            case model.DumpType.Global => _save(_currentType == thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new SelectedGlobalChanged)
-            case model.DumpType.Kit => _save(_currentType == thing && _currentAllMemory(_currentKitNumber).changed, file, _currentAllMemory(_currentKitNumber), thing, new SelectedKitChanged)
+            case model.DumpType.Global    => _save(_currentType == thing && _currentAllMemory.global.changed, file, _currentAllMemory.global, thing, new SelectedGlobalChanged)
+            case model.DumpType.Kit       => _save(_currentType == thing && _currentAllMemory(_currentKitNumber).changed, file, _currentAllMemory(_currentKitNumber), thing, new SelectedKitChanged)
             case unknown =>
                 throw new IllegalArgumentException(s"Do not ask to save ${unknown} as it is unknown.")
         }
@@ -326,8 +326,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     def exitClose() = if (_currentType match {
         case model.DumpType.Global => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global"))
-        case model.DumpType.Kit => frmTrapkatSysexEditor.okayToSplat(currentKit, L.G("Kit"))
-        case _ => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))
+        case model.DumpType.Kit    => frmTrapkatSysexEditor.okayToSplat(currentKit, L.G("Kit"))
+        case _                     => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))
     }) quit
 
     private[this] def _save(saving: => Boolean, file: java.io.File, thing: model.DataItem, thingType: model.DumpType.DumpType, thingChanged: => Event) = {

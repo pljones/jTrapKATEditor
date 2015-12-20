@@ -66,7 +66,7 @@ trait NoteNameToNumber {
             }
         }) match {
             case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
-            case good => good
+            case good                        => good
         }
     }
 }
@@ -113,7 +113,7 @@ trait PadSlot {
         case -1 => displayMode match {
             case AsNumber => value.toInt match {
                 case bad if bad < 0 || bad > 127 => throw new IllegalArgumentException("Note out of range")
-                case good => good
+                case good                        => good
             }
             case AsNamesC3 => toNumberC3(value)
             case AsNamesC4 => toNumberC4(value)
@@ -125,12 +125,12 @@ trait PadSlot {
     val toNameC4 = (new NoteNumberToName { val octave = 4 }).toName _
     def toString(value: Byte): String = (0x000000ff & value) match {
         case x if x < 128 => displayMode match {
-            case AsNumber => s"${x}"
+            case AsNumber  => s"${x}"
             case AsNamesC3 => toNameC3(x)
             case AsNamesC4 => toNameC4(x)
         }
         case x if (x - 128) < padFunction.length => padFunction(x - 128)
-        case x => s"${x}"
+        case x                                   => s"${x}"
     }
 }
 
@@ -155,7 +155,7 @@ abstract class PadSlotComboBoxParent(padSlot: PadSlot, name: String, tooltip: St
 
     def value: Byte = padSlot.toPadSlot(selection.item)
     def value_=(_value: Byte): Unit = selection.item = padSlot.toString(_value)
-    
+
     def toString(_value: Byte): String = padSlot.toString(_value)
 
     private[this] object Verifier extends InputVerifier {
@@ -208,7 +208,7 @@ class PadSlotComboBoxV3(name: String, tooltip: String, stepped: Boolean = false)
 class PadSlotComboBoxV4(name: String, tooltip: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", tooltip, stepped)
 
 abstract class PadSlotComboBoxV3V4(name: String, ttRoot: String, label: swing.Label, stepped: Boolean = false)
-    extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+        extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
 
     val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name, L.G(s"tt${ttRoot}V3"), stepped)
     val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, L.G(s"tt${ttRoot}V4"), stepped)

@@ -123,14 +123,14 @@ object Clipboard extends ClipboardOwner with Publisher {
     import ClipboardType._
 
     def clipboardType: ClipboardType = clipboard.getAvailableDataFlavors().headOption match {
-        case Some(null) => { Console.println("Got a null data flavor!"); ClipboardType.NotSet }
-        case Some(pad) if pad == dfPadV3 => ClipboardType.Pad
-        case Some(pad) if pad == dfPadV4 => ClipboardType.Pad
+        case Some(null)                             => { Console.println("Got a null data flavor!"); ClipboardType.NotSet }
+        case Some(pad) if pad == dfPadV3            => ClipboardType.Pad
+        case Some(pad) if pad == dfPadV4            => ClipboardType.Pad
         case Some(padSwap) if padSwap == dfSwapPads => ClipboardType.PadSwap
-        case Some(kit) if kit == dfKitV3 => ClipboardType.Kit
-        case Some(kit) if kit == dfKitV4 => ClipboardType.Kit
+        case Some(kit) if kit == dfKitV3            => ClipboardType.Kit
+        case Some(kit) if kit == dfKitV4            => ClipboardType.Kit
         case Some(kitSwap) if kitSwap == dfSwapKits => ClipboardType.KitSwap
-        case otherwise => ClipboardType.NotSet
+        case otherwise                              => ClipboardType.NotSet
     }
 
     private[this] def getContentPadV3() = clipboard.getContents(this).getTransferData(dfPadV3).asInstanceOf[CopyPadV3]
@@ -184,9 +184,9 @@ object Clipboard extends ClipboardOwner with Publisher {
                 L.G("PastePadOKToVarious", jTrapKATEditor.currentKit.kitName, incoming.map(t => t._2).mkString("\n")),
                 L.G("PastePadOKToVariousCaption"),
                 Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
-                    case Dialog.Result.No => { incoming.foreach(t => t._3()); true } //... retain the kit values and then paste
+                    case Dialog.Result.No  => { incoming.foreach(t => t._3()); true } //... retain the kit values and then paste
                     case Dialog.Result.Yes => true //... just paste (go to Various)
-                    case _ => false //... do nothing
+                    case _                 => false //... do nothing
                 }
         } else true
     }
@@ -268,10 +268,10 @@ object Clipboard extends ClipboardOwner with Publisher {
                     (if (padNoWas == padV4.linkTo) Seq() else Seq(L.G("PastePadV4LinkToPad", s"${padV4.linkTo}")))
                 if (Dialog.showOptions(tpnMain, message = L.G("PastePadV4Link", padName(padNoIs, linkTo), padName(padNoWas, padV4.linkTo)),
                     title = L.G("PastePadV4Caption"), entries = entries, initial = 0) match {
-                        case Dialog.Result.Yes => { padV4.linkTo = padNoIs; true } // Do Not Link
-                        case Dialog.Result.No => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo
+                        case Dialog.Result.Yes    => { padV4.linkTo = padNoIs; true } // Do Not Link
+                        case Dialog.Result.No     => { padV4.linkTo = linkTo; true } // Link to currentPad.LinkTo
                         case Dialog.Result.Cancel => true // Link to oldPad.LinkTo
-                        case _ => false // Closed the window, so abort
+                        case _                    => false // Closed the window, so abort
                     }) {
                     EditHistory.add(new PastePadHistoryAction(source, padV4))
                     setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
@@ -305,7 +305,7 @@ object Clipboard extends ClipboardOwner with Publisher {
                         true //... and then swap
                     }
                     case Dialog.Result.Yes => true //... just swap (go to Various)
-                    case _ => false //... do nothing
+                    case _                 => false //... do nothing
                 }
         } else true
     }

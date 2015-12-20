@@ -49,17 +49,17 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
         protected def _uiValue: Byte = {
             val padNo = jTrapKATEditor.currentPadNumber + 1
             (selection.index match {
-                case 0 => padNo
+                case 0              => padNo
                 case e if e < padNo => e
-                case e => e + 1
+                case e              => e + 1
             }).toByte
         }
         protected def _uiValue_=(_value: Byte): Unit = {
             val padNo = jTrapKATEditor.currentPadNumber
             selection.index = _value - 1 match {
                 case e if e == padNo => 0 // Equal means Off
-                case e if e < padNo => e + 1 // Before
-                case e => e // After
+                case e if e < padNo  => e + 1 // Before
+                case e               => e // After
             }
         }
 
@@ -69,14 +69,14 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
         protected override def setValue = jTrapKATEditor.doV3V4({}, super.setValue())
 
         private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
-            case 0 => L.G("cbxLinkToOff")
+            case 0           => L.G("cbxLinkToOff")
             case x if x < 25 => s"${x}"
-            case x => L.G(s"lbPad${x}")
+            case x           => L.G(s"lbPad${x}")
         }) zip (0 to 27)) foreach (x => linkTo(x._2) = x._1)
 
         reactions += {
-            case e: SelectedPadChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
-            case e: SelectedKitChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
+            case e: SelectedPadChanged       => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
+            case e: SelectedKitChanged       => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
             case e: SelectedAllMemoryChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
         }
 

@@ -108,7 +108,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
 
     private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
         case x if x < 25 => s"${x}"
-        case x => L.G(s"lbPad${x}")
+        case x           => L.G(s"lbPad${x}")
     }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with RichComboBoxReactor[String] with PadSelectionReactor {
         peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("88 mmmm")

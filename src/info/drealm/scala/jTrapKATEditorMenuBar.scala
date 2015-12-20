@@ -37,7 +37,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         name = s"mn${_name}"
         L.G(s"mne${_name}") match {
             case x if x == s"<<mne${_name}>>" => {}
-            case mne => mnemonic = scala.swing.event.Key(mne.charAt(0))
+            case mne                          => mnemonic = scala.swing.event.Key(mne.charAt(0))
         }
 
         def add(mi: MenuItem) = {
@@ -69,7 +69,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         }
         L.G(s"mne${_name}") match {
             case x if x == s"<<mne${_name}>>" => {}
-            case mne => mnemonic = scala.swing.event.Key(mne.charAt(0))
+            case mne                          => mnemonic = scala.swing.event.Key(mne.charAt(0))
         }
 
         reactions += {
@@ -89,7 +89,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
             OpenFileChooser.selectedFile = if (jTrapKATEditor.currentFile.isDirectory()) new java.io.File(s"${jTrapKATEditor.currentFile.getCanonicalPath()}/.") else jTrapKATEditor.currentFile
             OpenFileChooser.file match {
                 case Some(file) => jTrapKATEditor.openFile(file)
-                case None => {}
+                case None       => {}
             }
         } catch {
             case ex: IllegalArgumentException => {
@@ -129,7 +129,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                         ) + ".syx")
                 SaveFileChooser.file(dumpType.toString) match {
                     case Some(file) => jTrapKATEditor.saveFileAs(dumpType, file)
-                    case _ => {}
+                    case _          => {}
                 }
             }
         }
@@ -160,8 +160,8 @@ object jTrapKATEditorMenuBar extends MenuBar {
             case e: eventX.MenuWillBecomeVisible => {
                 jTrapKATEditor.currentType match {
                     case model.DumpType.Global => SaveGlobalMemoryMenuItem.action = SaveMenuItem.saveAction(SaveGlobalMemoryMenuItem)
-                    case model.DumpType.Kit => SaveCurrentKitMenuItem.action = SaveMenuItem.saveAction(SaveCurrentKitMenuItem)
-                    case _ => SaveAllMemoryMenuItem.action = SaveMenuItem.saveAction(SaveAllMemoryMenuItem)
+                    case model.DumpType.Kit    => SaveCurrentKitMenuItem.action = SaveMenuItem.saveAction(SaveCurrentKitMenuItem)
+                    case _                     => SaveAllMemoryMenuItem.action = SaveMenuItem.saveAction(SaveAllMemoryMenuItem)
                 }
 
                 val isFile = jTrapKATEditor.currentFile.isFile()
@@ -234,7 +234,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     listenTo(prefs.Preferences)
                     reactions += {
                         case e: P.NotesAsPreferencChanged if P.notesAs == displayMode => selected = true
-                        case ButtonClicked(_) => P.notesAs = displayMode
+                        case ButtonClicked(_)                                         => P.notesAs = displayMode
                     }
                 }
 
@@ -249,7 +249,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 L.G("ConvertVersions", L.G(from), L.G(to)), L.G("ConvertCaption"),
                 Dialog.Options.YesNo, Dialog.Message.Question, null) match {
                     case Dialog.Result.Yes => converter
-                    case _ => {}
+                    case _                 => {}
                 }
             jTrapKATEditor.doV3V4(f("V3", "V4", jTrapKATEditor.convertToV4()), f("V4", "V3", jTrapKATEditor.convertToV3()))
         }))
@@ -282,7 +282,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                     dailyCheck()
                 }
                 case ButtonClicked(_) if (selected) => autoUpdateMode = AutoUpdateMode.Automatically
-                case ButtonClicked(_) => autoUpdateMode = AutoUpdateMode.Off
+                case ButtonClicked(_)               => autoUpdateMode = AutoUpdateMode.Off
             }
         }
 
@@ -301,7 +301,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         add(new RichMenuItem("HelpLicence", x => Dialog.showConfirmation(tpnMain,
             L.G("helpLicence"), L.G("helpLicenceCaption")) match {
                 case Dialog.Result.Yes => util.browse("http://www.gnu.org/licenses/gpl.html")
-                case Dialog.Result.No => {}
+                case Dialog.Result.No  => {}
             }))
     }
 

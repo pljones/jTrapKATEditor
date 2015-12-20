@@ -206,7 +206,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 
         _unused = in.read().toByte
 
-        _soundControls(0) = new SoundControl(prgChg, prgChgTxmChn, volume, bankMSB, bankLSB)
+        _soundControls(0) = new SoundControl(prgChg, prgChgTxmChn, bankMSB, bankLSB, volume)
     }
 
     override def serialize(out: OutputStream, saving: Boolean): Unit = {

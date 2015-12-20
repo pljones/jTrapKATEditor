@@ -1,5 +1,5 @@
 False
-15-1218-2238
-http://pljones.github.io/jTrapKATEditor/releases/v15-1218-2238.html
+15-1220-1802
+http://pljones.github.io/jTrapKATEditor/releases/v15-1220-1802.html
 Please read the full version notice carefully before using.
-Fix to V4 sound control editing.
+Fix to sound control editing.

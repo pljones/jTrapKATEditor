@@ -293,7 +293,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                     if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) doKit(kitV3Dump.auxType, kitV3Dump.self.kitName, new model.KitV4(kitV3Dump.self)))
             }
             case kitV4Dump: model.KitV4Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
-                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), f"Kit ${_currentKitNumber} (${_currentAllMemory(_currentKitNumber).kitName})") => {
+                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {
 
                 def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
                     if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
@@ -326,7 +326,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     def exitClose() = if (_currentType match {
         case model.DumpType.Global => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global"))
-        case model.DumpType.Kit    => frmTrapkatSysexEditor.okayToSplat(currentKit, L.G("Kit"))
+        case model.DumpType.Kit    => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})")
         case _                     => frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))
     }) quit
 

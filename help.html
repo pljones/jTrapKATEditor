@@ -54,13 +54,21 @@
                 <li>
                     <div><a href="#3_features">Features</a></div>
                     <ul>
-                        <li><a href="#3_1_gettingHelp">Getting Help</a></li>
+                        <li>
+                            <div><a href="#3_1_gettingHelp">Getting Help</a></div>
+                            <ul>
+                                <li><a href="#3_1_1_thisPage">Look here first!</a></li>
+                                <li><a href="#3_1_2_stayingUpToDate">Staying up to date</a></li>
+                                <li><a href="#3_1_3_reportingProblems">Asking questions and reporting issues</a></li>
+                            </ul>
+                        </li>
                         <li><a href="#3_2_programConfiguration">Program Configuration</a></li>
                         <li><a href="#3_3_creatingAndLoading">Creating and Loading</a></li>
-                        <li><a href="#3_4_convertingAndSaving">Converting and Saving</a></li>
-                        <li><a href="#3_5_editingKitDetails">Editing Kit Details</a></li>
-                        <li><a href="#3_6_editingPadDetails">Editing Pad Details</a></li>
-                        <li><a href="#3_7_editingGlobalDetails">Editing Global Details</a></li>
+                        <li><a href="#3_4_saving">Saving</a></li>
+                        <li><a href="#3_5_converting">Converting</a></li>
+                        <li><a href="#3_6_editingKitDetails">Editing Kit Details</a></li>
+                        <li><a href="#3_7_editingPadDetails">Editing Pad Details</a></li>
+                        <li><a href="#3_8_editingGlobalDetails">Editing Global Details</a></li>
                     </ul>
                 </li>
                 <li>
@@ -397,57 +405,209 @@
 
             <div id="3_1_gettingHelp">
                 <h2>Getting Help</h2>
-                <p>
-                    I guess, if you have read this far through the help, you have not found what you were looking for.
-                    However, I would suggest having a good look through the previous sections as they provide a useful
-                    general explanation of how the program works and how to use it.
-                    You should then be able to use your knowledge of how the TrapKAT works along with the TrapKAT manual
-                    to work out how to use the program to do most of what is possible.
-                </p>
-                <p>
-                    Of course, there may be things the program is doing that you do not expect - possibly even bugs.
-                </p>
-                <p>
-                    The most effective way to get an answer is to post in
-                    <a href="http://www.alternatemode.com/forum/index.php?topic=4140.0" title="" target="_blank">the AlternateMode forum in the thread for this editor</a>.
-                    Try to explain the steps you have taken with the TrapKAT and with the TrapKAT editor software clearly,
-                    saying what you expected to happen and what actually happened.
-                    I need to be able to reproduce the problem with my set up if I am to have any hope of either answering
-                    a question or fixing a bug, so do please take the time to explain clearly.
-                    (I do realise it takes some effort -- it took me days to pin down the last bug clearly enough I could fix it:
-                    in fact it turned into three related bugs, which was why it was so confusing!)
-                </p>
-                <p>
-                    As the program is Open Source, you always have the option of reading the code and trying to
-                    identify possible fixes or improvements yourself.
-                    The <a href="https://github.com/pljones/jTrapKATEditor" title="Github jTrapKATEditor repository" target="_blank">Github project page</a>
-                    is the best place to find further information.
-                </p>
+                <div id="3_1_1_thisPage">
+                    <h3>Look here first!</h3>
+                    <p>
+                        I guess, if you have read this far through the help, you have not found what you were looking for.
+                        However, I would suggest having a good look through the previous sections as they provide a useful
+                        general explanation of how the program works and how to use it.
+                        This section provides a wider overview of the areas of the program (more &quot;what&quot; than &quot;how to&quot;).
+                        This is followed by an in-depth guide to the user interface, again focussed on what the components do.
+                    </p>
+                    <p>
+                        You should then be able to use your knowledge of how the TrapKAT works along with the TrapKAT manual
+                        to work out how to use the program to do most of what is possible.
+                    </p>
+                    <p>
+                        Of course, there may be things the program is doing that you do not expect - possibly even bugs.
+                    </p>
+                    <p>
+                        I guess here is where I have to mention the warranty -- see <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Warranty...</span>
+                        for the disclaimer.
+                    </p>
+                </div>
+                <div id="3_1_2_stayingUpToDate">
+                    <h3>Staying up to date</h3>
+                    <p>
+                        The first thing to do if you hit a snag is make sure you can reproduce the problem using the latest version of the program.
+                        You can make sure you have the latest version using <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite"><span class="u">C</span>heck For Update...</span>.
+                        If this says &quot;No update applicable was found.&quot; then you are up to date.
+                    </p>
+                    <div id="noUpdateNotice">
+                        <img src="img/HelpCheckForUpdatesNone.png" alt="No update applicable was found" />
+                    </div>
+                    <p>
+                        Otherwise, you will be offered the chance to go to the project page to read about the latest version.
+                        From there, you can navigate back to the download page.
+                    </p>
+                    <div id="availableUpdateNotice">
+                        <img src="img/HelpCheckForUpdatesSome.png" alt="Available update notice"/>
+                    </div>
+                    <p>
+                        If you have a permanent internet connection on the computer you run the editor on, you are strongly recommended to use the automatic update checker.
+                        This is toggled on and off by <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Check Automatically</span>.
+                        The program will check automatically at <em>most</em> once every day.
+                        If it finds an update available, it will display the <a href="#availableUpdateNotice">available update notice</a> shown above.
+                    </p>
+                </div>
+                <div id="3_1_3_reportingProblems">
+                    <h3>Asking questions and reporting issues</h3>
+                    <p>
+                        The most effective way to get an answer to a problem is to post in
+                        <a href="http://www.alternatemode.com/forum/index.php?topic=4140.0" title="" target="_blank">the AlternateMode forum in the thread for this editor</a>.
+                        Always look under <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite"><span class="u">A</span>bout</span>
+                        to get the version details and include the details in your post.
+                        This ensures anyone looking at your post in future knows which version it relates to.
+                    </p>
+                    <div id="helpAbout">
+                        <img src="img/HelpAbout.png" alt="Program version details" />
+                    </div>
+                    <p>
+                        Try to explain the steps you have taken with the TrapKAT and with the TrapKAT editor software clearly,
+                        saying what you expected to happen and what actually happened.
+                        I need to be able to reproduce the problem with my set up if I am to have any hope of either answering
+                        a question or fixing a bug, so do please take the time to explain clearly.
+                        (I do realise it takes some effort -- it took me days to pin down the last bug clearly enough I could fix it:
+                        in fact it turned into three related bugs, which was why it was so confusing!)
+                    </p>
+                    <p>
+                        Note that I can, unfortunately, only test with a TrapKAT V4 now.
+                    </p>
+                    <p>
+                        As the program is Open Source (see <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Licence...</span>),
+                        you always have the option of reading the code and trying to identify possible fixes or improvements yourself.
+                        The <a href="https://github.com/pljones/jTrapKATEditor" title="Github jTrapKATEditor repository" target="_blank">Github project page</a>
+                        is the best place to find further information.
+                    </p>
+                </div>
             </div>
 
             <div id="3_2_programConfiguration">
                 <h2>Program Configuration</h2>
                 <p>
+                    There is little in the way of configuration visible to the user.
+                    The only option is how to display note values -
+                    <span class="hilite"><span class="u">T</span>ools</span>-&gt;<span class="hilite"><span class="u">O</span>ptions</span>-&gt;<span class="hilite">Display MIDI Notes</span>, choosing from
+                    <span class="hilite">As Numbers</span> (the MIDI note number), <span class="hilite">As Names (C3=60)</span> or <span class="hilite">As Names (C4=60)</span>
+                    (showing the note name with Middle C getting the indicated name).
+                </p>
+                <p>
+                    In addition to the setting for automatic updates, mentioned <a href="#3_1_2_stayingUpToDate" alt="">earlier</a>,
+                    the program stores two more values relating to the update process.
+                </p>
+                <dl>
+                    <dt>Last Update Time</dt>
+                    <dd>
+                        This holds the time that the last automatic or manual update check was run.
+                        The value is displayed in <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite"><span class="u">A</span>bout</span>, as shown <a href="#helpAbout" alt="">above</a>.
+                    </dd>
+                    <dt>Last Ignored Version</dt>
+                    <dd>
+                        This is used by the automatic update checker to avoid prompting for an ignored version.
+                        Checking manually bypasses this value and always prompts if it finds a newer version (but lets you ignore again, of course).
+                    </dd>
+                </dl>
+                <p>
+                    Finally, there are two further internal settings that aim to make life easier between runs of the program.
+                </p>
+                <dl>
+                    <dt>Current Working Directory</dt>
+                    <dd>
+                        This tries to keep track of the last folder or directory which you used for a file operation, so it is what you are offered next time.
+                    </dd>
+                    <dt>Window Location</dt>
+                    <dd>
+                        This keeps track of the position of the window, so on start up the window appears where it was when you last closed the program.
+                    </dd>
+                </dl>
+                <p>
+                    All of the settings are held per user in a file called <span class="hilite">jTrapKATEditor.xml</span>, the location of which is determined by the operating system.
+                    If something goes badly wrong and the program appears not to start, you can try renaming or deleting this file - check the program is really not running first, though.
                 </p>
             </div>
 
             <div id="3_3_creatingAndLoading">
                 <h2>Creating and Loading</h2>
+                <p>
+                    The <span class="hilite"><span class="u">F</span>ile</span> menu allows you to create TrapKAT V3 and TrapKAT V4 dumps from scratch, using
+                    <span class="hilite">New (V<span class="u">3</span>)</span> or <span class="hilite">New (V<span class="u">4</span>)</span> respectively.
+                    You can also load complete memory dumps, global memory dumps and individual kit dumps, all using the
+                    <span class="hilite"><span class="u">O</span>pen</span> menu item.
+                </p>
+                <div id="fileNewOpen">
+                    <img src="img/FileNewOpen.png" alt="Creating and Loading" />
+                </div>
+                <p>
+                    The only real use of <span class="hilite">New</span> is to make using <span class="hilite"><span class="u">O</span>pen</span> easier for
+                    global and kit dumps that you want to edit in isolation from an all memory dump.
+                </p>
+                <p>
+                    <span class="hilite"><span class="u">O</span>pen</span> prompts for the file to be opened and,
+                    after confirming with you that losing any unsaved changes that would be overwritten is okay,
+                    proceeds to load the file.
+                    For example, if you have edited kit values and load a global dump, you do not get prompted as no changes have been made to global memory.
+                    However, loading another kit dump for the edited kit would prompt.
+                </p>
+                <div id="unsavedChanges">
+                    <img src="img/UnsavedChanges.png" alt="Creating and Loading" />
+                </div>
             </div>
 
-            <div id="3_4_convertingAndSaving">
-                <h2>Converting and Saving</h2>
+            <div id="3_4_saving">
+                <h2>Saving</h2>
+                <p>
+                    The <span class="hilite"><span class="u">F</span>ile</span> menu allows you to write out your changes.
+                    You can choose to save back to the last opened file of the appropriate type or save the current kit, global memory or all memory to a specific file.
+                </p>
+                <p>
+                    When you start or use one of the <span class="hilite">New</span> menu options, the editor considers that it has no file currently being edited and you must choose where to save edits.
+                    When you <span class="hilite"><span class="u">O</span>pen</span>, if no file is being edited or if the opened file is an all memory dump, the opened file becomes the current file.
+                    The current file, including the version and overall change state, is shown in the application title.
+                </p>
+                <p>
+                    If the current file is a global dump, loading a kit file means the editor considers that it has no specific file being edited, so you must choose what to save.
+                    If the current file is a kit dump and you load the same numbered kit, that kit becomes the current file.
+                    If the current file is a kit dump and you load the a different numbered kit - either into the current kit or its own kit - the editor considers that it has no specific file being edited again.
+                    If you are editing an all memory dump, you can load in global and kit dumps without changing what the editor considers the current file.
+                </p>
+                <div id="fileSave">
+                    <div id="startOfFileSaveColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                        <img src="img/FileSave.png" alt="" />
+                        <br/><em>No current file being edited</em>
+                    </div>
+                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                        <img src="img/FileSaveCurrentAllMemory.png" alt="" />
+                        <br/><em>Current file is all memory dump</em>
+                    </div>
+                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                        <img src="img/FileSaveCurrentGlobal.png" alt="" />
+                        <br/><em>Current file is global dump</em>
+                    </div>
+                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                        <img src="img/FileSaveCurrentKit.png" alt="" />
+                        <br/><em>Current file is kit dump</em>
+                    </div>
+                    <div id="endOfFileSaveColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                </div>
+                <p>
+                    This usually ends up being exactly what you'd expect...
+                </p>
             </div>
 
-            <div id="3_5_editingKitDetails">
+            <div id="3_5_converting">
+                <h2>Converting</h2>
+            </div>
+
+            <div id="3_6_editingKitDetails">
                 <h2>Editing Kit Details</h2>
             </div>
 
-            <div id="3_6_editingPadDetails">
+            <div id="3_7_editingPadDetails">
                 <h2>Editing Pad Details</h2>
             </div>
 
-            <div id="3_7_editingGlobalDetails">
+            <div id="3_8_editingGlobalDetails">
                 <h2>Editing Global Details</h2>
             </div>
 

@@ -14,6 +14,7 @@
             .right-align { text-align: right; }
             .italic { font-style: italic; }
             .bold { font-weight: bold; }
+            .img-column { float: left; margin-right: 0.2em; display: flex; justify-content: center; }
         </style>
     </head>
 
@@ -411,7 +412,7 @@
                         I guess, if you have read this far through the help, you have not found what you were looking for.
                         However, I would suggest having a good look through the previous sections as they provide a useful
                         general explanation of how the program works and how to use it.
-                        This section provides a wider overview of the areas of the program (more &quot;what&quot; than &quot;how to&quot;).
+                        This section provides a guide to the various areas of the program (more &quot;what&quot; than &quot;how to&quot;).
                         This is followed by an in-depth guide to the user interface, again focussed on what the components do.
                     </p>
                     <p>
@@ -423,7 +424,7 @@
                     </p>
                     <p>
                         I guess here is where I have to mention the warranty -- see <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Warranty...</span>
-                        for the disclaimer.
+                        or <a href="#5_1_warranty" alt="Warranty section">below</a> for the disclaimer.
                     </p>
                 </div>
                 <div id="3_1_2_stayingUpToDate">
@@ -432,22 +433,24 @@
                         The first thing to do if you hit a snag is make sure you can reproduce the problem using the latest version of the program.
                         You can make sure you have the latest version using <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite"><span class="u">C</span>heck For Update...</span>.
                         If this says &quot;No update applicable was found.&quot; then you are up to date.
-                    </p>
-                    <div id="noUpdateNotice">
-                        <img src="img/HelpCheckForUpdatesNone.png" alt="No update applicable was found" />
-                    </div>
-                    <p>
-                        Otherwise, you will be offered the chance to go to the project page to read about the latest version.
+                        Otherwise, you will be offered the chance to go to the project site to read about the latest version.
                         From there, you can navigate back to the download page.
                     </p>
-                    <div id="availableUpdateNotice">
-                        <img src="img/HelpCheckForUpdatesSome.png" alt="Available update notice"/>
+                    <div id="helpCheckForUpdates" style="display: flex; align-items: center;">
+                        <div id="startOfHelpCheckForUpdatesColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                        <div class="img-column" style="width: 49%;"><div>
+                            <img src="img/HelpCheckForUpdatesNone.png" alt="No update applicable was found" />
+                        </div></div>
+                        <div class="img-column" style="width: 49%;"><div>
+                            <img src="img/HelpCheckForUpdatesSome.png" alt="Available update notice"/>
+                        </div></div>
+                        <div id="endOfHelpCheckForUpdatesColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
                     </div>
                     <p>
                         If you have a permanent internet connection on the computer you run the editor on, you are strongly recommended to use the automatic update checker.
                         This is toggled on and off by <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Check Automatically</span>.
                         The program will check automatically at <em>most</em> once every day.
-                        If it finds an update available, it will display the <a href="#availableUpdateNotice">available update notice</a> shown above.
+                        If it finds an update available, it will display the update available notice shown above.
                     </p>
                 </div>
                 <div id="3_1_3_reportingProblems">
@@ -456,7 +459,7 @@
                         The most effective way to get an answer to a problem is to post in
                         <a href="http://www.alternatemode.com/forum/index.php?topic=4140.0" title="" target="_blank">the AlternateMode forum in the thread for this editor</a>.
                         Always look under <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite"><span class="u">A</span>bout</span>
-                        to get the version details and include the details in your post.
+                        to get the version details and include these details in your post.
                         This ensures anyone looking at your post in future knows which version it relates to.
                     </p>
                     <div id="helpAbout">
@@ -472,9 +475,12 @@
                     </p>
                     <p>
                         Note that I can, unfortunately, only test with a TrapKAT V4 now.
+                        However, I can explain to V3 users how to provide the details I would need to investigate a problem, should the have one.
+                        Just mention this when posting in the forum.
                     </p>
                     <p>
-                        As the program is Open Source (see <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Licence...</span>),
+                        As the program is Open Source
+                        (see <span class="hilite"><span class="u">H</span>elp</span>-&gt;<span class="hilite">Licence...</span> or <a href="#5_2_licence" alt="Licence link">below</a> for more),
                         you always have the option of reading the code and trying to identify possible fixes or improvements yourself.
                         The <a href="https://github.com/pljones/jTrapKATEditor" title="Github jTrapKATEditor repository" target="_blank">Github project page</a>
                         is the best place to find further information.
@@ -560,34 +566,34 @@
                     You can choose to save back to the last opened file of the appropriate type or save the current kit, global memory or all memory to a specific file.
                 </p>
                 <p>
-                    When you start or use one of the <span class="hilite">New</span> menu options, the editor considers that it has no file currently being edited and you must choose where to save edits.
+                    When you start the program or use one of the <span class="hilite">New</span> menu options, the editor considers that it has no file currently being edited and you must choose where to save edits.
                     When you <span class="hilite"><span class="u">O</span>pen</span>, if no file is being edited or if the opened file is an all memory dump, the opened file becomes the current file.
                     The current file, including the version and overall change state, is shown in the application title.
                 </p>
                 <p>
-                    If the current file is a global dump, loading a kit file means the editor considers that it has no specific file being edited, so you must choose what to save.
+                    If the current file is a global dump and you load a kit file or vice versa, the editor considers that it has no specific file being edited, so you must choose what to save.
                     If the current file is a kit dump and you load the same numbered kit, that kit becomes the current file.
-                    If the current file is a kit dump and you load the a different numbered kit - either into the current kit or its own kit - the editor considers that it has no specific file being edited again.
-                    If you are editing an all memory dump, you can load in global and kit dumps without changing what the editor considers the current file.
+                    If the current file is a kit dump and you load a different numbered kit - either into the current kit or its own kit - the editor considers that it has no specific file being edited again.
+                    If you are editing an all memory dump, loading global or kit dumps does not change what the editor considers the current file (i.e. the all memory dump).
                 </p>
                 <div id="fileSave">
                     <div id="startOfFileSaveColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
-                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                    <div class="img-column" style="width: 24%;"><div>
                         <img src="img/FileSave.png" alt="" />
                         <br/><em>No current file being edited</em>
-                    </div>
-                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                    </div></div>
+                    <div class="img-column" style="width: 24%;"><div>
                         <img src="img/FileSaveCurrentAllMemory.png" alt="" />
                         <br/><em>Current file is all memory dump</em>
-                    </div>
-                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                    </div></div>
+                    <div class="img-column" style="width: 24%;"><div>
                         <img src="img/FileSaveCurrentGlobal.png" alt="" />
                         <br/><em>Current file is global dump</em>
-                    </div>
-                    <div style="width: 24%; float: left; margin-right: 0.2em;">
+                    </div></div>
+                    <div class="img-column" style="width: 24%;"><div>
                         <img src="img/FileSaveCurrentKit.png" alt="" />
                         <br/><em>Current file is kit dump</em>
-                    </div>
+                    </div></div>
                     <div id="endOfFileSaveColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
                 </div>
                 <p>
@@ -597,6 +603,48 @@
 
             <div id="3_5_converting">
                 <h2>Converting</h2>
+                <p>
+                    The editor provides for converting between V3 and V4 dumps in both directions.
+                    This can be done in a number of ways.
+                </p>
+                <p>
+                    If you have used <span class="hilite">New (V<span class="u">3</span>)</span> or loaded a V3 all memory dump with <span class="hilite"><span class="u">O</span>pen</span>,
+                    then <span class="hilite"><span class="u">T</span>ools</span>-&gt;<span class="hilite"><span class="u">C</span>onvert...</span> will offer to convert to V4.
+                    This is then considered a new V4 dump that has been edited.
+                </p>
+                <p>
+                    If you have used <span class="hilite">New (V<span class="u">4</span>)</span> or loaded a V4 all memory dump with <span class="hilite"><span class="u">O</span>pen</span>,
+                    then <span class="hilite"><span class="u">T</span>ools</span>-&gt;<span class="hilite"><span class="u">C</span>onvert...</span> will offer to convert to V3.
+                    This is then considered a new V3 dump that has been edited.
+                </p>
+                <div id="toolsConvert">
+                    <div id="startOfToolsConvertColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <img src="img/ToolsConvertV3V4.png" alt="Confirm convert to V4" />
+                    </div></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <img src="img/ToolsConvertV4V3.png" alt="Confirm convert to V3" />
+                    </div></div>
+                    <div id="endOfToolsConvertColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                </div>
+                <p>
+                    If you have used <span class="hilite">New (V<span class="u">3</span>)</span> or loaded a V3 all memory dump with <span class="hilite"><span class="u">O</span>pen</span>,
+                    and then open a V4 global or kit dump, the program will offer to convert this to V3 and then work as if a V3 global or kit dump had been loaded.
+                </p>
+                <p>
+                    If you have used <span class="hilite">New (V<span class="u">4</span>)</span> or loaded a V4 all memory dump with <span class="hilite"><span class="u">O</span>pen</span>,
+                    and then open a V3 global or kit dump, the program will offer to convert this to V4 and then work as if a V4 global or kit dump had been loaded.
+                </p>
+                <div id="importFile">
+                    <div id="startOfImportFileColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <img src="img/FileOpenV4GlobalAsV3.png" alt="Confirm convert to V4" />
+                    </div></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <img src="img/FileOpenV3KitAsV4.png" alt="Confirm convert to V3" />
+                    </div></div>
+                    <div id="endOfImportFileColumns" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                </div>
             </div>
 
             <div id="3_6_editingKitDetails">

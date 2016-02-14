@@ -13,3 +13,4 @@ class
 not-class
 /bin
 /.cache-main
+target/

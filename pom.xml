@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>info.drealm.scala</groupId>
+	<artifactId>jTrapKATEditor</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<scala-library.version>2.11.1</scala-library.version>
+		<scala.version.modules>2.11</scala.version.modules>
+		<scala-xml.version>1.0.2</scala-xml.version>
+		<scala-swing.version>1.0.1</scala-swing.version>
+		<jna.version>4.1.0</jna.version>
+		<miglayout.version>4.2</miglayout.version>
+		<main.basedir>${basedir}/../..</main.basedir>
+		<assembly.mainClass>info.drealm.scala.jTrapKATEditor</assembly.mainClass>
+	</properties>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<!-- this is so we don't end with a compile error in maven-compiler-plugin -->					
+						<phase>process-sources</phase> 					
+						<goals>
+							<goal>compile</goal>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<args>
+						<arg>-deprecation</arg>
+						<arg>-feature</arg>
+						<arg>-optimise</arg>
+					</args>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>${assembly.mainClass}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scala-library.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-xml_${scala.version.modules}</artifactId>
+			<version>${scala-xml.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-swing_${scala.version.modules}</artifactId>
+			<version>${scala-swing.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>${jna.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna-platform</artifactId>
+			<version>${jna.version}</version>
+		</dependency>
+                <dependency>
+                    <groupId>com.miglayout</groupId>
+                    <artifactId>miglayout-swing</artifactId>
+                    <version>${miglayout.version}</version>
+                </dependency>
+	</dependencies>
+
+</project>

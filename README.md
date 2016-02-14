@@ -51,3 +51,5 @@ and unzip it into a directory called "one-jar".  You will then need to ensure th
 + scala-xml.jar
 
 I had to do things my own way, naturally, when it comes to the build processes.  Yes, it's scala... so I used a classic Makefile...
+
+... but (as of 2016-02-14) there is a Maven `pom.xml` as well now.

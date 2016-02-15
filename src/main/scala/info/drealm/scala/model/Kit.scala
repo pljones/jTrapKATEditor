@@ -185,7 +185,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
         update({/*It's all been done*/})
     }
 
-    protected var _bank: Byte = 128.toByte
+    protected var _bank: Byte = 0
     protected var _unused: Byte = 0
 
     override def _deserializeKit(in: InputStream): Unit = {

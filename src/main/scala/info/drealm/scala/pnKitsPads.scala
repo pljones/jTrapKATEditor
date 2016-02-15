@@ -542,12 +542,33 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
             contents += (pnSoundControl, "cell 6 0 7 1,center,hidemode 0")
 
+            private[this] def prgChgOff(isOff: Boolean): Unit = {
+                Seq("BankMSB", "BankLSB") foreach (n => {
+                    Focus.findInComponent(pnKitDetails, "ckb" + n) match {
+                        case Some(ckb: CheckBox) => Focus.findInComponent(pnKitDetails, "spn" + n) match {
+                            case Some(spn: Spinner) => {
+                                ckb.enabled = !isOff
+                                spn.enabled = !isOff && !ckb.selected
+                            }
+                            case _                   => {}
+                        }
+                        case _                   => {}
+                    }
+                })
+                jTrapKATEditor.doV3V4({
+                    Focus.findInComponent(pnKitDetails, "spnBank") match {
+                        case Some(spn: Spinner) => spn.enabled = !isOff
+                        case _                  => {}
+                    }
+                }, {})
+            }
+
             //_name, _ini, _min, _max, _getModel, _setModel, ?_meansOff?, ?_offMeans?, ?_ckbCallback
             Seq[(String, Int, Int, Int, (model.Kit[_ <: model.Pad], Int) => Byte, (model.Kit[_ <: model.Pad], Int, Byte) => Unit, Option[Int => Boolean], Option[Boolean => Int], Option[Boolean => Unit])](
                 ("PrgChg", 1, 1, 128,
                     _.soundControls(_).prgChg, _.soundControls(_).prgChg = _,
-                    Some(_ == 0), Some(p => if (p) 0 else 1), Some(p => Focus.findInComponent(tpnKitPadsDetails, "spnPrgChgTxmChn") foreach (cp => cp.enabled = !p))),
-                ("PrgChgTxmChn", 10, 1, 16,
+                    Some(_ == 0), Some(p => if (p) 0 else 1), Some(prgChgOff)),
+                ("SndCtlTxmChn", 10, 1, 16,
                     (kit, sc) => (kit.soundControls(sc).prgChgTxmChn + 1).toByte, (kit, sc, value: Byte) => kit.soundControls(sc).prgChgTxmChn = (value - 1).toByte,
                     None, None, None),
                 ("BankMSB", 0, 0, 127,
@@ -612,7 +633,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         }
                         case _ => (new Label, new Spinner(new javax.swing.SpinnerNumberModel), None)
                     }
-                } zip Seq((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)) foreach { t =>
+                } zip Seq((2, 1), (0, 1), (1, 0), (1, 1), (2, 0), (0, 0)) foreach { t =>
                     contents += (t._1._1, s"cell ${6 + 3 * t._2._2} ${1 + t._2._1},alignx right,hidemode 0")
                     contents += (t._1._2, s"cell ${7 + 3 * t._2._2} ${1 + t._2._1},growx,hidemode 0")
                     order += t._1._2.name
@@ -626,29 +647,24 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     }
                 }
 
-            listenTo(jTrapKATEditor)
-            reactions += {
-                case e: SelectedAllMemoryChanged => {
-                    Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
-                        case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
-                        case _        => {}
-                    })
+            private[this] def onSelectedAllMemoryChanged(): Unit = {
+                Focus.findInComponent(this, "ckbPrgChg") match {
+                    case Some(ckb: CheckBox) => prgChgOff(ckb.selected)
+                    case _                   => Console.println("ckbPrgChg not found")
                 }
+                Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
+                    case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
+                    case _        => {}
+                })
             }
 
-            // This is only needed the once at start up... bit of a hack, though.
-            // spnPrgChgTxmChn is just that little bit too different...
-            Focus.findInComponent(this, "ckbPrgChg") match {
-                case Some(ckb: CheckBox) => Focus.findInComponent(this, "spnPrgChgTxmChn") match {
-                    case Some(cp: Spinner) => cp.enabled = !ckb.selected
-                    case _                 => Console.println("spnPrgChgTxmChn not found")
-                }
-                case _ => Console.println("ckbPrgChg not found")
+            listenTo(jTrapKATEditor)
+            reactions += {
+                case e: SelectedAllMemoryChanged => onSelectedAllMemoryChanged
             }
-            Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
-                case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
-                case _        => {}
-            })
+
+            // Have to do this on start up, too
+            onSelectedAllMemoryChanged()
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, order))
             peer.setFocusTraversalPolicyProvider(true)

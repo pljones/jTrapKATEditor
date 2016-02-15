@@ -569,7 +569,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     _.soundControls(_).prgChg, _.soundControls(_).prgChg = _,
                     Some(_ == 0), Some(p => if (p) 0 else 1), Some(prgChgOff)),
                 ("SndCtlTxmChn", 10, 1, 16,
-                    (kit, sc) => (kit.soundControls(sc).prgChgTxmChn + 1).toByte, (kit, sc, value: Byte) => kit.soundControls(sc).prgChgTxmChn = (value - 1).toByte,
+                    (kit, sc) => (kit.soundControls(sc).sndCtlTxmChn + 1).toByte, (kit, sc, value: Byte) => kit.soundControls(sc).sndCtlTxmChn = (value - 1).toByte,
                     None, None, None),
                 ("BankMSB", 0, 0, 127,
                     _.soundControls(_).bankMSB, _.soundControls(_).bankMSB = _,

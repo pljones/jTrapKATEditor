@@ -53,7 +53,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
 
     protected[Global] val _padLevels: Array[Byte] = new Array[Byte](50)
 
-    // 10 bytes
+    // 8 bytes
     private[this] var _trigGain: Byte = 0 // (0 - 3)
     private[this] var _prgChgRcvChn: Byte = 17 // Program change receive channel (1-16; 17=off)
     private[this] var _displayAngle: Byte = 0
@@ -88,15 +88,15 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _beeperStatus = global.beeperStatus
         _bcFunction = global.bcFunction
         _chokeFunction = global.chokeFunction
-        _fcClosedRegion = global.fcClosedRegion
+        _fcClosedRegion = global.fcClosedRegion // fc4
         _fcPolarity = global.fcPolarity
         _bcPolarity = global.bcPolarity
         _bcLowLevel = global.bcLowLevel
         _bcHighLevel = global.bcHighLevel
-        _fcLowLevel = global.fcLowLevel
-        _fcHighLevel = global.fcHighLevel
-        _fcVelocityLevel = global.fcVelocityLevel
-        _fcWaitModeLevel = global.fcWaitModeLevel
+        _fcLowLevel = global.fcLowLevel // fc1
+        _fcHighLevel = global.fcHighLevel // fc5
+        _fcVelocityLevel = global.fcVelocityLevel // -- not displayed in TrapKAT
+        _fcWaitModeLevel = global.fcWaitModeLevel // fc3
         _instrumentID = global.instrumentID
         _kitNumber = global.kitNumber
         _kitNumberUser = global.kitNumberUser
@@ -105,7 +105,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
         _motifNumberPerc = global.motifNumberPerc
         _motifNumberMel = global.motifNumberMel
         _midiMergeStatus = global.midiMergeStatus
-        _fcOpenRegion = global.fcOpenRegion
+        _fcOpenRegion = global.fcOpenRegion // fc2
         global._padLevels.copyToArray(_padLevels)
         _trigGain = global.trigGain
         _prgChgRcvChn = global.prgChgRcvChn

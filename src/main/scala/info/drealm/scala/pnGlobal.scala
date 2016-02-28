@@ -171,13 +171,14 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         addComboBox("FCSplashEase", (g) => (g.fcSplashEase - 1).toByte, (g, v) => g.fcSplashEase = (v + 1).toByte,
             GlobalComboBoxParams(Seq(L.G("itemOff")) ++ (1 to 10).map(x => s"${x}")))
         // Global Pad 17 is FC train...
+        addComboBox("FCPolarity", _.fcPolarity, _.fcPolarity = _,
+            GlobalComboBoxParams(Seq(L.G("fcExpr"), L.G("fcFC"))))
         addSpinner("FCLowLevel", _.fcLowLevel, _.fcLowLevel = _, None)
-        addSpinner("FCVelocityLevel", _.fcVelocityLevel, _.fcVelocityLevel = _, None)
+        addSpinner("FCOpenRegion", _.fcOpenRegion, _.fcOpenRegion = _, None)
         addSpinner("FCWaitModeLevel", _.fcWaitModeLevel, _.fcWaitModeLevel = _, None)
         addSpinner("FCClosedRegion", _.fcClosedRegion, _.fcClosedRegion = _, None)
         addSpinner("FCHighLevel", _.fcHighLevel, _.fcHighLevel = _, None)
-        addComboBox("FCPolarity", _.fcPolarity, _.fcPolarity = _,
-            GlobalComboBoxParams(Seq(L.G("fcExpr"), L.G("fcFC"))))
+        addSpinner("FCVelocityLevel", _.fcVelocityLevel, _.fcVelocityLevel = _, None)
     }
     contents += (pnGlobalFC, "cell 1 0")
 

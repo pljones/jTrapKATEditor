@@ -15,6 +15,7 @@
             .italic { font-style: italic; }
             .bold { font-weight: bold; }
             .img-column { float: left; margin-right: 0.2em; display: flex; justify-content: center; }
+            .img-column div img { max-width: 100%; height: auto; }
         </style>
     </head>
 
@@ -650,11 +651,144 @@
 
             <div id="3_6_editingKitDetails">
                 <h2>Editing Kit Details</h2>
+                <p>
+                    All kit editing is, as you would expect, done on the <span class="hilite">Kits &amp; Pads</span> tab.
+                    On the main part of the tab, however, the only details are the kit <span class="hilite">Name</span> field
+                    and <span class="hilite">Hihat Pa<span class="u">d</span>s</span> panel,
+                    with everything else being found on the <span class="hilite">Kit Details</span> sub-tab.
+                    Kits can also be copied, pasted and swapped around using the <span class="hilite"><span class="u">E</span>dit</span> menu items.
+                </p>
+                <p>
+                    As with the editor as a whole, the major benefit when editing kits is seeing the information presented clearly on screen so you can get
+                    a better idea of how each kit is set up, rather than trying to work through and memorise the settings as you tap pads on the TrapKAT.
+                </p>
+                <div id="kitDetails">
+                    <div id="startOfKitDetails" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <img src="img/KitDetailsV3.png" alt="" />
+                        <br/><em>Kit Details tab (V3)</em>
+                    </div></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <img src="img/KitDetailsV4.png" alt="" />
+                        <br/><em>Kit Details tab (V4)</em>
+                    </div></div>
+                    <div id="endOfKitDetails" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                </div>
+                <p>
+                    One significant purpose of the <span class="hilite">Kit Details</span> sub-tab is to ensure all pads use the same settings
+                    for certain fields.
+                    This covers
+                    <span class="hilite"><span class="u">C</span>urve</span>,
+                    <span class="hilite"><span class="u">G</span>ate</span>,
+                    <span class="hilite">Cha<span class="u">n</span>nel</span>,
+                    <span class="hilite">Min Velocity</span> and
+                    <span class="hilite">Max Velocity</span>.
+                    When the <span class="hilite">Various</span> checkbox is <em>unchecked</em>, this indicates the kit value for that field will be used.
+                    Checked means various pad values apply.
+                </p>
+                <p>
+                    The <q>Foot Controller</q> section allows the various parameters to be configured,
+                    with the <span class="hilite">Same as Chick</span> checkbox telling the TrapKAT
+                    to use the channel number assigned to the <q>Chick</q> pad.
+                    In the screenshots above, as the Kit <span class="hilite">Cha<span class="u">n</span>nel</span> is <q>10</q> and
+                    its <span class="hilite">Various</span> checkbox is not checked,
+                    you know the <q>Chick</q> pad channel used will be <q>10</q> and thus <q>10</q> will also be used for the Foot Controller messages.
+                </p>
+                <p>
+                    An enhanced feature on the TrapKAT V4 is the ability to specify more than one set of sound control values.
+                    Up to four sets of these MIDI messages can be sent when changing to a kit.
+                    <span class="hilite">TxmChn</span> specifies the Channel of each of the MIDI messages in this section for the selection sound control set.
+                    To make any sense, the sound control sets should be sent on different channels, of course, or they will counteract each other.
+                    The <span class="hilite">Off</span> checkbox determines which messages are sent.
+                    If you turn off Program Change, then neither MSB nor LSB will be sent either.
+                    The messages for each sound control will be sent in the order MSB, LSB, Program Change, Volume, from Sound Control 1 through to Sound Control 4.
+                </p>
+                <div id="SoundControl1_4">
+                    <div id="startOfSoundControl1_4" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <span>
+                            In this first image, all four sound controls have all messages enabled.
+                        </span><br/>
+                        <img src="img/SoundControl1_4_all.png" alt="All MIDI events for Sound Control 1 to 4" />
+                    </div></div>
+                    <div class="img-column" style="width: 49%;"><div>
+                        <span>
+                            In this second image,
+                                Sound Control 1 has Program Change off,
+                                Sound Control 2 has MSB and LSB off,
+                                Sound Control 3 has MSB and Volume off and
+                                Sound Control 4 has LSB and Volume off.
+                        </span><br/>
+                        <img src="img/SoundControl1_4_var.png" alt="Various MIDI events for Sound Control 1 to 4" />
+                    </div></div>
+                    <div id="endOfSoundControl1_4" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                </div>
+                <p>
+                    Depending on the target device, the result of sending or omitting any one of these is somewhat unpredictable
+                    - you must read the device documentation to be sure.
+                </p>
+                <p>
+                    (On the TrapKAT V3, there seems some confusion over whether the <span class="hilite">Bank</span> value is actually used.
+                    As such, I have left it in, although I believe it was only used <em>prior</em> to the V3 model.)
+                </p>
             </div>
 
             <div id="3_7_editingPadDetails">
                 <h2>Editing Pad Details</h2>
-            </div>
+                <p>
+                    As with kit editing, all pad editing is, unsurprisingly, done on the <span class="hilite">Kits &amp; Pads</span> tab.
+                    In this case the main part of the tab provides quick access to much of what is needed, specifically the first slot of each pad,
+                    with the <span class="hilite">Pad Details</span> and (V4 only) <span class="hilite">More Slots</span> sub-tabs
+                    providing less frequently accessed features.
+                    Pads can also be copied, pasted and swapped around using the <span class="hilite"><span class="u">E</span>dit</span> menu items.
+                </p>
+                <p>
+                    Whilst the <span class="hilite">Hihat Pa<span class="u">d</span>s</span> panel is considered part of kit editing,
+                    it should noted that selecting or deselecting a pad as a hihat pad causes it's flag 7 to be set or unset.
+                    However, whilst setting its flag 7 directly does not update the kit&apos;s set of hihat pads,
+                    the TrapKAT still acts the same way - the flag is what is used.
+                    This means you can have more than four hihat pads in a kit!
+                </p>
+                <p>
+                    (Note: the current editor behaviour is considered deficient.
+                    It is expected to act as follows:
+                    when flag 7 is set, if the pad is not in the set of hihat pads for the kit and there is a spare entry, it should be added, replacing any duplicate if need be;
+                    when flag 7 is cleared, if the pad is in the set of hihat pads for the kit, all instances should be removed from the set.
+                    This will mean that the set for the kit tracks the flag 7s until there are more pads flagged than fit the set.)
+                </p>
+                <p>
+                    A big, big change in the V4 TrapKAT is in the power of pad chaining.
+                    Not only has the number of pad slots (the actions a pad can trigger depending on its <span class="hilite"><span class="u">C</span>urve</span>)
+                    increased from six to sixteen but striking one pad can now also trigger that pad and another through <span class="hilite"><span class="u">L</span>ink To</span>.
+                </p>
+                <div id="PadtDetails">
+                    <div id="startOfPadDetails" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                    <div class="img-column" style="width: 39%;"><div>
+                        <img src="img/PadDetailsV3.png" alt="" />
+                        <br/><em>Pad Details tab (V3)</em>
+                    </div></div>
+                    <div class="img-column" style="width: 39%;"><div>
+                        <img src="img/PadDetailsV4.png" alt="" />
+                        <br/><em>Pad Details tab (V4)</em>
+                    </div></div>
+                    <div class="img-column" style="width: 19%;"><div>
+                        <img src="img/MoreSlots.png" alt="" />
+                        <br/><em>More Slots tab (V4)</em>
+                    </div></div>
+                    <div id="endOfPadDetails" style="clear: both; display: block; height: 0; overflow: hidden; visibility: hidden; width: 0;"></div>
+                </div>
+                <p>
+                    As noted earlier, 
+                        <span class="hilite"><span class="u">C</span>urve</span>,
+                        <span class="hilite"><span class="u">G</span>ate</span>,
+                        <span class="hilite">Cha<span class="u">n</span>nel</span>,
+                        <span class="hilite">Min Velocity</span> and
+                        <span class="hilite">Max Velocity</span>
+                    can be controlled at Kit level or Pad level.
+                    To enable the pad fields, the respective <span class="hilite">Kit Details</span> tab <span class="hilite">Various</span> checkbox must be <em>checked</em>.
+                </p>
+
+                </div>
 
             <div id="3_8_editingGlobalDetails">
                 <h2>Editing Global Details</h2>

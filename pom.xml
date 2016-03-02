@@ -10,11 +10,11 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
-		<scala-library.version>2.11.1</scala-library.version>
-		<scala.version.modules>2.11</scala.version.modules>
-		<scala-xml.version>1.0.2</scala-xml.version>
-		<scala-swing.version>1.0.1</scala-swing.version>
-		<jna.version>4.1.0</jna.version>
+		<scala-library.version>2.12.0-M3</scala-library.version>
+		<scala.version.modules>2.12.0-M3</scala.version.modules>
+		<scala-xml.version>1.0.5</scala-xml.version>
+		<scala-swing.version>2.0.0-M2</scala-swing.version>
+		<jna.version>4.2.1</jna.version>
 		<miglayout.version>4.2</miglayout.version>
 		<main.basedir>${basedir}/../..</main.basedir>
 		<assembly.mainClass>info.drealm.scala.jTrapKATEditor</assembly.mainClass>
@@ -29,8 +29,8 @@
 				<version>3.2.0</version>
 				<executions>
 					<execution>
-						<!-- this is so we don't end with a compile error in maven-compiler-plugin -->					
-						<phase>process-sources</phase> 					
+						<!-- this is so we don't end with a compile error in maven-compiler-plugin -->
+						<phase>process-sources</phase>
 						<goals>
 							<goal>compile</goal>
 							<goal>testCompile</goal>
@@ -43,7 +43,7 @@
 					<args>
 						<arg>-deprecation</arg>
 						<arg>-feature</arg>
-						<arg>-optimise</arg>
+						<arg>-Yopt:l:classpath</arg>
 					</args>
 				</configuration>
 			</plugin>
@@ -86,6 +86,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
+					<finalName>jTrapKATEditor</finalName>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>

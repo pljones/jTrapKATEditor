@@ -3,31 +3,11 @@
 	<classpathentry kind="src" path="src/main/scala"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/miglayout-4.0-swing.jar" sourcepath="P:/Source/java-lib/miglayout-4.0-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/miglayout-4.0-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/jna-4.1.0.jar" sourcepath="P:/Source/java-lib/jna-4.1.0-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/jna-4.1.0-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/jna-platform-4.1.0.jar" sourcepath="P:/Source/java-lib/jna-platform-4.1.0-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/jna-platform-4.1.0-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/scala-swing.jar" sourcepath="D:/Program Files/eclipse/plugins/org.scala-lang.modules.scala-swing.source_1.0.1.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/scala-swing-2.11.0-M7-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/scala-xml.jar" sourcepath="/usr/share/scala/src/scala-xml-2.11.0-M4-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/P:/Source/java-lib/scala-xml-2.11.0-M4-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="lib/jna-4.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/jna-platform-4.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/miglayout-4.0-swing.jar"/>
+	<classpathentry kind="lib" path="lib/scala-swing.jar"/>
+	<classpathentry kind="lib" path="lib/scala-xml.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

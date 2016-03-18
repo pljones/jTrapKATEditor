@@ -5,6 +5,8 @@ NOTSRC=$(shell cd src/main/resources && find -type f ! -name '*.scala')
 VPATH=src/main/scala:src/main/resources
 VERSION=$(shell date '+%y-%m%d-%H%M')
 
+all: jTrapKATEditor.jar
+
 jTrapKATEditor.jar: one-jar/main/main.jar one-jar/boot-manifest.mf one-jar/lib
 	rm -f jTrapKATEditor.jar
 	jar cmf one-jar/boot-manifest.mf jTrapKATEditor.jar -C one-jar/ .

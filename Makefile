@@ -1,5 +1,5 @@
 LIBDIR=$(shell cd lib && /bin/pwd)
-CLASSPATH=${LIBDIR}/scala-xml.jar:${LIBDIR}/miglayout-4.0-swing.jar:${LIBDIR}/jna-4.1.0.jar:${LIBDIR}/jna-platform-4.1.0.jar
+CLASSPATH=${LIBDIR}/scala-xml.jar:${LIBDIR}/scala-swing.jar:${LIBDIR}/miglayout-4.0-swing.jar:${LIBDIR}/jna-4.1.0.jar:${LIBDIR}/jna-platform-4.1.0.jar
 SRC=$(shell cd src/main/scala && find -type f -name '*.scala')
 NOTSRC=$(shell cd src/main/resources && find -type f ! -name '*.scala')
 VPATH=src/main/scala:src/main/resources

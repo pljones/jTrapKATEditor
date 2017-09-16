@@ -308,6 +308,20 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                     doKit(kitV4Dump.auxType, kitV4Dump.self.kitName, kitV4Dump.self))
 
             }
+            case kitV5Dump: model.KitV5Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
+                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {
+
+                def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
+                    if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
+                        EditHistory.clear()
+                        if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
+                        _currentAllMemory(_currentKitNumber) = getKit
+                        publish(new SelectedKitChanged)
+                    }
+                }
+                doKit(kitV5Dump.auxType, kitV5Dump.self.kitName, kitV5Dump.self)
+
+            }
             case otherwise => {
                 // Do nothing - should never happen if the form manages things correctly
             }

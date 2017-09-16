@@ -112,27 +112,27 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     def curve: Byte = _curve
     def curve_=(value: Byte): Unit = if (_curve != value) update(_curve = value) else {}
     def isKitCurve: Boolean = forall(p => p.curve == _curve)
-    def toKitCurve(): Unit = update(foreach (p => p.curve = _curve))
+    def toKitCurve(): Unit = update(foreach(p => p.curve = _curve))
 
     def gate: Byte = _gate
     def gate_=(value: Byte): Unit = if (_gate != value) update(_gate = value) else {}
     def isKitGate: Boolean = forall(p => p.gate == _gate)
-    def toKitGate(): Unit = update(foreach (p => p.gate = _gate))
-    
+    def toKitGate(): Unit = update(foreach(p => p.gate = _gate))
+
     def channel: Byte = _channel
     def channel_=(value: Byte): Unit = if (_channel != value) update(_channel = value) else {}
     def isKitChannel: Boolean = forall(p => p.channel == _channel)
-    def toKitChannel(): Unit = update(foreach (p => p.channel = _channel))
+    def toKitChannel(): Unit = update(foreach(p => p.channel = _channel))
 
     def minVelocity: Byte = _minVelocity
     def minVelocity_=(value: Byte): Unit = if (_minVelocity != value) update(_minVelocity = value) else {}
     def isKitMinVel: Boolean = forall(p => p.minVelocity == _minVelocity)
-    def toKitMinVel(): Unit = update(foreach (p => p.minVelocity = _minVelocity))
+    def toKitMinVel(): Unit = update(foreach(p => p.minVelocity = _minVelocity))
 
     def maxVelocity: Byte = _maxVelocity
     def maxVelocity_=(value: Byte): Unit = if (_maxVelocity != value) update(_maxVelocity = value) else {}
     def isKitMaxVel: Boolean = forall(p => p.maxVelocity == _maxVelocity)
-    def toKitMaxVel(): Unit = update(foreach (p => p.maxVelocity = _maxVelocity))
+    def toKitMaxVel(): Unit = update(foreach(p => p.maxVelocity = _maxVelocity))
 
     def fcFunction: Byte = _fcFunction
     def fcFunction_=(value: Byte): Unit = if (_fcFunction != value) update(_fcFunction = value) else {}
@@ -150,7 +150,6 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
         case newName if !newName.equals(kitName) => update(Array.copy(newName.toCharArray(), 0, _kitName, 0, _kitName.length))
         case _                                   => {}
     }
-
 
     def changed = _changed || _pads.changed || _soundControls.foldLeft(false)(_ || _.changed)
 }
@@ -182,7 +181,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
         }
 
         // set state to dirty if it isn't already
-        update({/*It's all been done*/})
+        update({ /*It's all been done*/ })
     }
 
     protected var _bank: Byte = 0
@@ -259,7 +258,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         }
 
         // set state to dirty if it isn't already
-        update({/*It's all been done*/})
+        update({ /*It's all been done*/ })
     }
 
     override def _deserializeKit(in: InputStream): Unit = {
@@ -276,5 +275,38 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         _serializeFC(out)
 
         _soundControls foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
+    }
+}
+
+class KitV5 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
+    private[this] var _unknown = Array.fill[Byte](16)(0)
+    Console.println("Created a new KitV5")
+
+    def this() = this(new PadV4Seq, (Stream.continually(new SoundControl).take(4)).toArray)
+    def this(in: InputStream) = {
+        this(new PadV4Seq(in), new Array[SoundControl](4))
+        _deserializeKit(in)
+    }
+
+    override def _deserializeKit(in: InputStream): Unit = {
+        Console.println("Deserializing a KitV5")
+        _deserialize(in)
+        _deserializeHH(in)
+        _deserializeFC(in)
+
+        (0 to 3) foreach (x => _soundControls(x) = new SoundControl(in))
+
+        in.read(_unknown, 0, 16)
+        Console.println("Done deserializing a KitV5")
+    }
+
+    override def serialize(out: OutputStream, saving: Boolean): Unit = {
+        _serialize(out, saving)
+        _serializeHH(out)
+        _serializeFC(out)
+
+        _soundControls foreach (x => if (saving) x.save(out) else x.serialize(out, saving))
+
+        out.write(_unknown, 0, 16)
     }
 }

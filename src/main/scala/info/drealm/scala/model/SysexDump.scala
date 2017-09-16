@@ -186,6 +186,7 @@ object TrapKATSysexDump {
                 case 2108    => new GlobalV4Dump(in)
                 case 746     => new KitV3Dump(in)
                 case 1388    => new KitV4Dump(in)
+                case 1420    => new KitV5Dump(in)
                 // Unknown!
                 case unknown => throw new IllegalArgumentException(f"${file.getAbsolutePath()} has unknown length of ${in.available()}.")
             }
@@ -217,6 +218,7 @@ object TrapKATSysexDump {
         val trapKATSysexDump: TrapKATSysexDump[_] = data match {
             case kitV3: KitV3 => new KitV3Dump(kitV3, kitNumber.toByte)
             case kitV4: KitV4 => new KitV4Dump(kitV4, kitNumber.toByte)
+            case kitV5: KitV5 => new KitV5Dump(kitV5, kitNumber.toByte)
             // Unknown!
             case unknown      => throw new IllegalArgumentException(f"data has unknown type of ${data.getClass().getSimpleName()}.")
         }
@@ -265,6 +267,14 @@ class KitV3Dump(kitV3: KitV3, auxType: Byte) extends TrapKATSysexDump[KitV3](kit
 
 class KitV4Dump(kitV4: KitV4, auxType: Byte) extends TrapKATSysexDump[KitV4](kitV4, in => { val self = new KitV4(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {
     def this(in: InputStream) = { this(null.asInstanceOf[KitV4], 0); deserialize(in) }
+    override protected def writeSysexData(out: OutputStream, saving: Boolean): Unit = {
+        _self.serialize(out, saving)
+        _self.serializeKitName(out)
+    }
+}
+
+class KitV5Dump(kitV5: KitV5, auxType: Byte) extends TrapKATSysexDump[KitV5](kitV5, in => { val self = new KitV5(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {
+    def this(in: InputStream) = { this(null.asInstanceOf[KitV5], 0); deserialize(in) }
     override protected def writeSysexData(out: OutputStream, saving: Boolean): Unit = {
         _self.serialize(out, saving)
         _self.serializeKitName(out)

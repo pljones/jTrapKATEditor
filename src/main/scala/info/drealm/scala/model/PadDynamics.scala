@@ -42,8 +42,11 @@ class PadDynamics(idx: Int, padDynamicsContainer: PadDynamicsContainer) {
     def thresholdActual_=(value: Byte): Unit = padDynamicsContainer.thresholdActual(idx, value)
 }
 
-protected[model] class PadDynamicsContainer(_padLevels: Array[Byte], _userMargin: Array[Byte], _internalMargin: Array[Byte], _thresholdManual: Array[Byte], _thresholdActual: Array[Byte])
+protected[model] class PadDynamicsContainer(_padLevels: Array[Byte], __userMargin: Array[Byte], _internalMargin: Array[Byte], _thresholdManual: Array[Byte], _thresholdActual: Array[Byte])
     extends DataItem with Seq[PadDynamics] {
+    
+    // Dirty hack to work around loss of User Margin in V5 Global Dump
+    val _userMargin: Array[Byte] = if (__userMargin.length == 0) new Array[Byte](25) else __userMargin
 
     def lowLevel(idx: Int): Byte = _padLevels.apply(idx * 2)
     def lowLevel(idx: Int, value: Byte): Unit = if (_padLevels.apply(idx * 2) != value) update(_padLevels.update(idx * 2, value)) else {}

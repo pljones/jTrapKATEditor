@@ -184,6 +184,7 @@ object TrapKATSysexDump {
                 case 35570   => new AllMemoryV4Dump(in)
                 case 2620    => new GlobalV3Dump(in)
                 case 2108    => new GlobalV4Dump(in)
+                case 1596    => new GlobalV5Dump(in)
                 case 746     => new KitV3Dump(in)
                 case 1388    => new KitV4Dump(in)
                 case 1420    => new KitV5Dump(in)
@@ -202,6 +203,7 @@ object TrapKATSysexDump {
             case allMemoryV4: AllMemoryV4 => new AllMemoryV4Dump(allMemoryV4)
             case globalV3: GlobalV3       => new GlobalV3Dump(globalV3)
             case globalV4: GlobalV4       => new GlobalV4Dump(globalV4)
+            case globalV5: GlobalV5       => new GlobalV5Dump(globalV5)
             // Unknown!
             case unknown                  => throw new IllegalArgumentException(f"data has unknown type of ${data.getClass().getSimpleName()}.")
         }
@@ -255,6 +257,10 @@ class GlobalV3Dump(globalV3: GlobalV3) extends TrapKATSysexDump[GlobalV3](global
 
 class GlobalV4Dump(globalV4: GlobalV4) extends TrapKATSysexDump[GlobalV4](globalV4, in => new GlobalV4(in), DumpType.Global, 0) {
     def this(in: InputStream) = { this(null.asInstanceOf[GlobalV4]); deserialize(in) }
+}
+
+class GlobalV5Dump(globalV5: GlobalV5) extends TrapKATSysexDump[GlobalV5](globalV5, in => new GlobalV5(in), DumpType.Global, 0) {
+    def this(in: InputStream) = { this(null.asInstanceOf[GlobalV5]); deserialize(in) }
 }
 
 class KitV3Dump(kitV3: KitV3, auxType: Byte) extends TrapKATSysexDump[KitV3](kitV3, in => { val self = new KitV3(in); self.deserializeKitName(in); self }, DumpType.Kit, auxType) {

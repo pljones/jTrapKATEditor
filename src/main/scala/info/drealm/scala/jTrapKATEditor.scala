@@ -60,6 +60,11 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         case am: model.AllMemoryV3 => fV3
         case am: model.AllMemoryV4 => fV4
     }
+    def doV3V4V5[T](fV3: => T, fV4: => T, fV5: => T): T = _currentAllMemory match {
+        case am: model.AllMemoryV3 => fV3
+        case am: model.AllMemoryV4 => fV4
+//        case am: model.AllMemoryV5 => fV5
+    }
     def allMemoryChangedBy(source: Component) = publish(new CurrentAllMemoryChanged(source))
 
     def currentGlobal = _currentAllMemory.global
@@ -251,6 +256,12 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 _currentAllMemory = allMemoryV4Dump.self
                 publish(new SelectedAllMemoryChanged)
             }
+            //            case allMemoryV5Dump: model.AllMemoryV5Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
+            //                EditHistory.clear()
+            //                _currentType = model.DumpType.AllMemory
+            //                _currentAllMemory = allMemoryV5Dump.self
+            //                publish(new SelectedAllMemoryChanged)
+            //            }
             case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
                 doV3V4({
                     EditHistory.clear()
@@ -276,6 +287,12 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                     _currentAllMemory.global = globalV4Dump.self
                     publish(new SelectedGlobalChanged)
                 })
+            }
+            case globalV5Dump: model.GlobalV5Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
+                EditHistory.clear()
+                if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
+                _currentAllMemory.global = globalV5Dump.self
+                publish(new SelectedGlobalChanged)
             }
             case kitV3Dump: model.KitV3Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
                 frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {

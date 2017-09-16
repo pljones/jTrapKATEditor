@@ -27,7 +27,7 @@ package info.drealm.scala.model
 import java.io._
 import collection.mutable
 
-abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
+abstract class Global[TPad <: Pad] protected (p: TPad, _u1: Array[Byte], _u3: Array[Byte], _um: Array[Byte]) extends DataItem {
     // 21 bytes
     private[this] var _beeperStatus: Byte = 1
     private[this] var _bcFunction: Byte = 0
@@ -72,13 +72,15 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     private[this] var _ttMeter: Byte = 0 // Tap tempo meter (quarter, half, eighth, etc.)
     private[this] var _hearSoundStatus: Byte = 0 // (1 -> on)
 
-    protected val _unused1: Array[Byte]
-
+    protected[Global] val _unused1: Array[Byte] = _u1
     protected[Global] val _thresholdManual: Array[Byte] = new Array[Byte](25)
+
     protected[Global] val _unused2: Array[Byte] = new Array[Byte](231)
     protected[Global] val _internalMargin: Array[Byte] = new Array[Byte](25)
-    protected[Global] val _unused3: Array[Byte] = new Array[Byte](231)
-    protected[Global] val _userMargin: Array[Byte] = new Array[Byte](25)
+
+    protected[Global] val _unused3: Array[Byte] = _u3
+    protected [Global]val _userMargin: Array[Byte] = _um
+
     protected[Global] val _unused4: Array[Byte] = new Array[Byte](231)
     protected[Global] val _thresholdActual: Array[Byte] = new Array[Byte](25)
 
@@ -312,7 +314,7 @@ abstract class Global[TPad <: Pad] protected (p: TPad) extends DataItem {
     def changed = _changed || _ttPadData.changed || _padDynamics.changed
 }
 
-class GlobalV3 private (p: PadV3) extends Global[PadV3](p) {
+class GlobalV3 private (p: PadV3) extends Global[PadV3](p, new Array[Byte](160), new Array[Byte](231), new Array[Byte](25)) {
     def this() = this(new PadV3)
     def this(in: InputStream) = {
         this()
@@ -337,10 +339,9 @@ class GlobalV3 private (p: PadV3) extends Global[PadV3](p) {
 
     private[this] val _currentDefaults: Array[Byte] = new Array[Byte](128)
     private[this] val _userDefaults: Array[Byte] = new Array[Byte](128)
-    protected val _unused1: Array[Byte] = new Array[Byte](160)
 }
 
-class GlobalV4 private (p: PadV4) extends Global[PadV4](p) {
+class GlobalV4 private (p: PadV4) extends Global[PadV4](p, new Array[Byte](149), new Array[Byte](231), new Array[Byte](25)) {
     def this() = this(new PadV4(0.toByte))
     def this(in: InputStream) = {
         this()
@@ -351,6 +352,12 @@ class GlobalV4 private (p: PadV4) extends Global[PadV4](p) {
         from(globalV3)
         //_unused1 left as default
     }
+}
 
-    protected val _unused1: Array[Byte] = new Array[Byte](149)
+class GlobalV5 private (p: PadV4) extends Global[PadV4](p, new Array[Byte](149), new Array[Byte](0), new Array[Byte](0)) {
+    def this() = this(new PadV4(0.toByte))
+    def this(in: InputStream) = {
+        this()
+        deserialize(in)
+    }
 }

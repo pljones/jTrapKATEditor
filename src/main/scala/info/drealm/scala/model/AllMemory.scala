@@ -106,9 +106,16 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
             x => new KitV3(allMemoryV4(x).asInstanceOf[KitV4]),
             (i, x) => x.kitName = allMemoryV4(i).kitName,
             () => new Array(540),
-            () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4])
-        )
-        update({/*It's all been done*/})
+            () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4]))
+        update({ /*It's all been done*/ })
+    }
+    def this(allMemoryV5: AllMemoryV5) = {
+        this(
+            x => new KitV3(allMemoryV5(x).asInstanceOf[KitV5]),
+            (i, x) => x.kitName = allMemoryV5(i).kitName,
+            () => new Array(540),
+            () => new GlobalV3(allMemoryV5.global.asInstanceOf[GlobalV5]))
+        update({ /*It's all been done*/ })
     }
 }
 
@@ -124,9 +131,16 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
             x => new KitV4(allMemoryV3(x).asInstanceOf[KitV3]),
             (i, x) => x.kitName = allMemoryV3(i).kitName,
             () => new Array(195),
-            () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3])
-        )
-        update({/*It's all been done*/})
+            () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3]))
+        update({ /*It's all been done*/ })
+    }
+    def this(allMemoryV5: AllMemoryV5) = {
+        this(
+            x => new KitV4(allMemoryV5(x).asInstanceOf[KitV5]),
+            (i, x) => x.kitName = allMemoryV5(i).kitName,
+            () => new Array(195),
+            () => new GlobalV4(allMemoryV5.global.asInstanceOf[GlobalV5]))
+        update({ /*It's all been done*/ })
     }
 }
 
@@ -137,4 +151,20 @@ class AllMemoryV5 private (k: Int => KitV5, kn: (Int, Kit[_]) => Unit, u: () => 
         (i, x) => x.deserializeKitName(in),
         () => Stream.continually(in.read().toByte).take(39).toArray,
         () => new GlobalV5(in))
+    def this(allMemoryV3: AllMemoryV3) = {
+        this(
+            x => new KitV5(allMemoryV3(x).asInstanceOf[KitV3]),
+            (i, x) => x.kitName = allMemoryV3(i).kitName,
+            () => new Array(39),
+            () => new GlobalV5(allMemoryV3.global.asInstanceOf[GlobalV3]))
+        update({ /*It's all been done*/ })
+    }
+    def this(allMemoryV4: AllMemoryV4) = {
+        this(
+            x => new KitV5(allMemoryV4(x).asInstanceOf[KitV4]),
+            (i, x) => x.kitName = allMemoryV4(i).kitName,
+            () => new Array(39),
+            () => new GlobalV5(allMemoryV4.global.asInstanceOf[GlobalV4]))
+        update({ /*It's all been done*/ })
+    }
 }

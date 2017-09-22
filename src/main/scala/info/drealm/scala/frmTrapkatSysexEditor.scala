@@ -73,7 +73,7 @@ object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with A
     private[this] def getTitle() = L.G("MainProgramTitle",
         L.G("ApplicationProductName"),
         if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
-        jTrapKATEditor.doV3V4(L.G("V3"), L.G("V4")),
+        jTrapKATEditor.doV3V4V5(L.G("V3"), L.G("V4"), L.G("V5")),
         if (jTrapKATEditor.currentAllMemory.changed) "[*]" else "")
 
     def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(tpnMain,

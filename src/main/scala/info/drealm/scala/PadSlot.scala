@@ -208,7 +208,7 @@ class PadSlotComboBoxV3(name: String, tooltip: String, stepped: Boolean = false)
 class PadSlotComboBoxV4(name: String, tooltip: String, stepped: Boolean = false) extends PadSlotComboBoxParent(PadSlotV4, name + "V4", tooltip, stepped)
 
 abstract class PadSlotComboBoxV3V4(name: String, ttRoot: String, label: swing.Label, stepped: Boolean = false)
-        extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
+    extends V3V4ComboBox[String, PadSlotComboBoxParent, PadSlotComboBoxV3, PadSlotComboBoxV4] {
 
     val cbxV3: PadSlotComboBoxV3 = new PadSlotComboBoxV3(name, L.G(s"tt${ttRoot}V3"), stepped)
     val cbxV4: PadSlotComboBoxV4 = new PadSlotComboBoxV4(name, L.G(s"tt${ttRoot}V4"), stepped)
@@ -306,10 +306,10 @@ class Slot(slot: Int) {
         protected def _slot: Int = slot - 1
         protected def _padActionName = "Slot"
 
-        private[this] def v3v4(f: () => Unit): Unit = jTrapKATEditor.doV3V4(if (slot <= 6) f(), f())
+        private[this] def v3v4(f: () => Unit): Unit = jTrapKATEditor.doV3V4V5(if (slot <= 6) f(), f(), f())
         override protected def setValue = v3v4(super.setValue)
         override protected def setDisplay = v3v4(super.setDisplay)
-        override protected def _isUIChange = jTrapKATEditor.doV3V4(if (slot <= 6) super._isUIChange else false, super._isUIChange)
+        override protected def _isUIChange = jTrapKATEditor.doV3V4V5(if (slot <= 6) super._isUIChange else false, super._isUIChange, super._isUIChange)
         override protected def _uiReaction = v3v4(super._uiReaction)
 
         setDisplay()

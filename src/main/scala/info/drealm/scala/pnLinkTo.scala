@@ -65,10 +65,10 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
 
         protected def _chg() = jTrapKATEditor.padChangedBy(this)
 
-        override protected def setDisplay = jTrapKATEditor.doV3V4({}, super.setDisplay())
-        override protected def setValue = jTrapKATEditor.doV3V4({}, super.setValue())
-        override protected def _isUIChange = jTrapKATEditor.doV3V4(false, super._isUIChange)
-        override protected def _uiReaction = jTrapKATEditor.doV3V4({}, super._uiReaction)
+        override protected def setDisplay = jTrapKATEditor.doV3V4V5({}, super.setDisplay(), super.setDisplay())
+        override protected def setValue = jTrapKATEditor.doV3V4V5({}, super.setValue(), super.setValue())
+        override protected def _isUIChange = jTrapKATEditor.doV3V4V5(false, super._isUIChange, super._isUIChange)
+        override protected def _uiReaction = jTrapKATEditor.doV3V4V5({}, super._uiReaction, super._uiReaction)
 
         private[this] def setAllKitLinks(pad: Int): Unit = ((0 to 28) filter (x => x != pad) map (x => x match {
             case 0           => L.G("cbxLinkToOff")
@@ -76,22 +76,24 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
             case x           => L.G(s"lbPad${x}")
         }) zip (0 to 27)) foreach (x => linkTo(x._2) = x._1)
 
+        private[this] def reactionsV4V5 = setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)
         reactions += {
-            case e: SelectedPadChanged       => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
-            case e: SelectedKitChanged       => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
-            case e: SelectedAllMemoryChanged => jTrapKATEditor.doV3V4({}, setAllKitLinks(jTrapKATEditor.currentPadNumber + 1))
+            case e: SelectedPadChanged       => jTrapKATEditor.doV3V4V5({}, reactionsV4V5, reactionsV4V5)
+            case e: SelectedKitChanged       => jTrapKATEditor.doV3V4V5({}, reactionsV4V5, reactionsV4V5)
+            case e: SelectedAllMemoryChanged => jTrapKATEditor.doV3V4V5({}, reactionsV4V5, reactionsV4V5)
         }
 
-        jTrapKATEditor.doV3V4({}, {
+        private[this] def initV4V5 = {
             setAllKitLinks(jTrapKATEditor.currentPadNumber + 1)
             setDisplay()
-        })
+        }
+        jTrapKATEditor.doV3V4V5({}, initV4V5, initV4V5)
     }
     contents += (cbxLinkTo, "cell 1 0")
 
     listenTo(jTrapKATEditor)
 
     reactions += {
-        case e: SelectedAllMemoryChanged => visible = jTrapKATEditor.doV3V4(false, true)
+        case e: SelectedAllMemoryChanged => visible = jTrapKATEditor.doV3V4V5(false, true, true)
     }
 }

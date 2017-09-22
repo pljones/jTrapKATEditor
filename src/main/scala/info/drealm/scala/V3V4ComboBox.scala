@@ -34,7 +34,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     val cbxV3: C1
     val cbxV4: C2
     val lbl: Label
-    protected def cbx = jTrapKATEditor.doV3V4(cbxV3, cbxV4)
+    protected def cbx = jTrapKATEditor.doV3V4V5(cbxV3, cbxV4, cbxV4)
     private[this] def peer = cbx.peer.asInstanceOf[javax.swing.JComboBox[_]]
 
     private[this] def selectionV3 = cbxV3.selection
@@ -59,13 +59,13 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         }
     }
 
-    // What we are here for is to handle 
+    // What we are here for is to handle
     private[this] var _visible: Boolean = true
     def v3v4visible: Boolean = _visible && cbx.visible
     def v3v4visible_=(value: Boolean): Unit = {
         _visible = value
-        cbxV3.visible = jTrapKATEditor.doV3V4(_visible, false)
-        cbxV4.visible = jTrapKATEditor.doV3V4(false, _visible)
+        cbxV3.visible = jTrapKATEditor.doV3V4V5(_visible, false, false)
+        cbxV4.visible = jTrapKATEditor.doV3V4V5(false, _visible, _visible)
     }
 
     def enabled: Boolean = cbx.enabled
@@ -87,7 +87,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
         }
     }
 
-    protected final def init() = jTrapKATEditor.doV3V4(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3))
+    protected final def init() = jTrapKATEditor.doV3V4V5(allMemoryChanged(cbxV3, cbxV4), allMemoryChanged(cbxV4, cbxV3), allMemoryChanged(cbxV4, cbxV3))
 
     listenTo(jTrapKATEditor)
 

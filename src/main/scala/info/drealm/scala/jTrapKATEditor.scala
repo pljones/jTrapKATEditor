@@ -56,14 +56,10 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private[this] var _currentAllMemory: model.AllMemory = new model.AllMemoryV4
     def currentAllMemory = _currentAllMemory
-    def doV3V4[T](fV3: => T, fV4: => T): T = _currentAllMemory match {
-        case am: model.AllMemoryV3 => fV3
-        case am: model.AllMemoryV4 => fV4
-    }
     def doV3V4V5[T](fV3: => T, fV4: => T, fV5: => T): T = _currentAllMemory match {
         case am: model.AllMemoryV3 => fV3
         case am: model.AllMemoryV4 => fV4
-//        case am: model.AllMemoryV5 => fV5
+        case am: model.AllMemoryV5 => fV5
     }
     def allMemoryChangedBy(source: Component) = publish(new CurrentAllMemoryChanged(source))
 
@@ -109,22 +105,24 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private[this] var _currentSoundControl = 0
     def currentSoundControlNumber = _currentSoundControl
-    def currentSoundControlNumber_=(value: Int) = doV3V4({}, if (_currentSoundControl != value) { _currentSoundControl = value; publish(new SelectedSoundControlChanged) })
+    def currentSoundControlNumber_=(value: Int) = {
+        def v3 = {}
+        def v4v5 = { if (_currentSoundControl != value) { _currentSoundControl = value; publish(new SelectedSoundControlChanged) } }
+        doV3V4V5(v3, v4v5, v4v5)
+    }
     def sc = currentKit.soundControls(_currentSoundControl)
     def soundControlChangedBy(source: Component) = {
         publish(new CurrentSoundControlChanged(source))
         kitChangedBy(source)
     }
 
-    def scBank: Byte = currentKitV3.bank
-    def scBank_=(value: Byte) = currentKitV3.bank = value
+    def scBank: Byte = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3].bank
+    def scBank_=(value: Byte) = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3].bank = value
 
     private[this] var _currentPadNumber: Int = 0
     def currentPadNumber: Int = _currentPadNumber
     def currentPadNumber_=(value: Int): Unit = { _currentPadNumber = value; publish(new SelectedPadChanged) }
     def currentPad: model.Pad = currentKit(_currentPadNumber)
-    def currentPadV3: model.PadV3 = currentKitV3(_currentPadNumber)
-    def currentPadV4: model.PadV4 = currentKitV4(_currentPadNumber)
     def padChangedBy(source: Component) = {
         publish(new CurrentPadChanged(source))
         kitChangedBy(source)

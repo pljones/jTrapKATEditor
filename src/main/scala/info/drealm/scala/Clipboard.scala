@@ -31,6 +31,8 @@ import info.drealm.scala.{ Localization => L }
 object Clipboard extends ClipboardOwner with Publisher {
 
     def lostOwnership(clipboard: Clipboard, contents: Transferable) = {}
+    def currentPadV3: model.PadV3 = jTrapKATEditor.currentPad.asInstanceOf[model.PadV3]
+    def currentPadV4: model.PadV4 = jTrapKATEditor.currentPad.asInstanceOf[model.PadV4]
 
     private[this] val clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
 
@@ -140,9 +142,11 @@ object Clipboard extends ClipboardOwner with Publisher {
     private[this] def getContentKitV4() = clipboard.getContents(this).getTransferData(dfKitV4).asInstanceOf[CopyKitV4]
     private[this] def getContentSwapKits() = clipboard.getContents(this).getTransferData(dfSwapKits).asInstanceOf[SwapKits]
 
-    def copyPad(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
-        CopyPadV3(jTrapKATEditor.currentPadV3, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty),
-        CopyPadV4(jTrapKATEditor.currentPadV4, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty, jTrapKATEditor.currentPadNumber.toByte)), this)
+    def copyPad(source: Component) = {
+        def v3 = CopyPadV3(currentPadV3, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty)
+        def v4v5 = CopyPadV4(currentPadV4, !jTrapKATEditor.currentKit.hhPadNos((jTrapKATEditor.currentPadNumber + 1).toByte).isEmpty, jTrapKATEditor.currentPadNumber.toByte)
+        clipboard.setContents(jTrapKATEditor.doV3V4V5(v3, v4v5, v4v5), this)
+    }
 
     def pastePad(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
         case Some(pad) if (pad == dfPadV3 || pad == dfPadV4) && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentPad, s"Pad ${jTrapKATEditor.currentPadNumber + 1}") => {
@@ -250,16 +254,16 @@ object Clipboard extends ClipboardOwner with Publisher {
         val padV4 = padV4Clip.pad
         val hhPad = padV4Clip.hhPad
         val padNoWas = (padV4Clip.padNoWas + 1).toByte
-        padV4.flags = ((if (hhPad) 0x80 else 0) | padV4.flags).toByte
-        if (pasteIfVarious(padV4)) jTrapKATEditor.doV3V4(if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3"))) {
+        def v3 = if (okayToConvert(L.G("Pad"), L.G("V4"), L.G("V3"))) {
             // v4 -> v3
             val padV3 = new model.PadV3(padV4)
             EditHistory.add(new PastePadHistoryAction(source, padV3))
             setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV3)
-        }, {
-            // v4 -> v4
+        }
+        def v4v5 = {
+            // v4 (pad!) -> v4
             def padName(p: Byte, l: Byte) = if (p == l) L.G("PastePadV4NotLinked") else L.G("PastePadV4Linked", s"${l}")
-            val linkTo = jTrapKATEditor.currentPadV4.linkTo
+            val linkTo = currentPadV4.linkTo
             val padNoIs = (jTrapKATEditor.currentPadNumber + 1).toByte
 
             if ((padNoIs != linkTo || padNoWas != padV4.linkTo) && padNoIs != padV4.linkTo) {
@@ -282,7 +286,9 @@ object Clipboard extends ClipboardOwner with Publisher {
                 setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
             }
 
-        })
+        }
+        padV4.flags = ((if (hhPad) 0x80 else 0) | padV4.flags).toByte
+        if (pasteIfVarious(padV4)) jTrapKATEditor.doV3V4V5(v3, v4v5, v4v5)
 
     }
 

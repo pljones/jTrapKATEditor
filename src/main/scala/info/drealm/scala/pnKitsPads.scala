@@ -520,7 +520,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnSoundControl"
 
                 protected def _isUIChange = true
-                protected def _uiReaction = visible = jTrapKATEditor.doV3V4(false, true)
+                protected def _uiReaction = visible = jTrapKATEditor.doV3V4V5(false, true, true)
 
                 private[this] val lblSoundControl = new Label(L.G("lblSoundControl"))
                 contents += (lblSoundControl, "cell 0 0,alignx right")
@@ -555,12 +555,12 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                         case _                   => {}
                     }
                 })
-                jTrapKATEditor.doV3V4({
+                jTrapKATEditor.doV3V4V5({
                     Focus.findInComponent(pnKitDetails, "spnBank") match {
                         case Some(spn: Spinner) => spn.enabled = !isOff
                         case _                  => {}
                     }
-                }, {})
+                }, {}, {})
             }
 
             //_name, _ini, _min, _max, _getModel, _setModel, ?_meansOff?, ?_offMeans?, ?_ckbCallback
@@ -578,8 +578,11 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     _.soundControls(_).bankLSB, _.soundControls(_).bankLSB = _,
                     Some(_ >= 128), Some(p => if (p) 128 else 0), None),
                 ("Bank", 0, 0, 127,
-                    (kit, sc) => { jTrapKATEditor.doV3V4(kit.asInstanceOf[model.KitV3].bank, 0) }, (kit, sc, value) => jTrapKATEditor.doV3V4(kit.asInstanceOf[model.KitV3].bank = value, {}),
-                    jTrapKATEditor.doV3V4(Some(_ >= 128), None), jTrapKATEditor.doV3V4(Some(p => if (p) 128 else 0), None), None),
+                    (kit, sc) => jTrapKATEditor.doV3V4V5(kit.asInstanceOf[model.KitV3].bank, 0, 0),
+                    (kit, sc, value) => jTrapKATEditor.doV3V4V5(kit.asInstanceOf[model.KitV3].bank= value, {}, {}),
+                    jTrapKATEditor.doV3V4V5(Some(_ >= 128), None, None),
+                    jTrapKATEditor.doV3V4V5(Some(p => if (p) 128 else 0), None, None),
+                    None),
                 ("Volume", 127, 0, 127,
                     _.soundControls(_).volume, _.soundControls(_).volume = _,
                     Some(_ >= 128), Some(p => if (p) 128 else 127), None)
@@ -653,7 +656,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     case _                   => Console.println("ckbPrgChg not found")
                 }
                 Seq("lbl", "spn", "ckb") foreach (x => Focus.findInComponent(this, s"${x}Bank") match {
-                    case Some(cp) => cp.visible = jTrapKATEditor.doV3V4(true, false)
+                    case Some(cp) => cp.visible = jTrapKATEditor.doV3V4V5(true, false, false)
                     case _        => {}
                 })
             }
@@ -676,7 +679,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
         listenTo(jTrapKATEditor)
 
-        protected def _isUIChange = pages.length != jTrapKATEditor.doV3V4(2, 3)
+        protected def _isUIChange = pages.length != jTrapKATEditor.doV3V4V5(2, 3, 3)
         protected def _uiReaction = {
             val seln = if (selection.index < 0) null else selection.page
             while (pages.length > 0) {
@@ -684,10 +687,10 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 pages.runCount
             }
             pages += tpnPadDetails
-            jTrapKATEditor.doV3V4({}, pages += tpnMoreSlots)
+            jTrapKATEditor.doV3V4V5({}, pages += tpnMoreSlots, pages += tpnMoreSlots)
             pages += tpnKitDetails
 
-            if (seln != null) selection.page = jTrapKATEditor.doV3V4(if (seln == tpnMoreSlots) tpnPadDetails else seln, seln)
+            if (seln != null) selection.page = jTrapKATEditor.doV3V4V5(if (seln == tpnMoreSlots) tpnPadDetails else seln, seln, seln)
         }
 
         setDisplay()

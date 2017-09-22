@@ -91,7 +91,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
     peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((25 to 28) flatMap { n => Seq(s"cbxPad${n}V3", s"cbxPad${n}V4") }) ++ ((1 to 4) map (x => s"cbxHH${x}"))) {
         override def getDefaultComponent(pn: java.awt.Container): java.awt.Component = jTrapKATEditor.currentPadNumber match {
             case x if x > 23 => {
-                val _defaultCp = s"cbxPad${jTrapKATEditor.currentPadNumber + 1}${jTrapKATEditor.doV3V4("V3", "V4")}"
+                val _defaultCp = s"cbxPad${jTrapKATEditor.currentPadNumber + 1}${jTrapKATEditor.doV3V4V5("V3", "V4", "V4")}"
                 if (containerValid(pn)) stepBy(getPeer(_defaultCp), _ + 1, true) else null
             }
             case _ => getFirstComponent(pn)

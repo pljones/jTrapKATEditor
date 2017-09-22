@@ -38,8 +38,7 @@ object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][gro
             List(0, 0, 18, 19, 20, 21, 0, 0),
             List(0, 17, 6, 7, 8, 9, 22, 0),
             List(16, 5, 1, 2, 3, 4, 10, 23),
-            List(15, 0, 11, 12, 13, 14, 0, 24)
-        );
+            List(15, 0, 11, 12, 13, 14, 0, 24));
         col <- (0 to 7) zip row._2;
         if col._2 != 0
     } yield (s"cell ${col._1} ${row._1}", col._2)) foreach { pad =>
@@ -51,7 +50,7 @@ object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][gro
     peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((1 to 24) flatMap { n => Seq(s"cbxPad${n}V3", s"cbxPad${n}V4") })) {
         override def getDefaultComponent(pn: java.awt.Container): java.awt.Component = jTrapKATEditor.currentPadNumber match {
             case x if x < 24 => {
-                val _defaultCp = s"cbxPad${jTrapKATEditor.currentPadNumber + 1}${jTrapKATEditor.doV3V4("V3", "V4")}"
+                val _defaultCp = s"cbxPad${jTrapKATEditor.currentPadNumber + 1}${jTrapKATEditor.doV3V4V5("V3", "V4", "V4")}"
                 if (containerValid(pn)) stepBy(getPeer(_defaultCp), _ + 1, true) else null
             }
             case _ => null

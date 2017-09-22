@@ -1,5 +1,5 @@
 False
-16-0302-2023
-http://pljones.github.io/jTrapKATEditor/releases/v16-0302-2023.html
+17-0922-2302
+http://pljones.github.io/jTrapKATEditor/releases/v17-0922-2302.html
 Please read the full version notice carefully before using.
-Foot Controller and Sound Control updates.
+Support for TrapKAT V5; fixes for kitname handling

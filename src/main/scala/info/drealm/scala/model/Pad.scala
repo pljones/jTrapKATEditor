@@ -97,7 +97,7 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
             _maxVelocity == thatPad.maxVelocity &&
             _flags == thatPad.flags
     }
-    
+
     def changed = _changed
 }
 
@@ -145,7 +145,7 @@ class PadV3 private (f: => Array[Byte]) extends Pad(f) {
         }
 
         // set state to dirty
-        update({/*It's all been done*/})
+        update({ /*It's all been done*/ })
     }
 
     override def canEqual(that: Any): Boolean = that.isInstanceOf[PadV3]
@@ -179,8 +179,14 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
         }
 
         // set state to dirty
-        update({/*It's all been done*/})
+        update({ /*It's all been done*/ })
     }
+
+    def this(padV4: PadV4) = {
+        this(padV4.take(16).toArray, padV4.linkTo)
+        from(padV4)
+    }
+    override def clone = new PadV4(this)
 
     override def deserialize(in: InputStream): Unit = {
         super.deserialize(in)
@@ -228,17 +234,21 @@ abstract class PadSeq[TPad <: Pad] protected (f: Int => TPad)(implicit TPad: Man
 class PadV3Seq private (f: (Int => PadV3)) extends PadSeq[PadV3](f) {
     def this() = this(x => new PadV3)
     def this(in: InputStream) = this(x => new PadV3(in))
-    def this(padV4seq: Seq[PadV4]) = {
+    def this(padV4seq: Array[PadV4]) = {
         this(x => new PadV3(padV4seq(x)))
-        update({/*It's all been done*/})
+        update({ /*It's all been done*/ })
     }
 }
 
 class PadV4Seq private (f: (Int => PadV4)) extends PadSeq[PadV4](f) {
     def this() = this(x => new PadV4((x + 1).toByte))
     def this(in: InputStream) = this(x => new PadV4(in))
-    def this(padV3seq: Seq[PadV3]) = {
+    def this(padV3seq: Array[PadV3]) = {
         this(x => new PadV4(padV3seq(x), (x + 1).toByte))
-        update({/*It's all been done*/})
+        update({ /*It's all been done*/ })
+    }
+    def this(padV4seq: Array[PadV4]) = {
+        this(x => padV4seq(x).clone)
+        update({ /*It's all been done*/ })
     }
 }

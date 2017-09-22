@@ -162,7 +162,7 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
     }
 
     def this(kitV4: KitV4) = {
-        this(new PadV3Seq(kitV4), Seq(kitV4.soundControls(0).clone).toArray)
+        this(new PadV3Seq(kitV4.toArray), Seq(kitV4.soundControls(0).clone).toArray)
         from(kitV4)
 
         _bank = kitV4.soundControls(0).bankLSB
@@ -170,6 +170,29 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 
         // Curve needs fixing
         kitV4.curve match {
+            case 21 => // Alternating
+                // At kit level, we cannot resolve this.
+                // Set to Curve 1 and let the pads sort themselves out.
+                curve = 0
+            case 22 => // Control + 3 Notes
+                // The pads will sort the note numbers and set to curve Layer 4.
+                curve = 20
+            case _ => {}
+        }
+
+        // set state to dirty if it isn't already
+        update({ /*It's all been done*/ })
+    }
+
+    def this(kitV5: KitV5) = {
+        this(new PadV3Seq(kitV5.toArray), Seq(kitV5.soundControls(0).clone).toArray)
+        from(kitV5)
+
+        _bank = kitV5.soundControls(0).bankLSB
+        // leave _unused at initial value
+
+        // Curve needs fixing
+        kitV5.curve match {
             case 21 => // Alternating
                 // At kit level, we cannot resolve this.
                 // Set to Curve 1 and let the pads sort themselves out.
@@ -244,7 +267,7 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
     }
 
     def this(kitV3: KitV3) = {
-        this(new PadV4Seq(kitV3), (Seq(kitV3.soundControls(0).clone) ++ (Stream.continually(new SoundControl).take(3))).toArray)
+        this(new PadV4Seq(kitV3.toArray), (Seq(kitV3.soundControls(0).clone) ++ (Stream.continually(new SoundControl).take(3))).toArray)
         from(kitV3)
 
         // Curve needs fixing - pads can sort the details
@@ -259,6 +282,10 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
 
         // set state to dirty if it isn't already
         update({ /*It's all been done*/ })
+    }
+
+    def this(kitV5: KitV5) = {
+        this(new PadV4Seq(kitV5.toArray), ((0 to 3) map (x => kitV5.soundControls(x).clone)).toArray)
     }
 
     override def _deserializeKit(in: InputStream): Unit = {
@@ -280,7 +307,6 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
 
 class KitV5 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
     private[this] var _unknown = Array.fill[Byte](16)(0)
-    Console.println("Created a new KitV5")
 
     def this() = this(new PadV4Seq, (Stream.continually(new SoundControl).take(4)).toArray)
     def this(in: InputStream) = {
@@ -288,8 +314,29 @@ class KitV5 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         _deserializeKit(in)
     }
 
+    def this(kitV3: KitV3) = {
+        this(new PadV4Seq(kitV3.toArray), (Seq(kitV3.soundControls(0).clone) ++ (Stream.continually(new SoundControl).take(3))).toArray)
+        from(kitV3)
+
+        // Curve needs fixing - pads can sort the details
+        kitV3.curve match {
+            case 21 => {} // Alternate 1,2
+            case 22 => // Alternate 1,2,3
+                curve = 21
+            case 23 => // Alternate 1,2,3,4
+                curve = 21
+            case _ => {}
+        }
+
+        // set state to dirty if it isn't already
+        update({ /*It's all been done*/ })
+    }
+
+    def this(kitV4: KitV4) = {
+        this(new PadV4Seq(kitV4.toArray), ((0 to 3) map (x => kitV4.soundControls(x).clone)).toArray)
+    }
+
     override def _deserializeKit(in: InputStream): Unit = {
-        Console.println("Deserializing a KitV5")
         _deserialize(in)
         _deserializeHH(in)
         _deserializeFC(in)
@@ -297,7 +344,6 @@ class KitV5 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
         (0 to 3) foreach (x => _soundControls(x) = new SoundControl(in))
 
         in.read(_unknown, 0, 16)
-        Console.println("Done deserializing a KitV5")
     }
 
     override def serialize(out: OutputStream, saving: Boolean): Unit = {

@@ -306,17 +306,20 @@ object jTrapKATEditorMenuBar extends MenuBar {
 
         contents += new Separator()
 
-        add(new RichMenuItem("HelpAbout", x => Dialog.showMessage(tpnMain,
+        add(new RichMenuItem("HelpAbout", x => Dialog.showMessage(
+            tpnMain,
             L.G("helpAbout", updateTool.Checker.currentVersion, L.G("UT" + P.updateAutomatically.toString()), f"${P.lastUpdateTS}%TF"),
             L.G("helpAboutCaption"))))
 
         contents += new Separator()
 
-        add(new RichMenuItem("HelpWarranty", x => Dialog.showMessage(tpnMain,
+        add(new RichMenuItem("HelpWarranty", x => Dialog.showMessage(
+            tpnMain,
             L.G("helpWarranty"),
             L.G("helpWarrantyCaption"))))
 
-        add(new RichMenuItem("HelpLicence", x => Dialog.showConfirmation(tpnMain,
+        add(new RichMenuItem("HelpLicence", x => Dialog.showConfirmation(
+            tpnMain,
             L.G("helpLicence"), L.G("helpLicenceCaption")) match {
                 case Dialog.Result.Yes => util.browse("http://www.gnu.org/licenses/gpl.html")
                 case Dialog.Result.No  => {}

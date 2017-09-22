@@ -267,7 +267,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 case _                            => throw new ClassCastException(s"Class ${o.getClass().getName()} cannot be cast to CanBeEnabled")
             }
             private[this] class VarXCheckBox(_name: String, _cp: CanBeEnabled, _isKit: (model.Kit[_ <: model.Pad]) => Boolean, _toKit: (model.Kit[_ <: model.Pad]) => Unit, padCpName: String*) extends CheckBox(L.G("lblXVarious"))
-                    with AllMemorySelectionReactor with KitSelectionReactor with ButtonClickedReactor {
+                with AllMemorySelectionReactor with KitSelectionReactor with ButtonClickedReactor {
                 name = s"ckbVar${_name}"
                 tooltip = _cp.tooltip
 
@@ -295,14 +295,15 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                             jTrapKATEditor.padChangedBy(this)
                         }
                     } finally { listenTo(this) }
-                    // Regardless, we need to update the UI 
+                    // Regardless, we need to update the UI
                     padCpName foreach (n => setPadEnabled(n, selected))
                     _cp.enabled = !selected
                     tooltip = _cp.tooltip
                 }
 
                 private[this] def okToGoKit(name: String): Boolean = {
-                    Dialog.showConfirmation(tpnMain,
+                    Dialog.showConfirmation(
+                        tpnMain,
                         L.G("ToKit", name),
                         L.G("ApplicationProductName"),
                         Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
@@ -318,7 +319,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
 
             private[this] def okToGoSCOff(name: String): Boolean = {
-                Dialog.showConfirmation(tpnMain,
+                Dialog.showConfirmation(
+                    tpnMain,
                     L.G("ToSCOff", name),
                     L.G("ApplicationProductName"),
                     Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok
@@ -484,8 +486,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
 
                 contents += (new Label(L.G("lblVelocity")), "cell 0 0 2 1,alignx center")
 
-                Seq((0, "Min", 1, (kit: model.Kit[_ <: model.Pad]) => kit.minVelocity, (kit: model.Kit[_ <: model.Pad], value: Byte) => kit.minVelocity = value,
-                    (kit: model.Kit[_ <: model.Pad]) => kit.isKitMinVel, (kit: model.Kit[_ <: model.Pad]) => kit.toKitMinVel()),
+                Seq(
+                    (0, "Min", 1, (kit: model.Kit[_ <: model.Pad]) => kit.minVelocity, (kit: model.Kit[_ <: model.Pad], value: Byte) => kit.minVelocity = value,
+                        (kit: model.Kit[_ <: model.Pad]) => kit.isKitMinVel, (kit: model.Kit[_ <: model.Pad]) => kit.toKitMinVel()),
                     (1, "Max", 127, (kit: model.Kit[_ <: model.Pad]) => kit.maxVelocity, (kit: model.Kit[_ <: model.Pad], value: Byte) => kit.maxVelocity = value,
                         (kit: model.Kit[_ <: model.Pad]) => kit.isKitMaxVel, (kit: model.Kit[_ <: model.Pad]) => kit.toKitMaxVel())) foreach { x =>
                         (x._1, x._2, x._3, x._4, x._5, x._6, x._7) match {
@@ -555,9 +558,9 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                                 ckb.enabled = !isOff
                                 spn.enabled = !isOff && !ckb.selected
                             }
-                            case _                   => {}
+                            case _ => {}
                         }
-                        case _                   => {}
+                        case _ => {}
                     }
                 })
                 jTrapKATEditor.doV3V4V5({
@@ -590,8 +593,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                     None),
                 ("Volume", 127, 0, 127,
                     _.soundControls(_).volume, _.soundControls(_).volume = _,
-                    Some(_ >= 128), Some(p => if (p) 128 else 127), None)
-            ) map { t =>
+                    Some(_ >= 128), Some(p => if (p) 128 else 127), None)) map { t =>
                     (t._1, t._2, t._3, t._4, t._5, t._6, t._7) match {
                         case (_name, _ini, _min, _max, _getVal, _setVal, optMeansOff) => {
                             val lbl = new Label(L.G(s"lbl${_name}")) {

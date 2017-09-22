@@ -70,23 +70,27 @@ object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with A
 
     setDisplay()
 
-    private[this] def getTitle() = L.G("MainProgramTitle",
+    private[this] def getTitle() = L.G(
+        "MainProgramTitle",
         L.G("ApplicationProductName"),
         if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getName() else L.G("MainProgramTitleNewFile"),
         jTrapKATEditor.doV3V4V5(L.G("V3"), L.G("V4"), L.G("V5")),
         if (jTrapKATEditor.currentAllMemory.changed) "[*]" else "")
 
-    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(tpnMain,
+    def okayToSplat(dataItem: model.DataItem, to: String): Boolean = !dataItem.changed || (Dialog.showConfirmation(
+        tpnMain,
         L.G("OKToSplat", to),
         L.G("ApplicationProductName"),
         Dialog.Options.OkCancel, Dialog.Message.Warning, null) == Dialog.Result.Ok)
 
-    def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(tpnMain,
+    def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(
+        tpnMain,
         L.G("ImportThing", to, from, thing),
         L.G("ImportThingCaption", thing),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
 
-    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(tpnMain,
+    def okayToRenumber(into: Int, intoName: String, from: Int, fromName: String): Boolean = Dialog.showConfirmation(
+        tpnMain,
         L.G("RenumberKit", s"${into}", intoName, s"${from}", fromName),
         L.G("RenumberKitCaption"),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes

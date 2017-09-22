@@ -33,7 +33,7 @@ import info.drealm.scala.util.getInt
  * A base trait for UI-affecting reactions
  * All events come from jTrapKATEditor
  * Nothing done in _uiReaction() should trigger the same event from jTrapKATEditor
- * 
+ *
  * Applied to publishers, including Components and a few special classes
  */
 
@@ -195,7 +195,7 @@ trait RichComboBoxReactor[T] extends UIReactor with ModelReactor { this: RichCom
 }
 
 /*
- * No comment required... 
+ * No comment required...
  */
 
 trait EditableComboBoxReactor[T] extends RichComboBoxReactor[T] with DocumentChangedReactor { this: RichComboBox[T] => }
@@ -239,7 +239,7 @@ trait Bindings[T] extends AllMemorySelectionReactor with ModelReactor {
 }
 
 /*
- * No comment required... 
+ * No comment required...
  */
 
 trait EditableComboBoxBindings[T] extends Bindings[Byte] with RichComboBoxReactor[T] { this: RichComboBox[T] => }
@@ -274,7 +274,7 @@ trait PadBindings extends Bindings[Byte] with KitSelectionReactor with PadValueR
 }
 
 /*
- * No comment required... 
+ * No comment required...
  */
 
 trait SelectedPadBindings extends PadBindings with PadSelectionReactor {
@@ -424,6 +424,7 @@ trait GlobalPadDynamicsBindings extends Bindings[Byte] with GlobalSelectionReact
     protected def _uiValue_=(_value: Byte): Unit = value = getInt(_value)
 
     override protected def _isUIChange = {
+        visible = _visible()
         enabled = jTrapKATEditor.currentPadNumber < 25
         enabled && _uiValue != _modelValue
     }
@@ -434,6 +435,8 @@ trait GlobalPadDynamicsBindings extends Bindings[Byte] with GlobalSelectionReact
 
     protected def _getModelValue: (info.drealm.scala.model.PadDynamics) => Byte
     protected def _setModelValue: (info.drealm.scala.model.PadDynamics, Byte) => Unit
+
+    protected def _visible: () => Boolean
 }
 
 /*
@@ -462,7 +465,7 @@ trait V3V4ComboBoxBindings[T, TP <: ComboBox[T], T3 <: TP, T4 <: TP] extends Bin
 }
 
 /*
- * No comment required... 
+ * No comment required...
  */
 
 trait CurveComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, CurveComboBoxParent, CurveComboBoxV3, CurveComboBoxV4] {

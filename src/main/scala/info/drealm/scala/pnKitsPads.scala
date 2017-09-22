@@ -185,25 +185,30 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 name = "pnGlobalPadDynamics"
                 border = new TitledBorder(L.G("pnGlobalPadDynamics"))
 
-                private[this] class PadDynamicsSpinner(_name: String, label: Label, _getPD: (model.PadDynamics) => Byte, _setPD: (model.PadDynamics, Byte) => Unit)
-                        extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label)
-                        with GlobalPadDynamicsBindings {
+                private[this] class PadDynamicsSpinner(_name: String, label: Label, _getPD: (model.PadDynamics) => Byte, _setPD: (model.PadDynamics, Byte) => Unit, _v: () => Boolean)
+                    extends Spinner(new javax.swing.SpinnerNumberModel(199, 0, 255, 1), s"spn${_name.capitalize}", L.G(s"ttGlobal${_name.capitalize}"), label)
+                    with GlobalPadDynamicsBindings {
 
                     protected def _pdActionName = _name
                     protected def _getModelValue = _getPD
                     protected def _setModelValue = _setPD
+                    protected def _visible = _v
 
                     setDisplay()
                 }
 
-                Seq[(Int, Int, String, model.PadDynamics => Byte, (model.PadDynamics, Byte) => Unit)](
-                    (0, 0, "lowLevel", _.lowLevel, _.lowLevel = _), (1, 0, "thresholdManual", _.thresholdManual, _.thresholdManual = _), (2, 0, "internalMargin", _.internalMargin, _.internalMargin = _),
-                    (0, 1, "highLevel", _.highLevel, _.highLevel = _), (1, 1, "thresholdActual", _.thresholdActual, _.thresholdActual = _), (2, 1, "userMargin", _.userMargin, _.userMargin = _)) foreach (tuple => (tuple._1, tuple._2, tuple._3, tuple._4, tuple._5) match {
-                        case (_x, _y, _name, _getPD, _setPD) => {
-                            val lbl = new Label(L.G(_name))
+                Seq[(Int, Int, String, model.PadDynamics => Byte, (model.PadDynamics, Byte) => Unit, () => Boolean)](
+                    (0, 0, "lowLevel", _.lowLevel, _.lowLevel = _, () => true), (1, 0, "thresholdManual", _.thresholdManual, _.thresholdManual = _, () => true), (2, 0, "internalMargin", _.internalMargin, _.internalMargin = _, () => true),
+                    (0, 1, "highLevel", _.highLevel, _.highLevel = _, () => true), (1, 1, "thresholdActual", _.thresholdActual, _.thresholdActual = _, () => true), (2, 1, "userMargin", _.userMargin, _.userMargin = _, () => jTrapKATEditor.doV3V4V5(true, true, false))) foreach (tuple => (tuple._1, tuple._2, tuple._3, tuple._4, tuple._5, tuple._6) match {
+                        case (_x, _y, _name, _getPD, _setPD, _visible) => {
+                            val lbl = new Label(L.G(_name)) with AllMemorySelectionReactor {
+                                protected def _isUIChange = true
+                                protected def _uiReaction = visible = _visible()
+                                setDisplay()
+                            }
                             contents += (lbl, s"cell ${1 + 3 * _x} ${1 + _y},alignx right")
 
-                            val spn = new PadDynamicsSpinner(_name, lbl, _getPD, _setPD)
+                            val spn = new PadDynamicsSpinner(_name, lbl, _getPD, _setPD, tuple._6)
                             contents += (spn, s"cell ${2 + 3 * _x} ${1 + _y}")
                         }
                     })

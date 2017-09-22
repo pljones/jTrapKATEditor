@@ -78,8 +78,8 @@ abstract class Global[TPad <: Pad] protected (p: TPad, _u1: Array[Byte], _u3: Ar
     protected[Global] val _unused2: Array[Byte] = new Array[Byte](231)
     protected[Global] val _internalMargin: Array[Byte] = new Array[Byte](25)
 
-    protected[Global] val _unused3: Array[Byte] = _u3
-    protected [Global]val _userMargin: Array[Byte] = _um
+    protected[model] val _unused3: Array[Byte] = _u3
+    protected[model] val _userMargin: Array[Byte] = _um
 
     protected[Global] val _unused4: Array[Byte] = new Array[Byte](231)
     protected[Global] val _thresholdActual: Array[Byte] = new Array[Byte](25)
@@ -127,8 +127,8 @@ abstract class Global[TPad <: Pad] protected (p: TPad, _u1: Array[Byte], _u3: Ar
         global._thresholdManual.copyToArray(_thresholdManual)
         global._unused2.copyToArray(_unused2)
         global._internalMargin.copyToArray(_internalMargin)
-        global._unused3.copyToArray(_unused3)
-        global._userMargin.copyToArray(_userMargin)
+        //_unused3 is left to the concrete class
+        //_userMargin is left to the concrete class
         global._unused4.copyToArray(_unused4)
         global._thresholdActual.copyToArray(_thresholdActual)
     }
@@ -324,6 +324,15 @@ class GlobalV3 private (p: PadV3) extends Global[PadV3](p, new Array[Byte](160),
         this(new PadV3(globalV4.ttPadData))
         from(globalV4)
         //_unused1, _currentDefaults and _userDefaults left as default
+        globalV4._unused3.copyToArray(_unused3)
+        globalV4._userMargin.copyToArray(_userMargin)
+    }
+    def this(globalV5: GlobalV5) = {
+        this(new PadV3(globalV5.ttPadData))
+        from(globalV5)
+        //_unused1, _currentDefaults and _userDefaults left as default
+        globalV5._unused3.copyToArray(_unused3)
+        globalV5._userMargin.copyToArray(_userMargin)
     }
 
     override def deserialize(in: InputStream): Unit = {
@@ -351,6 +360,15 @@ class GlobalV4 private (p: PadV4) extends Global[PadV4](p, new Array[Byte](149),
         this(new PadV4(globalV3.ttPadData, 0))
         from(globalV3)
         //_unused1 left as default
+        globalV3._unused3.copyToArray(_unused3)
+        globalV3._userMargin.copyToArray(_userMargin)
+    }
+    def this(globalV5: GlobalV5) = {
+        this(globalV5.ttPadData.clone)
+        from(globalV5)
+        //_unused1 left as default
+        //_unused3 left as default
+        //_userMargin left as default
     }
 }
 
@@ -359,5 +377,19 @@ class GlobalV5 private (p: PadV4) extends Global[PadV4](p, new Array[Byte](149),
     def this(in: InputStream) = {
         this()
         deserialize(in)
+    }
+    def this(globalV3: GlobalV3) = {
+        this(new PadV4(globalV3.ttPadData, 0))
+        from(globalV3)
+        //_unused1 left as default
+        //_unused3 left as default
+        //_userMargin left as default
+    }
+    def this(globalV4: GlobalV4) = {
+        this(globalV4.ttPadData.clone)
+        from(globalV4)
+        //_unused1 left as default
+        //_unused3 left as default
+        //_userMargin left as default
     }
 }

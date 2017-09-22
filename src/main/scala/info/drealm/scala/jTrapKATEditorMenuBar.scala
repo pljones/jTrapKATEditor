@@ -85,6 +85,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
     object mnFile extends RichMenu("File") {
         add(new RichMenuItem("FileNewV3", x => jTrapKATEditor.reinitV3()))
         add(new RichMenuItem("FileNewV4", x => jTrapKATEditor.reinitV4()))
+        add(new RichMenuItem("FileNewV5", x => jTrapKATEditor.reinitV5()))
         add(new RichMenuItem("FileOpen", x => try {
             OpenFileChooser.selectedFile = if (jTrapKATEditor.currentFile.isDirectory()) new java.io.File(s"${jTrapKATEditor.currentFile.getCanonicalPath()}/.") else jTrapKATEditor.currentFile
             OpenFileChooser.file match {

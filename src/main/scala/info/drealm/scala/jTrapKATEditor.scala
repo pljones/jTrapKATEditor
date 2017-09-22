@@ -220,6 +220,14 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new SelectedAllMemoryChanged)
     }
 
+    def reinitV5(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+        EditHistory.clear()
+        _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
+        _currentType = model.DumpType.NotSet
+        _currentAllMemory = new model.AllMemoryV5
+        publish(new SelectedAllMemoryChanged)
+    }
+
     def convertToV3(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
         EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile

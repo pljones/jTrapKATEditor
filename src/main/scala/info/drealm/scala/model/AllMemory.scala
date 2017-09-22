@@ -27,7 +27,7 @@ package info.drealm.scala.model
 import java.io.{ Console => _, _ }
 import collection.mutable
 
-abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) => Unit, u: () => Array[Byte], g: => () => Global[_ <: Pad])
+abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) => Unit, u: () => Array[Byte], g: => () => Global[_ <: Pad], il: Boolean)
     extends DataItem with mutable.Seq[Kit[_ <: Pad]] {
 
     def iterator = _kits.iterator
@@ -40,20 +40,50 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)
 
     def deserialize(in: InputStream): Unit = {
-        _kits foreach (x => x.deserialize(in))
-        _kits foreach (x => x.deserializeKitName(in))
+        if (_namesInLine) {
+            _kits foreach (x => {
+                x.deserialize(in)
+                x.deserializeKitName(in)
+            })
+        } else {
+            _kits foreach (x => x.deserialize(in))
+            _kits foreach (x => x.deserializeKitName(in))
+        }
         in.read(_unused)
         _global.deserialize(in)
     }
     def serialize(out: OutputStream, saving: Boolean): Unit = {
-        if (saving) _kits foreach (x => x.save(out)) else _kits foreach (x => x.serialize(out, saving))
-        _kits foreach (x => x.serializeKitName(out))
+        if (_namesInLine) {
+            if (saving) {
+                _kits foreach (x => {
+                    x.save(out)
+                    x.serializeKitName(out)
+                })
+            } else {
+                _kits foreach (x => {
+                    x.serialize(out, saving)
+                    x.serializeKitName(out)
+                })
+            }
+        } else {
+            if (saving) _kits foreach (x => x.save(out)) else _kits foreach (x => x.serialize(out, saving))
+            _kits foreach (x => x.serializeKitName(out))
+        }
         out.write(_unused)
         if (saving) _global.save(out) else _global.serialize(out, saving)
     }
 
-    private[this] val _kits: Array[Kit[_ <: Pad]] = ((0 to 23) map (x => k(x))).toArray
-    (0 to 23) foreach (x => kn(x, _kits(x)))
+    private[this] val _namesInLine: Boolean = il
+    private[this] val _kits: Array[Kit[_ <: Pad]] = ((0 to 23) map (x => null)).toArray
+    if (_namesInLine) {
+        (0 to 23) foreach (x => {
+            _kits(x) = k(x)
+            kn(x, _kits(x))
+        })
+    } else {
+        (0 to 23) foreach (x => _kits(x) = k(x))
+        (0 to 23) foreach (x => kn(x, _kits(x)))
+    }
 
     private[this] val _unused: Array[Byte] = u()
     private[this] var _global: Global[_ <: Pad] = g()
@@ -64,7 +94,7 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     def changed = _changed || _kits.foldLeft(false)(_ || _.changed) || _global.changed
 }
 
-class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory(k, kn, u, g) {
+class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () => Array[Byte], g: => () => GlobalV3) extends AllMemory(k, kn, u, g, false) {
     def this() = this(x => new KitV3, (i, x) => {}, () => new Array(540), () => new GlobalV3)
     def this(in: InputStream) = this(
         x => new KitV3(in),
@@ -82,7 +112,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
     }
 }
 
-class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory(k, kn, u, g) {
+class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV4) extends AllMemory(k, kn, u, g, false) {
     def this() = this(x => new KitV4, (i, x) => {}, () => new Array(195), () => new GlobalV4)
     def this(in: InputStream) = this(
         x => new KitV4(in),
@@ -98,4 +128,13 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
         )
         update({/*It's all been done*/})
     }
+}
+
+class AllMemoryV5 private (k: Int => KitV5, kn: (Int, Kit[_]) => Unit, u: () => Array[Byte], g: () => GlobalV5) extends AllMemory(k, kn, u, g, true) {
+    def this() = this(x => new KitV5, (i, x) => {}, () => new Array(39), () => new GlobalV5)
+    def this(in: InputStream) = this(
+        x => new KitV5(in),
+        (i, x) => x.deserializeKitName(in),
+        () => Stream.continually(in.read().toByte).take(39).toArray,
+        () => new GlobalV5(in))
 }

@@ -182,6 +182,7 @@ object TrapKATSysexDump {
             in.available() match {
                 case 21364   => new AllMemoryV3Dump(in)
                 case 35570   => new AllMemoryV4Dump(in)
+                case 35514   => new AllMemoryV5Dump(in)
                 case 2620    => new GlobalV3Dump(in)
                 case 2108    => new GlobalV4Dump(in)
                 case 1596    => new GlobalV5Dump(in)
@@ -191,8 +192,7 @@ object TrapKATSysexDump {
                 // Unknown!
                 case unknown => throw new IllegalArgumentException(f"${file.getAbsolutePath()} has unknown length of ${in.available()}.")
             }
-        }
-        finally {
+        } finally {
             in.close()
         }
     }
@@ -201,6 +201,7 @@ object TrapKATSysexDump {
         val trapKATSysexDump: TrapKATSysexDump[_] = data match {
             case allMemoryV3: AllMemoryV3 => new AllMemoryV3Dump(allMemoryV3)
             case allMemoryV4: AllMemoryV4 => new AllMemoryV4Dump(allMemoryV4)
+            case allMemoryV5: AllMemoryV5 => new AllMemoryV5Dump(allMemoryV5)
             case globalV3: GlobalV3       => new GlobalV3Dump(globalV3)
             case globalV4: GlobalV4       => new GlobalV4Dump(globalV4)
             case globalV5: GlobalV5       => new GlobalV5Dump(globalV5)
@@ -210,8 +211,7 @@ object TrapKATSysexDump {
         val out = new FileOutputStream(file)
         try {
             trapKATSysexDump.serialize(out, saving)
-        }
-        finally {
+        } finally {
             out.close()
         }
     }
@@ -227,8 +227,7 @@ object TrapKATSysexDump {
         val out = new FileOutputStream(file)
         try {
             trapKATSysexDump.serialize(out, saving)
-        }
-        finally {
+        } finally {
             out.close()
         }
     }
@@ -249,6 +248,9 @@ class AllMemoryV3Dump(allMemoryV3: AllMemoryV3) extends TrapKATSysexDump[AllMemo
 }
 class AllMemoryV4Dump(allMemoryV4: AllMemoryV4) extends TrapKATSysexDump[AllMemoryV4](allMemoryV4, in => new AllMemoryV4(in), DumpType.AllMemory, 0) {
     def this(in: InputStream) = { this(null.asInstanceOf[AllMemoryV4]); deserialize(in) }
+}
+class AllMemoryV5Dump(allMemoryV5: AllMemoryV5) extends TrapKATSysexDump[AllMemoryV5](allMemoryV5, in => new AllMemoryV5(in), DumpType.AllMemory, 0) {
+    def this(in: InputStream) = { this(null.asInstanceOf[AllMemoryV5]); deserialize(in) }
 }
 
 class GlobalV3Dump(globalV3: GlobalV3) extends TrapKATSysexDump[GlobalV3](globalV3, in => new GlobalV3(in), DumpType.Global, 0) {

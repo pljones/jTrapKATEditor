@@ -270,106 +270,76 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
     def openFile(file: java.io.File): Unit = {
         val dump = model.TrapKATSysexDump.fromFile(file)
 
-        if (dump.isInstanceOf[model.AllMemoryV3Dump] || dump.isInstanceOf[model.AllMemoryV4Dump] || _currentType != model.DumpType.AllMemory) {
+        if (dump.isInstanceOf[model.AllMemoryV3Dump] || dump.isInstanceOf[model.AllMemoryV4Dump] || dump.isInstanceOf[model.AllMemoryV5Dump] || _currentType != model.DumpType.AllMemory) {
             _currentFile = file
         }
 
-        dump match {
-            case allMemoryV3Dump: model.AllMemoryV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
-                EditHistory.clear()
-                _currentType = model.DumpType.AllMemory
-                _currentAllMemory = allMemoryV3Dump.self
-                publish(new SelectedAllMemoryChanged)
-            }
-            case allMemoryV4Dump: model.AllMemoryV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
-                EditHistory.clear()
-                _currentType = model.DumpType.AllMemory
-                _currentAllMemory = allMemoryV4Dump.self
-                publish(new SelectedAllMemoryChanged)
-            }
-            //            case allMemoryV5Dump: model.AllMemoryV5Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory")) => {
-            //                EditHistory.clear()
-            //                _currentType = model.DumpType.AllMemory
-            //                _currentAllMemory = allMemoryV5Dump.self
-            //                publish(new SelectedAllMemoryChanged)
-            //            }
-            case globalV3Dump: model.GlobalV3Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
-                doV3V4({
-                    EditHistory.clear()
-                    if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global = globalV3Dump.self
-                    publish(new SelectedGlobalChanged)
-                }, if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4"))) {
-                    EditHistory.clear()
-                    if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global = new model.GlobalV4(globalV3Dump.self)
-                    publish(new SelectedGlobalChanged)
-                })
-            }
-            case globalV4Dump: model.GlobalV4Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
-                doV3V4(if (frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3"))) {
-                    EditHistory.clear()
-                    if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global = new model.GlobalV3(globalV4Dump.self)
-                    publish(new SelectedGlobalChanged)
-                }, {
-                    EditHistory.clear()
-                    if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                    _currentAllMemory.global = globalV4Dump.self
-                    publish(new SelectedGlobalChanged)
-                })
-            }
-            case globalV5Dump: model.GlobalV5Dump if frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global")) => {
+        def openAllMemoryDump(_getAllMemeory: => model.AllMemory) = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+            EditHistory.clear()
+            _currentType = model.DumpType.AllMemory
+            _currentAllMemory = _getAllMemeory
+            publish(new SelectedAllMemoryChanged)
+        }
+        def openGlobalDump(_okCnv: => Boolean, _getGlobal: => model.Global[_ <: model.Pad]) = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory.global, L.G("Global"))) {
+            if (_okCnv) {
                 EditHistory.clear()
                 if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Global
-                _currentAllMemory.global = globalV5Dump.self
+                _currentAllMemory.global = _getGlobal
                 publish(new SelectedGlobalChanged)
             }
-            case kitV3Dump: model.KitV3Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
-                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {
-
-                def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
-                    if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
-                        EditHistory.clear()
-                        if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
-                        _currentAllMemory(_currentKitNumber) = getKit
-                        publish(new SelectedKitChanged)
-                    }
+        }
+        def openKitDump(_okCnv: => Boolean, _kitNo: Int, _kitName: String, _getKit: => model.Kit[_ <: model.Pad]) = if (_currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
+            frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})")) {
+            if (_okCnv) {
+                if ((_kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, _kitNo + 1, _kitName))) {
+                    EditHistory.clear()
+                    if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
+                    _currentAllMemory(_currentKitNumber) = _getKit
+                    _currentAllMemory(_currentKitNumber).kitName = _kitName
+                    publish(new SelectedKitChanged)
                 }
-                doV3V4(
-                    doKit(kitV3Dump.auxType, kitV3Dump.self.kitName, kitV3Dump.self),
-                    if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) doKit(kitV3Dump.auxType, kitV3Dump.self.kitName, new model.KitV4(kitV3Dump.self)))
             }
-            case kitV4Dump: model.KitV4Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
-                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {
-
-                def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
-                    if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
-                        EditHistory.clear()
-                        if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
-                        _currentAllMemory(_currentKitNumber) = getKit
-                        publish(new SelectedKitChanged)
-                    }
-                }
-                doV3V4(
-                    if (frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3"))) doKit(kitV4Dump.auxType, kitV4Dump.self.kitName, new model.KitV3(kitV4Dump.self)),
-                    doKit(kitV4Dump.auxType, kitV4Dump.self.kitName, kitV4Dump.self))
-
-            }
-            case kitV5Dump: model.KitV5Dump if _currentKitNumber >= 0 && _currentKitNumber < _currentAllMemory.length &&
-                frmTrapkatSysexEditor.okayToSplat(_currentAllMemory(_currentKitNumber), s"Kit ${_currentKitNumber + 1} (${currentKit.kitName})") => {
-
-                def doKit(kitNo: Int, kitName: String, getKit: => model.Kit[_ <: model.Pad]): Unit = {
-                    if ((kitNo == _currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(_currentKitNumber + 1, currentKit.kitName, kitNo + 1, kitName))) {
-                        EditHistory.clear()
-                        if (_currentType != model.DumpType.AllMemory) _currentType = model.DumpType.Kit
-                        _currentAllMemory(_currentKitNumber) = getKit
-                        publish(new SelectedKitChanged)
-                    }
-                }
-                doKit(kitV5Dump.auxType, kitV5Dump.self.kitName, kitV5Dump.self)
-
-            }
+        }
+        dump match {
+            case allMemoryV3Dump: model.AllMemoryV3Dump => openAllMemoryDump(allMemoryV3Dump.self)
+            case allMemoryV4Dump: model.AllMemoryV4Dump => openAllMemoryDump(allMemoryV4Dump.self)
+            case allMemoryV5Dump: model.AllMemoryV5Dump => openAllMemoryDump(allMemoryV5Dump.self)
+            case globalV3Dump: model.GlobalV3Dump => openGlobalDump(
+                doV3V4V5(
+                    true,
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V4")),
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V3"), L.G("V5"))),
+                doV3V4V5(globalV3Dump.self, new model.GlobalV4(globalV3Dump.self), new model.GlobalV5(globalV3Dump.self)))
+            case globalV4Dump: model.GlobalV4Dump => openGlobalDump(
+                doV3V4V5(
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V3")),
+                    true,
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V4"), L.G("V5"))),
+                doV3V4V5(new model.GlobalV3(globalV4Dump.self), globalV4Dump.self, new model.GlobalV5(globalV4Dump.self)))
+            case globalV5Dump: model.GlobalV5Dump => openGlobalDump(
+                doV3V4V5(
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V5"), L.G("V3")),
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Global"), L.G("V5"), L.G("V4")),
+                    true),
+                doV3V4V5(new model.GlobalV3(globalV5Dump.self), new model.GlobalV4(globalV5Dump.self), globalV5Dump.self))
+            case kitV3Dump: model.KitV3Dump => openKitDump(
+                doV3V4V5(
+                    true,
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4")),
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V3"), L.G("V5"))), kitV3Dump.auxType, kitV3Dump.self.kitName,
+                doV3V4V5(kitV3Dump.self, new model.KitV4(kitV3Dump.self), new model.KitV5(kitV3Dump.self)))
+            case kitV4Dump: model.KitV4Dump => openKitDump(
+                doV3V4V5(
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3")),
+                    true,
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V4"), L.G("V5"))), kitV4Dump.auxType, kitV4Dump.self.kitName,
+                doV3V4V5(new model.KitV3(kitV4Dump.self), kitV4Dump.self, new model.KitV5(kitV4Dump.self)))
+            case kitV5Dump: model.KitV5Dump => openKitDump(
+                doV3V4V5(
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V5"), L.G("V3")),
+                    frmTrapkatSysexEditor.okayToConvert(L.G("Kit"), L.G("V5"), L.G("V4")),
+                    true), kitV5Dump.auxType, kitV5Dump.self.kitName,
+                doV3V4V5(new model.KitV3(kitV5Dump.self), new model.KitV4(kitV5Dump.self), kitV5Dump.self))
             case otherwise => {
                 // Do nothing - should never happen if the form manages things correctly
             }

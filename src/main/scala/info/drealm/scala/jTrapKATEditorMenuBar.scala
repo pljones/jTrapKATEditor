@@ -229,7 +229,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 private[this] val bgTODMN = new ButtonGroup();
 
                 class DisplayModeMenuItem(displayMode: DisplayMode, val nameSuffix: String)
-                        extends RadioMenuItem(L.G("miToolsOptionsDMN" + nameSuffix)) {
+                    extends RadioMenuItem(L.G("miToolsOptionsDMN" + nameSuffix)) {
                     name = "miToolsOptionsDMN" + nameSuffix
                     bgTODMN.buttons.add(this)
                     listenTo(prefs.Preferences)
@@ -245,15 +245,32 @@ object jTrapKATEditorMenuBar extends MenuBar {
             }
         }
 
-        add(new RichMenuItem("ToolsConvert", x => {
-            def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(tpnMain,
+        contents += new RichMenu("ToolsConvert") with AllMemorySelectionReactor {
+            protected def _isUIChange = true
+            protected def _uiReaction = {
+                toV3.enabled = jTrapKATEditor.doV3V4V5(false, true, true)
+                toV4.enabled = jTrapKATEditor.doV3V4V5(true, false, true)
+                toV5.enabled = jTrapKATEditor.doV3V4V5(true, true, false)
+            }
+
+            def f(from: String, to: String, converter: => Unit): Unit = Dialog.showConfirmation(
+                tpnMain,
                 L.G("ConvertVersions", L.G(from), L.G(to)), L.G("ConvertCaption"),
                 Dialog.Options.YesNo, Dialog.Message.Question, null) match {
                     case Dialog.Result.Yes => converter
                     case _                 => {}
                 }
-            jTrapKATEditor.doV3V4(f("V3", "V4", jTrapKATEditor.convertToV4()), f("V4", "V3", jTrapKATEditor.convertToV3()))
-        }))
+
+            val toV3 = new RichMenuItem("ToolsConvertToV3", x => jTrapKATEditor.doV3V4V5({}, f("V4", "V3", jTrapKATEditor.convertToV3()), f("V5", "V3", jTrapKATEditor.convertToV3())))
+            val toV4 = new RichMenuItem("ToolsConvertToV4", x => jTrapKATEditor.doV3V4V5(f("V3", "V4", jTrapKATEditor.convertToV4()), {}, f("V5", "V4", jTrapKATEditor.convertToV4())))
+            val toV5 = new RichMenuItem("ToolsConvertToV5", x => jTrapKATEditor.doV3V4V5(f("V3", "V5", jTrapKATEditor.convertToV5()), f("V4", "V5", jTrapKATEditor.convertToV5()), {}))
+
+            contents += toV3
+            contents += toV4
+            contents += toV5
+
+            setDisplay()
+        }
 
     }
 

@@ -247,7 +247,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.AllMemory
-        _currentAllMemory = new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4])
+        _currentAllMemory = doV3V4V5(_currentAllMemory.asInstanceOf[model.AllMemoryV3], new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV4]), new model.AllMemoryV3(_currentAllMemory.asInstanceOf[model.AllMemoryV5]))
         publish(new SelectedAllMemoryChanged)
     }
 
@@ -255,7 +255,15 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         EditHistory.clear()
         _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
         _currentType = model.DumpType.AllMemory
-        _currentAllMemory = new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3])
+        _currentAllMemory = doV3V4V5(new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV3]), _currentAllMemory.asInstanceOf[model.AllMemoryV4], new model.AllMemoryV4(_currentAllMemory.asInstanceOf[model.AllMemoryV5]))
+        publish(new SelectedAllMemoryChanged)
+    }
+
+    def convertToV5(): Unit = if (frmTrapkatSysexEditor.okayToSplat(_currentAllMemory, L.G("AllMemory"))) {
+        EditHistory.clear()
+        _currentFile = if (_currentFile.isFile()) _currentFile.getParentFile() else _currentFile
+        _currentType = model.DumpType.AllMemory
+        _currentAllMemory = doV3V4V5(new model.AllMemoryV5(_currentAllMemory.asInstanceOf[model.AllMemoryV3]), new model.AllMemoryV5(_currentAllMemory.asInstanceOf[model.AllMemoryV4]), _currentAllMemory.asInstanceOf[model.AllMemoryV5])
         publish(new SelectedAllMemoryChanged)
     }
 

@@ -33,6 +33,9 @@ object Clipboard extends ClipboardOwner with Publisher {
     def lostOwnership(clipboard: Clipboard, contents: Transferable) = {}
     def currentPadV3: model.PadV3 = jTrapKATEditor.currentPad.asInstanceOf[model.PadV3]
     def currentPadV4: model.PadV4 = jTrapKATEditor.currentPad.asInstanceOf[model.PadV4]
+    def currentKitV3: model.KitV3 = jTrapKATEditor.currentKit.asInstanceOf[model.KitV3]
+    def currentKitV4: model.KitV4 = jTrapKATEditor.currentKit.asInstanceOf[model.KitV4]
+    def currentKitV5: model.KitV5 = jTrapKATEditor.currentKit.asInstanceOf[model.KitV5]
 
     private[this] val clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
 
@@ -100,6 +103,19 @@ object Clipboard extends ClipboardOwner with Publisher {
             kit.deserializeKitName(in)
         }
     }
+    private[this] case class CopyKitV5(var kit: model.KitV5, var kitNoWas: Byte) extends Clippable {
+        override def dataFlavour = dfKitV5
+        private def writeObject(out: java.io.ObjectOutputStream): Unit = {
+            out.writeByte(kitNoWas)
+            kit.serialize(out)
+            kit.serializeKitName(out)
+        }
+        private def readObject(in: java.io.ObjectInputStream): Unit = {
+            kitNoWas = in.readByte()
+            kit = new model.KitV5(in)
+            kit.deserializeKitName(in)
+        }
+    }
     private[this] case class SwapKits(kit: Int) extends Clippable { override def dataFlavour = dfSwapKits }
 
     private[this] val dfPadV3 = new DataFlavor(classOf[CopyPadV3], DataFlavor.javaSerializedObjectMimeType)
@@ -107,9 +123,11 @@ object Clipboard extends ClipboardOwner with Publisher {
     private[this] val dfSwapPads = new DataFlavor(classOf[SwapPads], DataFlavor.javaJVMLocalObjectMimeType)
     private[this] val dfKitV3 = new DataFlavor(classOf[CopyKitV3], DataFlavor.javaSerializedObjectMimeType)
     private[this] val dfKitV4 = new DataFlavor(classOf[CopyKitV4], DataFlavor.javaSerializedObjectMimeType)
+    private[this] val dfKitV5 = new DataFlavor(classOf[CopyKitV5], DataFlavor.javaSerializedObjectMimeType)
     private[this] val dfSwapKits = new DataFlavor(classOf[SwapKits], DataFlavor.javaJVMLocalObjectMimeType)
 
-    private[this] def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(tpnMain,
+    private[this] def okayToConvert(thing: String, from: String, to: String): Boolean = Dialog.showConfirmation(
+        tpnMain,
         L.G("PasteThing", to, from, thing),
         L.G("PasteThingCaption", thing),
         Dialog.Options.YesNo, Dialog.Message.Question, null) == Dialog.Result.Yes
@@ -131,6 +149,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         case Some(padSwap) if padSwap == dfSwapPads => ClipboardType.PadSwap
         case Some(kit) if kit == dfKitV3            => ClipboardType.Kit
         case Some(kit) if kit == dfKitV4            => ClipboardType.Kit
+        case Some(kit) if kit == dfKitV5            => ClipboardType.Kit
         case Some(kitSwap) if kitSwap == dfSwapKits => ClipboardType.KitSwap
         case otherwise                              => ClipboardType.NotSet
     }
@@ -140,6 +159,7 @@ object Clipboard extends ClipboardOwner with Publisher {
     private[this] def getContentSwapPads() = clipboard.getContents(this).getTransferData(dfSwapPads).asInstanceOf[SwapPads]
     private[this] def getContentKitV3() = clipboard.getContents(this).getTransferData(dfKitV3).asInstanceOf[CopyKitV3]
     private[this] def getContentKitV4() = clipboard.getContents(this).getTransferData(dfKitV4).asInstanceOf[CopyKitV4]
+    private[this] def getContentKitV5() = clipboard.getContents(this).getTransferData(dfKitV5).asInstanceOf[CopyKitV5]
     private[this] def getContentSwapKits() = clipboard.getContents(this).getTransferData(dfSwapKits).asInstanceOf[SwapKits]
 
     def copyPad(source: Component) = {
@@ -184,7 +204,8 @@ object Clipboard extends ClipboardOwner with Publisher {
 
         if (!incoming.forall(t => t._1)) {
             // At least one of the pads has a value that does not match its kit (for which the kit is not in Various)
-            Dialog.showConfirmation(tpnMain,
+            Dialog.showConfirmation(
+                tpnMain,
                 L.G("PastePadOKToVarious", jTrapKATEditor.currentKit.kitName, incoming.map(t => t._2).mkString("\n")),
                 L.G("PastePadOKToVariousCaption"),
                 Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
@@ -237,17 +258,25 @@ object Clipboard extends ClipboardOwner with Publisher {
         val padV3Clip = getContentPadV3()
         val padV3 = padV3Clip.pad
         val hhPad = padV3Clip.hhPad
-        padV3.flags = ((if (hhPad) 0x80 else 0) | padV3.flags).toByte
-        if (pasteIfVarious(padV3)) jTrapKATEditor.doV3V4({
+        def v3 = {
             // v3 -> v3
             EditHistory.add(new PastePadHistoryAction(source, padV3))
             setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV3)
-        }, if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4"))) {
+        }
+        def v4 = if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V4"))) {
             // v3 -> v4
             val padV4 = new model.PadV4(padV3, jTrapKATEditor.currentPadNumber.toByte)
             EditHistory.add(new PastePadHistoryAction(source, padV4))
             setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
-        })
+        }
+        def v5 = if (okayToConvert(L.G("Pad"), L.G("V3"), L.G("V5"))) {
+            // v3 -> v5 (allMemory!)
+            val padV4 = new model.PadV4(padV3, jTrapKATEditor.currentPadNumber.toByte)
+            EditHistory.add(new PastePadHistoryAction(source, padV4))
+            setPad(source, jTrapKATEditor.currentKitNumber, jTrapKATEditor.currentPadNumber, padV4)
+        }
+        padV3.flags = ((if (hhPad) 0x80 else 0) | padV3.flags).toByte
+        if (pasteIfVarious(padV3)) jTrapKATEditor.doV3V4V5(v3, v4, v5)
     }
     private[this] def pastePadV4(source: Component) {
         val padV4Clip = getContentPadV4()
@@ -300,7 +329,8 @@ object Clipboard extends ClipboardOwner with Publisher {
 
         if (!incoming.forall(t => t._1) || !outgoing.forall(t => t._1)) {
             // At least one of the pads has a value that does not match its kit (for which the kit is not in Various)
-            Dialog.showConfirmation(tpnMain,
+            Dialog.showConfirmation(
+                tpnMain,
                 L.G("SwapPadOKToVarious", thisKit.kitName, incoming.map(t => t._2).mkString("\n"), thatKit.kitName, outgoing.map(t => t._2).mkString("\n")),
                 L.G("SwapPadOKToVariousCaption"),
                 Dialog.Options.YesNoCancel, Dialog.Message.Question, null) match {
@@ -345,15 +375,19 @@ object Clipboard extends ClipboardOwner with Publisher {
         if ((kitNo == jTrapKATEditor.currentKitNumber || frmTrapkatSysexEditor.okayToRenumber(jTrapKATEditor.currentKitNumber + 1, jTrapKATEditor.currentKit.kitName, kitNo + 1, kitName))) {
 
             jTrapKATEditor.currentAllMemory.update(jTrapKATEditor.currentKitNumber, getKit())
+            jTrapKATEditor.currentKit.kitName = kitName
 
             jTrapKATEditor.publish(new eventX.SelectedKitChanged)
             jTrapKATEditor.kitChangedBy(source)
         }
     }
 
-    def copyKit(source: Component) = clipboard.setContents(jTrapKATEditor.doV3V4(
-        CopyKitV3(jTrapKATEditor.currentKitV3, jTrapKATEditor.currentKitNumber.toByte),
-        CopyKitV4(jTrapKATEditor.currentKitV4, jTrapKATEditor.currentKitNumber.toByte)), this)
+    def copyKit(source: Component) = {
+        def v3 = CopyKitV3(currentKitV3, jTrapKATEditor.currentKitNumber.toByte)
+        def v4 = CopyKitV4(currentKitV4, jTrapKATEditor.currentKitNumber.toByte)
+        def v5 = CopyKitV5(currentKitV5, jTrapKATEditor.currentKitNumber.toByte)
+        clipboard.setContents(jTrapKATEditor.doV3V4V5(v3, v4, v5), this)
+    }
 
     private[this] class PasteKitHistoryAction(source: Component, kitNo: Int, kit: model.Kit[_ <: model.Pad]) extends HistoryAction {
         val kitNoBefore = jTrapKATEditor.currentKitNumber
@@ -368,6 +402,7 @@ object Clipboard extends ClipboardOwner with Publisher {
             val newKit = kit match {
                 case v3: model.KitV3 => new model.KitV3(in)
                 case v4: model.KitV4 => new model.KitV4(in)
+                case v5: model.KitV5 => new model.KitV5(in)
             }
             newKit.deserializeKitName(in)
             in.close()
@@ -387,33 +422,73 @@ object Clipboard extends ClipboardOwner with Publisher {
     def pasteKit(source: Component) = clipboard.getAvailableDataFlavors().headOption match {
         case Some(v3) if v3 == dfKitV3 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
             val kitV3Clip = getContentKitV3()
-            jTrapKATEditor.doV3V4({
+            def v3 = {
                 // v3 -> v3
                 val kitV3 = kitV3Clip.kit
                 EditHistory.add(new PasteKitHistoryAction(source, kitV3Clip.kitNoWas, kitV3))
                 setKit(source, kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, () => kitV3)
-            }, if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) {
+            }
+            def v4 = if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V4"))) {
                 // v3 -> v4
                 val kitV4 = new model.KitV4(kitV3Clip.kit)
                 EditHistory.add(new PasteKitHistoryAction(source, kitV3Clip.kitNoWas, kitV4))
                 setKit(source, kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, () => kitV4)
-            })
+            }
+            def v5 = if (okayToConvert(L.G("Kit"), L.G("V3"), L.G("V5"))) {
+                // v3 -> v5
+                val kitV5 = new model.KitV5(kitV3Clip.kit)
+                EditHistory.add(new PasteKitHistoryAction(source, kitV3Clip.kitNoWas, kitV5))
+                setKit(source, kitV3Clip.kitNoWas, kitV3Clip.kit.kitName, () => kitV5)
+            }
+            jTrapKATEditor.doV3V4V5(v3, v4, v5)
         }
         case Some(v4) if v4 == dfKitV4 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
             val kitV4Clip = getContentKitV4()
-            jTrapKATEditor.doV3V4(if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3"))) {
+            def v3 = if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V3"))) {
                 // v4 -> v3
                 val kitV3 = new model.KitV3(kitV4Clip.kit)
                 EditHistory.add(new PasteKitHistoryAction(source, kitV4Clip.kitNoWas, kitV3))
                 setKit(source, kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, () => kitV3)
-            }, {
+            }
+            def v4 = {
                 // v4 -> v4
                 val kitV4 = kitV4Clip.kit
                 EditHistory.add(new PasteKitHistoryAction(source, kitV4Clip.kitNoWas, kitV4))
                 setKit(source, kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, () => kitV4)
-            })
+            }
+            def v5 = if (okayToConvert(L.G("Kit"), L.G("V4"), L.G("V5"))) {
+                // v4 -> v5
+                val kitV5 = new model.KitV5(kitV4Clip.kit)
+                EditHistory.add(new PasteKitHistoryAction(source, kitV4Clip.kitNoWas, kitV5))
+                setKit(source, kitV4Clip.kitNoWas, kitV4Clip.kit.kitName, () => kitV5)
+            }
+            jTrapKATEditor.doV3V4V5(v3, v4, v5)
 
         }
+        case Some(v5) if v5 == dfKitV5 && frmTrapkatSysexEditor.okayToSplat(jTrapKATEditor.currentKit, s"Kit ${jTrapKATEditor.currentKitNumber + 1} (${jTrapKATEditor.currentKit.kitName})") => {
+            val kitV5Clip = getContentKitV5()
+            def v3 = if (okayToConvert(L.G("Kit"), L.G("V5"), L.G("V3"))) {
+                // v5 -> v3
+                val kitV3 = new model.KitV3(kitV5Clip.kit)
+                EditHistory.add(new PasteKitHistoryAction(source, kitV5Clip.kitNoWas, kitV3))
+                setKit(source, kitV5Clip.kitNoWas, kitV5Clip.kit.kitName, () => kitV3)
+            }
+            def v4 = if (okayToConvert(L.G("Kit"), L.G("V5"), L.G("V4"))) {
+                // v5 -> v4
+                val kitV4 = new model.KitV4(kitV5Clip.kit)
+                EditHistory.add(new PasteKitHistoryAction(source, kitV5Clip.kitNoWas, kitV4))
+                setKit(source, kitV5Clip.kitNoWas, kitV5Clip.kit.kitName, () => kitV4)
+            }
+            def v5 = {
+                // v5 -> v5
+                val kitV5 = kitV5Clip.kit
+                EditHistory.add(new PasteKitHistoryAction(source, kitV5Clip.kitNoWas, kitV5))
+                setKit(source, kitV5Clip.kitNoWas, kitV5Clip.kit.kitName, () => kitV5)
+            }
+            jTrapKATEditor.doV3V4V5(v3, v4, v5)
+
+        }
+
         case otherwise => {}
     }
 

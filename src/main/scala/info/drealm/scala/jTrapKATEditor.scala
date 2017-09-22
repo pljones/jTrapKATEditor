@@ -82,22 +82,23 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new SelectedKitChanged)
     }
     def currentKit: model.Kit[_ <: model.Pad] = currentAllMemory(_currentKitNumber)
-    def currentKitV3: model.KitV3 = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV3]
-    def currentKitV4: model.KitV4 = currentAllMemory(_currentKitNumber).asInstanceOf[model.KitV4]
     def kitChangedBy(source: Component) = {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
     }
     def swapKits(source: Component, leftKitNo: Int, rightKitNo: Int) {
-        doV3V4({
-            val leftKit = _currentAllMemory(leftKitNo).asInstanceOf[model.KitV3]
-            _currentAllMemory(leftKitNo) = _currentAllMemory(rightKitNo).asInstanceOf[model.KitV3]
-            _currentAllMemory(rightKitNo) = leftKit
-        }, {
-            val leftKit = _currentAllMemory(leftKitNo).asInstanceOf[model.KitV4]
-            _currentAllMemory(leftKitNo) = _currentAllMemory(rightKitNo).asInstanceOf[model.KitV4]
-            _currentAllMemory(rightKitNo) = leftKit
-        })
+        val leftKit: model.Kit[_ <: model.Pad] = doV3V4V5(
+            _currentAllMemory(leftKitNo).asInstanceOf[model.KitV3],
+            _currentAllMemory(leftKitNo).asInstanceOf[model.KitV4],
+            _currentAllMemory(leftKitNo).asInstanceOf[model.KitV5])
+        val leftKitName = leftKit.kitName
+        _currentAllMemory(leftKitNo) = doV3V4V5(
+            _currentAllMemory(rightKitNo).asInstanceOf[model.KitV3],
+            _currentAllMemory(rightKitNo).asInstanceOf[model.KitV4],
+            _currentAllMemory(rightKitNo).asInstanceOf[model.KitV5])
+        _currentAllMemory(leftKitNo).kitName = _currentAllMemory(rightKitNo).kitName
+        _currentAllMemory(rightKitNo) = leftKit
+        _currentAllMemory(rightKitNo).kitName = leftKitName
 
         publish(new SelectedKitChanged)
         kitChangedBy(source)
@@ -137,7 +138,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         val thatPadNo = (leftPadNo + 1).toByte
 
         import scala.language.existentials
-        val (thisKit, thisPad, thatKit, thatPad) = doV3V4({
+        def v3 = {
             val _thatKit = leftKit.asInstanceOf[model.KitV3]
             val _thatPad = _thatKit(leftPadNo)
             val _thisKit = rightKit.asInstanceOf[model.KitV3]
@@ -145,13 +146,8 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
             _thisKit(rightPadNo) = _thatPad
             _thatKit(leftPadNo) = _thisPad
             Tuple4(_thisKit, _thisPad, _thatKit, _thatPad)
-        }, {
-            val _thatKit = leftKit.asInstanceOf[model.KitV4]
-            val _thatPad = _thatKit(leftPadNo)
-            val _thisKit = rightKit.asInstanceOf[model.KitV4]
-            val _thisPad = _thisKit(rightPadNo)
-
-            // Handle LinkTo.
+        }
+        def handleLinkTo(rightKitNo: Int, leftKitNo: Int, _thisPad: model.PadV4, _thatPad: model.PadV4) = {
             if (rightKitNo != leftKitNo) {
                 // If changing kits, lose it.
                 _thisPad.linkTo = thatPadNo
@@ -172,11 +168,32 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
                 else if (_thatPad.linkTo == thisPadNo)
                     _thatPad.linkTo = thatPadNo
             }
+        }
+        def v4 = {
+            val _thatKit = leftKit.asInstanceOf[model.KitV4]
+            val _thatPad = _thatKit(leftPadNo)
+            val _thisKit = rightKit.asInstanceOf[model.KitV4]
+            val _thisPad = _thisKit(rightPadNo)
+
+            handleLinkTo(rightKitNo, leftKitNo, _thisPad, _thatPad)
 
             _thisKit(rightPadNo) = _thatPad
             _thatKit(leftPadNo) = _thisPad
             Tuple4(_thisKit, _thisPad, _thatKit, _thatPad)
-        })
+        }
+        def v5 = {
+            val _thatKit = leftKit.asInstanceOf[model.KitV5]
+            val _thatPad = _thatKit(leftPadNo)
+            val _thisKit = rightKit.asInstanceOf[model.KitV5]
+            val _thisPad = _thisKit(rightPadNo)
+
+            handleLinkTo(rightKitNo, leftKitNo, _thisPad, _thatPad)
+
+            _thisKit(rightPadNo) = _thatPad
+            _thatKit(leftPadNo) = _thisPad
+            Tuple4(_thisKit, _thisPad, _thatKit, _thatPad)
+        }
+        val (thisKit, thisPad, thatKit, thatPad) = doV3V4V5(v3, v4, v5)
 
         // Remember whether a pad is a hhPad
         val thisPadIsHH = ((thisPad.flags & 0x80) != 0) || !thisKit.hhPadNos(thisPadNo).isEmpty

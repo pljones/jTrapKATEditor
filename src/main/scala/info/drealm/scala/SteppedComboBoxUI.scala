@@ -28,11 +28,11 @@ import java.awt._
 import javax.swing._
 import javax.swing.plaf.basic._
 import javax.swing.plaf.metal._
-import com.sun.java.swing.plaf.windows._
-//import javax.swing.plaf.nimbus._
+import javax.swing.plaf.nimbus._
+//import com.sun.java.swing.plaf.windows._
 
 object SteppedComboBoxUI {
-    def getSteppedComboBoxUI(peer: JComboBox[_]): SteppedComboBoxUI = {
+    def getSteppedComboBoxUI(peer: JComboBox[Object]): SteppedComboBoxUI = {
         UIManager.getLookAndFeel().getClass().getName() match {
             case "javax.swing.plaf.metal.MetalLookAndFeel" => new MetalSteppedComboBoxUI(peer)
             case "com.sun.java.swing.plaf.windows.WindowsLookAndFeel" => new WindowsSteppedComboBoxUI(peer)
@@ -41,7 +41,7 @@ object SteppedComboBoxUI {
     }
 }
 trait SteppedComboBoxUI extends BasicComboBoxUI {
-    val peer: JComboBox[_]
+    val peer: JComboBox[Object]
     def getArrowButton: JButton
     override def createPopup: ComboPopup = new BasicComboPopup(peer) {
         lazy val myWidth: Int = {
@@ -69,14 +69,14 @@ trait SteppedComboBoxUI extends BasicComboBoxUI {
     }
 }
 
-class BasicSteppedComboBoxUI(val peer: JComboBox[_]) extends SteppedComboBoxUI {
+class BasicSteppedComboBoxUI(val peer: JComboBox[Object]) extends SteppedComboBoxUI {
     def getArrowButton = arrowButton
 }
 
-class MetalSteppedComboBoxUI(val peer: JComboBox[_]) extends MetalComboBoxUI with SteppedComboBoxUI {
+class MetalSteppedComboBoxUI(val peer: JComboBox[Object]) extends MetalComboBoxUI with SteppedComboBoxUI {
     def getArrowButton = arrowButton
 }
 
-class WindowsSteppedComboBoxUI(val peer: JComboBox[_]) extends WindowsComboBoxUI with SteppedComboBoxUI {
+class WindowsSteppedComboBoxUI(val peer: JComboBox[Object]) extends BasicComboBoxUI with SteppedComboBoxUI {
     def getArrowButton = arrowButton
 }

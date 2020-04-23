@@ -35,7 +35,7 @@ class RichComboBox[A](_items: Seq[A], _name: String, tip: String = null, label: 
     if (tip != null) tooltip = tip
 
     if (stepped) {
-        peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[_]]))
+        peer.setUI(SteppedComboBoxUI.getSteppedComboBoxUI(peer.asInstanceOf[JComboBox[Object]]))
     }
 
     if (label != null) {

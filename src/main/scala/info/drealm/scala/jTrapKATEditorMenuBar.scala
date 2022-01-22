@@ -63,7 +63,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
         L.G(s"acc${_name}") match {
             case x if x == s"<<acc${_name}>>" => {}
             case acc => action = new Action(L.G(name)) {
-                accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(acc.charAt(0)), InputEvent.CTRL_MASK))
+                accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(acc.charAt(0)), InputEvent.CTRL_DOWN_MASK))
                 override def apply = {}
             }
         }
@@ -109,7 +109,7 @@ object jTrapKATEditorMenuBar extends MenuBar {
                 }
                 currentItem = mi
                 new Action(L.G(s"mi${mi._name}")) {
-                    accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_MASK))
+                    accelerator = Some(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(L.G("accFileSave").charAt(0)), InputEvent.CTRL_DOWN_MASK))
                     override def apply = {}
                 }
             }

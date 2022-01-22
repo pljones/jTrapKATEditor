@@ -163,10 +163,10 @@ abstract class PadSlotComboBoxParent(padSlot: PadSlot, name: String, tooltip: St
         // Use pattern matching to neatly get the ComboBox
         // If the verifier is happy, tidy the value up and commit it
         // Either way, set the editor to the ComboBox value
-        override def shouldYieldFocus(c: JComponent): Boolean = {
+        override def shouldYieldFocus(c: JComponent, t: JComponent): Boolean = {
             c match {
                 case e: JTextField => e.getParent() match {
-                    case cb: JComboBox[_] if super.shouldYieldFocus(c) => {
+                    case cb: JComboBox[_] if super.shouldYieldFocus(c, t) => {
                         cb.setSelectedItem(e.getText())
                         if (cb.getSelectedIndex() == -1) {
                             e.setText(padSlot.toString(padSlot.toPadSlot(e.getText())))

@@ -63,10 +63,10 @@ object GateTime {
         // Use pattern matching to neatly get the ComboBox
         // If super.shouldYieldFocus is true and this is not a dropdown value
         // round it to nearest known value
-        override def shouldYieldFocus(c: JComponent): Boolean = {
+        override def shouldYieldFocus(c: JComponent, t: JComponent): Boolean = {
             c match {
                 case e: JTextField => e.getParent() match {
-                    case cb: JComboBox[_] if super.shouldYieldFocus(c) => {
+                    case cb: JComboBox[_] if super.shouldYieldFocus(c, t) => {
                         cb.setSelectedItem(e.getText())
                         if (cb.getSelectedIndex() == -1) {
                             e.setText(GateTime.toString(toGateTime(e.getText())))

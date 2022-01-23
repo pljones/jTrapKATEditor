@@ -164,7 +164,6 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
 
         addOffOnComboBox("HearSoundStatus", _.hearSoundStatus, _.hearSoundStatus = _)
     }
-    contents += (pnGlobalGeneral, "cell 0 0")
 
     private[this] val pnGlobalFC = new GlobalPanel("FC") {
         // Global Pad 6
@@ -180,7 +179,6 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         addSpinner("FCHighLevel", _.fcHighLevel, _.fcHighLevel = _, None)
         addSpinner("FCVelocityLevel", _.fcVelocityLevel, _.fcVelocityLevel = _, None)
     }
-    contents += (pnGlobalFC, "cell 1 0")
 
     private[this] val pnGlobalBC = new GlobalPanel("BC") {
         // Global Pad 21
@@ -192,7 +190,6 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         addComboBox("BCPolarity", _.bcPolarity, _.bcPolarity = _,
             GlobalComboBoxParams(Seq(L.G("bcHighHard"), L.G("bcHighSoft"))))
     }
-    contents += (pnGlobalBC, "cell 2 0")
 
     private[this] val pnGlobalKit = new GlobalPanel("Kit") {
         // Global Pad 1
@@ -207,7 +204,6 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         addSpinner("KitNumberKAT", _.kitNumberKAT, _.kitNumberKAT = _,
             Some(GlobalSpinnerParams(1, 1, 6)))
     }
-    contents += (pnGlobalKit, "cell 0 1")
 
     private[this] val pnGlobalGroove = new GlobalPanel("Groove") {
         // Global Pad 2
@@ -218,7 +214,6 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         addSpinner("GrooveVol", _.grooveVol, _.grooveVol = _,
             Some(GlobalSpinnerParams(0, 0, 10)))
     }
-    contents += (pnGlobalGroove, "cell 1 1")
 
     private[this] val pnGlobalMotif = new GlobalPanel("Motif") {
         // Grooves Status On, Pad 23 tap tempo:
@@ -230,6 +225,11 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
         // Grooves Status On, Pad 15 selects; ?? 0 to ..?s
         addSpinner("MotifNumberMel", _.motifNumberMel, _.motifNumberMel = _, None)
     }
-    contents += (pnGlobalMotif, "cell 2 1")
 
+    contents += (pnGlobalGeneral, "cell 0 0")
+    contents += (pnGlobalFC, "cell 1 0")
+    contents += (pnGlobalBC, "cell 2 0")
+    contents += (pnGlobalKit, "cell 0 1")
+    contents += (pnGlobalGroove, "cell 1 1")
+    contents += (pnGlobalMotif, "cell 2 1")
 }

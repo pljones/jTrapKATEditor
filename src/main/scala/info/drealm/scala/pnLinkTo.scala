@@ -40,7 +40,7 @@ object pnLinkTo extends MigPanel("insets 5", "[grow,right][left,fill]", "[]") {
     private[this] val linkTo: Array[String] = new Array[String](28)
     private[this] val cbxLinkTo = new RichComboBox(linkTo, "cbxLinkTo", tooltip, lblLinkTo) with SelectedPadBindings with RichComboBoxReactor[String] {
         prototypeDisplayValue = Some("88 mmmm")
-        peer.setMaximumRowCount(24)
+        peer.setMaximumRowCount(28)
 
         protected def _padActionName = "LinkTo"
         protected def _getModelValue = _.asInstanceOf[model.PadV4].linkTo

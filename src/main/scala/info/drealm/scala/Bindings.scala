@@ -216,7 +216,7 @@ trait Bindings[T] extends AllMemorySelectionReactor with ModelReactor {
 
     // In terms of change, model != UI?
     // Keep the getters as "cheap" as possible
-    protected def _isUIChange: Boolean = _modelValue != _uiValue
+    protected def _isUIChange: Boolean = _uiValue != _modelValue
     protected def _isModelChange: Boolean = _modelValue != _uiValue
 
     // And we may want to notify the change

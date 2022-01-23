@@ -45,7 +45,6 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         contents += (pnPedals, "cell 0 2,grow")
 
     }
-    contents += (pnKitsPadsTop, "cell 0 0,grow")
 
     private[this] object tpnKitPadsDetails extends TabbedPane() with AllMemorySelectionReactor {
         name = "tpnKitPadsDetails"
@@ -703,6 +702,8 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
         setDisplay()
 
     }
+
+    contents += (pnKitsPadsTop, "cell 0 0,grow")
     contents += (tpnKitPadsDetails, "cell 0 1,grow")
 
 }

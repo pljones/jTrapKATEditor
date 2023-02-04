@@ -18,12 +18,11 @@ Dependencies
 ------------
 I don't like Java but I wanted to use the JVM.  I discovered that Scala is very much like C#,
 in which the earlier version of this program was written and so adopted that for development
-(and to learn another programming language).  I have been using Scala 2.11.x for recent builds
-and have just updated to Java 11.
+(and to learn another programming language).
 
 In addition to Scala itself, you will need a number of other components.  As I have finally
 brought myself out of the dark ages and dropped the Makefile, Maven should take care of
-everything.
+everything.  (Yes, yes, sbt or gradle... more new things...)
 
 Running the program
 -------------------
@@ -31,4 +30,4 @@ Run as with any other java executable:
 ```
 java -jar jTrapKATEditor.jar
 ```
-(or double-click on Windows).
+(or double-click on Windows - assuming your JRE is installed correctly).

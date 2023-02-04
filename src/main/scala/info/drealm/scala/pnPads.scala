@@ -25,6 +25,7 @@
 package info.drealm.scala
 
 import scala.swing._
+import scala.collection.mutable.Seq
 import info.drealm.scala.migPanel._
 import info.drealm.scala.eventX._
 import info.drealm.scala.layout._
@@ -47,7 +48,7 @@ object pnPads extends MigPanel("insets 0, gapx 2", "[grow][grow][grow][grow][gro
         pn
     }
 
-    peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((1 to 24) flatMap { n => Seq(s"cbxPad${n}V3", s"cbxPad${n}V4") })) {
+    peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, Seq(Seq(), ((1 to 24) flatMap { n => Seq(s"cbxPad${n}V3", s"cbxPad${n}V4") })).flatten) {
         override def getDefaultComponent(pn: java.awt.Container): java.awt.Component = jTrapKATEditor.currentPadNumber match {
             case x if x < 24 => {
                 val _defaultCp = s"cbxPad${jTrapKATEditor.currentPadNumber + 1}${jTrapKATEditor.doV3V4V5("V3", "V4", "V4")}"

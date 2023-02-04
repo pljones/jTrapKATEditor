@@ -26,6 +26,7 @@ package info.drealm.scala
 
 import javax.swing.border._
 import scala.swing._
+import scala.collection.mutable.Seq
 import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.spinner._
@@ -214,12 +215,14 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             }
             contents += (pnGlobalPadDynamics, "cell 4 3 6 4,aligny center")
 
-            private[this] val tabOrder = (2 to 6 flatMap (slot => Seq(s"cbxSlot${slot}V3", s"cbxSlot${slot}V4"))) ++
-                Seq("cbxLinkTo") ++
-                Seq("cbxPadCurveV3", "cbxPadCurveV4", "cbxPadGate", "spnPadChannel") ++
-                Seq("spnPadVelMin", "spnPadVelMax") ++
-                (7 to 0 by -1 map { flag => s"ckbFlag${flag}" }) ++
+            private[this] val tabOrder = Seq(
+                (2 to 6 flatMap (slot => Seq(s"cbxSlot${slot}V3", s"cbxSlot${slot}V4"))),
+                Seq("cbxLinkTo"),
+                Seq("cbxPadCurveV3", "cbxPadCurveV4", "cbxPadGate", "spnPadChannel"),
+                Seq("spnPadVelMin", "spnPadVelMax"),
+                (7 to 0 by -1 map { flag => s"ckbFlag${flag}" }),
                 Seq("spnLowLevel", "spnHighLevel", "spnThresholdManual", "spnThresholdActual", "spnInternalMargin", "spnUserMargin")
+            ).flatten
 
             peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, tabOrder))
             peer.setFocusTraversalPolicyProvider(true)
@@ -246,7 +249,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 }
             }
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((7 to 16) map (slot => s"cbxSlot${slot}V4"))))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, Seq(Seq(), (7 to 16 map { slot => s"cbxSlot${slot}V4" })).flatten))
             peer.setFocusTraversalPolicyProvider(true)
         }
 
@@ -283,7 +286,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 protected def _modelValue: Boolean = _isKit(jTrapKATEditor.currentKit)
                 protected def _isModelChange = true // the button really did get clicked...
                 protected def _modelReaction() = _toKit(jTrapKATEditor.currentKit)
-                override protected def setValue() {
+                override protected def setValue(): Unit = {
                     // So the button got clicked but will anything need updating?
                     if (_uiValue != _modelValue) try {
                         deafTo(this)

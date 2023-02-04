@@ -74,17 +74,17 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
     def apply(idx: Int): Byte = _slots.apply(idx)
 
     def curve: Byte = _curve
-    def curve_=(value: Byte): Unit = if (_curve != value) update(_curve = value) else {}
+    def curve_=(value: Byte): Unit = if (_curve != value) update({_curve = value}) else {}
     def gate: Byte = _gate
-    def gate_=(value: Byte): Unit = if (_gate != value) update(_gate = value) else {}
+    def gate_=(value: Byte): Unit = if (_gate != value) update({_gate = value}) else {}
     def channel: Byte = _channel
-    def channel_=(value: Byte): Unit = if (_channel != value) update(_channel = value) else {}
+    def channel_=(value: Byte): Unit = if (_channel != value) update({_channel = value}) else {}
     def minVelocity: Byte = _minVelocity
-    def minVelocity_=(value: Byte): Unit = if (_minVelocity != value) update(_minVelocity = value) else {}
+    def minVelocity_=(value: Byte): Unit = if (_minVelocity != value) update({_minVelocity = value}) else {}
     def maxVelocity: Byte = _maxVelocity
-    def maxVelocity_=(value: Byte): Unit = if (_maxVelocity != value) update(_maxVelocity = value) else {}
+    def maxVelocity_=(value: Byte): Unit = if (_maxVelocity != value) update({_maxVelocity = value}) else {}
     def flags: Byte = _flags
-    def flags_=(value: Byte): Unit = if (_flags != value) update(_flags = value) else {}
+    def flags_=(value: Byte): Unit = if (_flags != value) update({_flags = value}) else {}
 
     override def canEqual(that: Any): Boolean
     override def equals(that: Any): Boolean = canEqual(that) && {
@@ -204,7 +204,7 @@ class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
 
     private[this] var _linkTo: Byte = self
     def linkTo: Byte = _linkTo
-    def linkTo_=(value: Byte): Unit = if (_linkTo != value) update(_linkTo = value) else {}
+    def linkTo_=(value: Byte): Unit = if (_linkTo != value) update({_linkTo = value}) else {}
 }
 
 abstract class PadSeq[TPad <: Pad] protected (f: Int => TPad)(implicit TPad: Manifest[TPad]) extends DataItem with mutable.Seq[TPad] {

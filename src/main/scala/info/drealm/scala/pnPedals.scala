@@ -26,6 +26,7 @@ package info.drealm.scala
 
 import javax.swing.border._
 import scala.swing._
+import scala.collection.mutable.Seq
 import swing.event._
 import info.drealm.scala.migPanel._
 import info.drealm.scala.spinner._
@@ -51,7 +52,8 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
         contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
 
         (1 to 4) foreach { x =>
-            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with Bindings[Byte] with KitSelectionReactor with RichComboBoxReactor[String] {
+            val cbxHH = new RichComboBox(scala.collection.immutable.Seq(scala.collection.immutable.Seq(L.G("cbxHHOff")), (1 to 24) map (p => s"${p}")).flatten,
+                s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with Bindings[Byte] with KitSelectionReactor with RichComboBoxReactor[String] {
                 peer.setMaximumRowCount(13)
                 name = s"cbxHH${x}"
 
@@ -88,7 +90,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
     }
     contents += (pnHH, "cell 4 0")
 
-    peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, ((25 to 28) flatMap { n => Seq(s"cbxPad${n}V3", s"cbxPad${n}V4") }) ++ ((1 to 4) map (x => s"cbxHH${x}"))) {
+    peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, Seq(((25 to 28) flatMap { n => Seq(s"cbxPad${n}V3", s"cbxPad${n}V4") }), ((1 to 4) map (x => s"cbxHH${x}"))).flatten) {
         override def getDefaultComponent(pn: java.awt.Container): java.awt.Component = jTrapKATEditor.currentPadNumber match {
             case x if x > 23 => {
                 val _defaultCp = s"cbxPad${jTrapKATEditor.currentPadNumber + 1}${jTrapKATEditor.doV3V4V5("V3", "V4", "V4")}"
@@ -96,6 +98,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
             }
             case _ => getFirstComponent(pn)
         }
-    })
+    }
+    )
     peer.setFocusTraversalPolicyProvider(true)
 }

@@ -89,7 +89,7 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     private[this] var _global: Global[_ <: Pad] = g()
 
     def global: Global[_ <: Pad] = _global
-    def global_=(value: Global[_ <: Pad]) = if (_global != value) update(_global = value)
+    def global_=(value: Global[_ <: Pad]): Unit = if (_global != value) update( { _global = value } )
 
     def changed = _changed || _kits.foldLeft(false)(_ || _.changed) || _global.changed
 }

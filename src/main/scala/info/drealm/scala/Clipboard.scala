@@ -50,7 +50,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         private[this] val dataFlavors = Seq(dataFlavour).toArray
         def getTransferDataFlavors(): Array[DataFlavor] = dataFlavors
         def isDataFlavorSupported(flavor: DataFlavor) = flavor.equals(dataFlavour)
-        def getTransferData(flavor: DataFlavor) = if (!isDataFlavorSupported(flavor)) throw new UnsupportedFlavorException(flavor) else this
+        def getTransferData(flavor: DataFlavor): Clippable = if (!isDataFlavorSupported(flavor)) throw new UnsupportedFlavorException(flavor) else this
     }
     private[this] case class CopyPadV3(var pad: model.PadV3, var hhPad: Boolean) extends Clippable {
         override def dataFlavour = dfPadV3
@@ -254,7 +254,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         def redoAction(): Unit = setPad(source, kitNoWas, padNoWas, padAfter)
     }
 
-    private[this] def pastePadV3(source: Component) {
+    private[this] def pastePadV3(source: Component): Unit = {
         val padV3Clip = getContentPadV3()
         val padV3 = padV3Clip.pad
         val hhPad = padV3Clip.hhPad
@@ -278,7 +278,7 @@ object Clipboard extends ClipboardOwner with Publisher {
         padV3.flags = ((if (hhPad) 0x80 else 0) | padV3.flags).toByte
         if (pasteIfVarious(padV3)) jTrapKATEditor.doV3V4V5(v3, v4, v5)
     }
-    private[this] def pastePadV4(source: Component) {
+    private[this] def pastePadV4(source: Component): Unit = {
         val padV4Clip = getContentPadV4()
         val padV4 = padV4Clip.pad
         val hhPad = padV4Clip.hhPad

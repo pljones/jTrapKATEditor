@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>info.drealm.scala</groupId>
@@ -9,22 +12,25 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.release>11</maven.compiler.release>
 		<main.basedir>${basedir}/../..</main.basedir>
 		<assembly.mainClass>info.drealm.scala.jTrapKATEditor</assembly.mainClass>
 
 		<!-- dependencies -->
-		<scala-library.version>2.12.17</scala-library.version>
-		<scala.version.modules>2.12</scala.version.modules>
-		<scala-xml.version>1.3.0</scala-xml.version>
-		<scala-swing.version>2.1.1</scala-swing.version>
-		<jna.version>5.5.0</jna.version>
+		<scala.version>2.13</scala.version>
+		<scala-library.version>${scala.version}.0</scala-library.version>
+		<scala-xml.version>2.1.0</scala-xml.version>
+		<scala-swing.version>3.0.0</scala-swing.version>
+		<jna.version>5.13.0</jna.version>
 		<miglayout.version>5.2</miglayout.version>
 
 		<!-- plugins -->
-		<scala-maven-plugin.version>4.3.1</scala-maven-plugin.version>
-		<maven-antrun-plugin.version>3.0.0</maven-antrun-plugin.version>
-		<maven-assembly-plugin.version>3.2.0</maven-assembly-plugin.version>
+		<scala-maven-plugin.version>4.8.0</scala-maven-plugin.version>
+		<maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+		<maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
+		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+
+		<!-- maven-compiler-plugin configuration -->
+		<maven.compiler.release>17</maven.compiler.release>
 	</properties>
 
 	<dependencies>
@@ -35,12 +41,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>
-			<artifactId>scala-xml_${scala.version.modules}</artifactId>
+			<artifactId>scala-xml_${scala.version}</artifactId>
 			<version>${scala-xml.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>
-			<artifactId>scala-swing_${scala.version.modules}</artifactId>
+			<artifactId>scala-swing_${scala.version}</artifactId>
 			<version>${scala-swing.version}</version>
 		</dependency>
 		<dependency>
@@ -53,11 +59,11 @@
 			<artifactId>jna-platform</artifactId>
 			<version>${jna.version}</version>
 		</dependency>
-                <dependency>
-                    <groupId>com.miglayout</groupId>
-                    <artifactId>miglayout-swing</artifactId>
-                    <version>${miglayout.version}</version>
-                </dependency>
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+			<version>${miglayout.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -83,6 +89,7 @@
 					<args>
 						<arg>-deprecation</arg>
 						<arg>-feature</arg>
+						<arg>-language:implicitConversions</arg>
 						<!-- arg>-Yopt:l:classpath</arg -->
 					</args>
 				</configuration>
@@ -109,6 +116,12 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
 			</plugin>
 
 			<plugin>

@@ -239,73 +239,73 @@ abstract class Global[TPad <: Pad] protected (p: TPad, _u1: Array[Byte], _u3: Ar
     }
 
     def beeperStatus: Byte = _beeperStatus
-    def beeperStatus_=(value: Byte): Unit = if (_beeperStatus != value) update(_beeperStatus = value) else {}
+    def beeperStatus_=(value: Byte): Unit = if (_beeperStatus != value) update(u = { _beeperStatus = value }) else {}
     def bcFunction: Byte = _bcFunction
-    def bcFunction_=(value: Byte): Unit = if (_bcFunction != value) update(_bcFunction = value) else {}
+    def bcFunction_=(value: Byte): Unit = if (_bcFunction != value) update(u = { _bcFunction = value }) else {}
     def chokeFunction: Byte = _chokeFunction
-    def chokeFunction_=(value: Byte): Unit = if (_chokeFunction != value) update(_chokeFunction = value) else {}
+    def chokeFunction_=(value: Byte): Unit = if (_chokeFunction != value) update(u = { _chokeFunction = value }) else {}
     def fcClosedRegion: Byte = _fcClosedRegion
-    def fcClosedRegion_=(value: Byte): Unit = if (_fcClosedRegion != value) update(_fcClosedRegion = value) else {}
+    def fcClosedRegion_=(value: Byte): Unit = if (_fcClosedRegion != value) update(u = { _fcClosedRegion = value }) else {}
     def fcPolarity: Byte = _fcPolarity
-    def fcPolarity_=(value: Byte): Unit = if (_fcPolarity != value) update(_fcPolarity = value) else {}
+    def fcPolarity_=(value: Byte): Unit = if (_fcPolarity != value) update(u = { _fcPolarity = value }) else {}
     def bcPolarity: Byte = _bcPolarity
-    def bcPolarity_=(value: Byte): Unit = if (_bcPolarity != value) update(_bcPolarity = value) else {}
+    def bcPolarity_=(value: Byte): Unit = if (_bcPolarity != value) update(u = { _bcPolarity = value }) else {}
     def bcLowLevel: Byte = _bcLowLevel
-    def bcLowLevel_=(value: Byte): Unit = if (_bcLowLevel != value) update(_bcLowLevel = value) else {}
+    def bcLowLevel_=(value: Byte): Unit = if (_bcLowLevel != value) update(u = { _bcLowLevel = value }) else {}
     def bcHighLevel: Byte = _bcHighLevel
-    def bcHighLevel_=(value: Byte): Unit = if (_bcHighLevel != value) update(_bcHighLevel = value) else {}
+    def bcHighLevel_=(value: Byte): Unit = if (_bcHighLevel != value) update(u = { _bcHighLevel = value }) else {}
     def fcLowLevel: Byte = _fcLowLevel
-    def fcLowLevel_=(value: Byte): Unit = if (_fcLowLevel != value) update(_fcLowLevel = value) else {}
+    def fcLowLevel_=(value: Byte): Unit = if (_fcLowLevel != value) update(u = { _fcLowLevel = value }) else {}
     def fcHighLevel: Byte = _fcHighLevel
-    def fcHighLevel_=(value: Byte): Unit = if (_fcHighLevel != value) update(_fcHighLevel = value) else {}
+    def fcHighLevel_=(value: Byte): Unit = if (_fcHighLevel != value) update(u = { _fcHighLevel = value }) else {}
     def fcVelocityLevel: Byte = _fcVelocityLevel
-    def fcVelocityLevel_=(value: Byte): Unit = if (_fcVelocityLevel != value) update(_fcVelocityLevel = value) else {}
+    def fcVelocityLevel_=(value: Byte): Unit = if (_fcVelocityLevel != value) update(u = { _fcVelocityLevel = value }) else {}
     def fcWaitModeLevel: Byte = _fcWaitModeLevel
-    def fcWaitModeLevel_=(value: Byte): Unit = if (_fcWaitModeLevel != value) update(_fcWaitModeLevel = value) else {}
+    def fcWaitModeLevel_=(value: Byte): Unit = if (_fcWaitModeLevel != value) update(u = { _fcWaitModeLevel = value }) else {}
     def instrumentID: Byte = _instrumentID
-    def instrumentID_=(value: Byte): Unit = if (_instrumentID != value) update(_instrumentID = value) else {}
+    def instrumentID_=(value: Byte): Unit = if (_instrumentID != value) update(u = { _instrumentID = value }) else {}
     def kitNumber: Byte = _kitNumber
-    def kitNumber_=(value: Byte): Unit = if (_kitNumber != value) update(_kitNumber = value) else {}
+    def kitNumber_=(value: Byte): Unit = if (_kitNumber != value) update(u = { _kitNumber = value }) else {}
     def kitNumberUser: Byte = _kitNumberUser
-    def kitNumberUser_=(value: Byte): Unit = if (_kitNumberUser != value) update(_kitNumberUser = value) else {}
+    def kitNumberUser_=(value: Byte): Unit = if (_kitNumberUser != value) update(u = { _kitNumberUser = value }) else {}
     def kitNumberDemo: Byte = _kitNumberDemo
-    def kitNumberDemo_=(value: Byte): Unit = if (_kitNumberDemo != value) update(_kitNumberDemo = value) else {}
+    def kitNumberDemo_=(value: Byte): Unit = if (_kitNumberDemo != value) update(u = { _kitNumberDemo = value }) else {}
     def motifNumber: Byte = _motifNumber
-    def motifNumber_=(value: Byte): Unit = if (_motifNumber != value) update(_motifNumber = value) else {}
+    def motifNumber_=(value: Byte): Unit = if (_motifNumber != value) update(u = { _motifNumber = value }) else {}
     def motifNumberPerc: Byte = _motifNumberPerc
-    def motifNumberPerc_=(value: Byte): Unit = if (_motifNumberPerc != value) update(_motifNumberPerc = value) else {}
+    def motifNumberPerc_=(value: Byte): Unit = if (_motifNumberPerc != value) update(u = { _motifNumberPerc = value }) else {}
     def motifNumberMel: Byte = _motifNumberMel
-    def motifNumberMel_=(value: Byte): Unit = if (_motifNumberMel != value) update(_motifNumberMel = value) else {}
+    def motifNumberMel_=(value: Byte): Unit = if (_motifNumberMel != value) update(u = { _motifNumberMel = value }) else {}
     def midiMergeStatus: Byte = _midiMergeStatus
-    def midiMergeStatus_=(value: Byte): Unit = if (_midiMergeStatus != value) update(_midiMergeStatus = value) else {}
+    def midiMergeStatus_=(value: Byte): Unit = if (_midiMergeStatus != value) update(u = { _midiMergeStatus = value }) else {}
     def fcOpenRegion: Byte = _fcOpenRegion
-    def fcOpenRegion_=(value: Byte): Unit = if (_fcOpenRegion != value) update(_fcOpenRegion = value) else {}
+    def fcOpenRegion_=(value: Byte): Unit = if (_fcOpenRegion != value) update(u = { _fcOpenRegion = value }) else {}
     def trigGain: Byte = _trigGain
-    def trigGain_=(value: Byte): Unit = if (_trigGain != value) update(_trigGain = value) else {}
+    def trigGain_=(value: Byte): Unit = if (_trigGain != value) update(u = { _trigGain = value }) else {}
     def prgChgRcvChn: Byte = _prgChgRcvChn
-    def prgChgRcvChn_=(value: Byte): Unit = if (_prgChgRcvChn != value) update(_prgChgRcvChn = value) else {}
+    def prgChgRcvChn_=(value: Byte): Unit = if (_prgChgRcvChn != value) update(u = { _prgChgRcvChn = value }) else {}
     def displayAngle: Byte = _displayAngle
-    def displayAngle_=(value: Byte): Unit = if (_displayAngle != value) update(_displayAngle = value) else {}
+    def displayAngle_=(value: Byte): Unit = if (_displayAngle != value) update(u = { _displayAngle = value }) else {}
     def playMode: Byte = _playMode
-    def playMode_=(value: Byte): Unit = if (_playMode != value) update(_playMode = value) else {}
+    def playMode_=(value: Byte): Unit = if (_playMode != value) update(u = { _playMode = value }) else {}
     def grooveVol: Byte = _grooveVol
-    def grooveVol_=(value: Byte): Unit = if (_grooveVol != value) update(_grooveVol = value) else {}
+    def grooveVol_=(value: Byte): Unit = if (_grooveVol != value) update(u = { _grooveVol = value }) else {}
     def grooveStatus: Byte = _grooveStatus
-    def grooveStatus_=(value: Byte): Unit = if (_grooveStatus != value) update(_grooveStatus = value) else {}
+    def grooveStatus_=(value: Byte): Unit = if (_grooveStatus != value) update(u = { _grooveStatus = value }) else {}
     def fcSplashEase: Byte = _fcSplashEase
-    def fcSplashEase_=(value: Byte): Unit = if (_fcSplashEase != value) update(_fcSplashEase = value) else {}
+    def fcSplashEase_=(value: Byte): Unit = if (_fcSplashEase != value) update(u = { _fcSplashEase = value }) else {}
     def noteNamesStatus: Byte = _noteNamesStatus
-    def noteNamesStatus_=(value: Byte): Unit = if (_noteNamesStatus != value) update(_noteNamesStatus = value) else {}
+    def noteNamesStatus_=(value: Byte): Unit = if (_noteNamesStatus != value) update(u = { _noteNamesStatus = value }) else {}
     def hatNoteGate: Byte = _hatNoteGate
-    def hatNoteGate_=(value: Byte): Unit = if (_hatNoteGate != value) update(_hatNoteGate = value) else {}
+    def hatNoteGate_=(value: Byte): Unit = if (_hatNoteGate != value) update(u = { _hatNoteGate = value }) else {}
     def grooveAutoOff: Byte = _grooveAutoOff
-    def grooveAutoOff_=(value: Byte): Unit = if (_grooveAutoOff != value) update(_grooveAutoOff = value) else {}
+    def grooveAutoOff_=(value: Byte): Unit = if (_grooveAutoOff != value) update(u = { _grooveAutoOff = value }) else {}
     def kitNumberKAT: Byte = _kitNumberKAT
-    def kitNumberKAT_=(value: Byte): Unit = if (_kitNumberKAT != value) update(_kitNumberKAT = value) else {}
+    def kitNumberKAT_=(value: Byte): Unit = if (_kitNumberKAT != value) update(u = { _kitNumberKAT = value }) else {}
     def ttMeter: Byte = _ttMeter
-    def ttMeter_=(value: Byte): Unit = if (_ttMeter != value) update(_ttMeter = value) else {}
+    def ttMeter_=(value: Byte): Unit = if (_ttMeter != value) update(u = { _ttMeter = value }) else {}
     def hearSoundStatus: Byte = _hearSoundStatus
-    def hearSoundStatus_=(value: Byte): Unit = if (_hearSoundStatus != value) update(_hearSoundStatus = value) else {}
+    def hearSoundStatus_=(value: Byte): Unit = if (_hearSoundStatus != value) update(u = { _hearSoundStatus = value }) else {}
 
     def ttPadData: TPad = _ttPadData
 

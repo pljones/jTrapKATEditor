@@ -62,15 +62,15 @@ class SoundControl protected[model] (__prgChg: Byte, __sndCtlTxmChn: Byte, __ban
     override def clone: SoundControl = new SoundControl(this)
 
     def prgChg: Byte = _prgChg
-    def prgChg_=(value: Byte): Unit = if (_prgChg != value) update(_prgChg = value) else {}
+    def prgChg_=(value: Byte): Unit = if (_prgChg != value) update(u = { _prgChg = value }) else {}
     def sndCtlTxmChn: Byte = _sndCtlTxmChn
-    def sndCtlTxmChn_=(value: Byte): Unit = if (_sndCtlTxmChn != value) update(_sndCtlTxmChn = value) else {}
+    def sndCtlTxmChn_=(value: Byte): Unit = if (_sndCtlTxmChn != value) update(u = { _sndCtlTxmChn = value }) else {}
     def bankMSB: Byte = _bankMSB
-    def bankMSB_=(value: Byte): Unit = if (_bankMSB != value) update(_bankMSB = value) else {}
+    def bankMSB_=(value: Byte): Unit = if (_bankMSB != value) update(u = { _bankMSB = value }) else {}
     def bankLSB: Byte = _bankLSB
-    def bankLSB_=(value: Byte): Unit = if (_bankLSB != value) update(_bankLSB = value) else {}
+    def bankLSB_=(value: Byte): Unit = if (_bankLSB != value) update(u = { _bankLSB = value }) else {}
     def volume: Byte = _volume
-    def volume_=(value: Byte): Unit = if (_volume != value) update(_volume = value) else {}
+    def volume_=(value: Byte): Unit = if (_volume != value) update(u = { _volume = value }) else {}
 
     def changed = _changed
 }

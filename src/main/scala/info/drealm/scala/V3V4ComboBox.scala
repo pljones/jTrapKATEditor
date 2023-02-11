@@ -41,13 +41,13 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     private[this] def selectionV4 = cbxV4.selection
     object selection extends Publisher {
         def index: Int = cbx.selection.index
-        def index_=(n: Int) {
+        def index_=(n: Int): Unit = {
             val nn = if (n >= peer.getItemCount()) -1 else n
             selectionV3.index = nn
             selectionV4.index = nn
         }
         def item: A = cbx.selection.item
-        def item_=(a: A) {
+        def item_=(a: A): Unit = {
             selectionV3.item = a
             selectionV4.item = a
         }

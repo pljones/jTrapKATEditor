@@ -36,6 +36,11 @@ object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with A
     protected def _isUIChange = true
     protected def _uiReaction = title = getTitle()
 
+    // There's a problem with P.windowLocation getting set to screwy values
+    // It may be because the window isn't visible either when we read the location
+    // or when we set the location - it could be a race condition, i.e. if we're lucky,
+    // the window is visible and it works, otherwise it doesn't.
+    // Needs investigating further...
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
         P.windowLocation = Tuple2(location.x, location.y)

@@ -283,7 +283,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 protected def _modelValue: Boolean = _isKit(jTrapKATEditor.currentKit)
                 protected def _isModelChange = true // the button really did get clicked...
                 protected def _modelReaction() = _toKit(jTrapKATEditor.currentKit)
-                override protected def setValue() {
+                override protected def setValue(): Unit = {
                     // So the button got clicked but will anything need updating?
                     if (_uiValue != _modelValue) try {
                         deafTo(this)

@@ -48,10 +48,10 @@ class Spinner(_model: SpinnerModel, _name: String = "", _tip: String = null, _la
     }
 
     def value: Any = peer.getValue
-    def value_=(o: Any) { peer.setValue(o) }
+    def value_=(o: Any): Unit = { peer.setValue(o) }
 
     def model: SpinnerModel = peer.getModel()
-    def model_=(m: SpinnerModel) { peer.setModel(m) }
+    def model_=(m: SpinnerModel): Unit = { peer.setModel(m) }
 
     peer.addChangeListener(Swing.ChangeListener { e =>
         publish(new event.ValueChanged(this))

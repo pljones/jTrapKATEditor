@@ -86,7 +86,7 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
         publish(new CurrentKitChanged(source))
         allMemoryChangedBy(source)
     }
-    def swapKits(source: Component, leftKitNo: Int, rightKitNo: Int) {
+    def swapKits(source: Component, leftKitNo: Int, rightKitNo: Int): Unit = {
         val leftKit: model.Kit[_ <: model.Pad] = doV3V4V5(
             _currentAllMemory(leftKitNo).asInstanceOf[model.KitV3],
             _currentAllMemory(leftKitNo).asInstanceOf[model.KitV4],

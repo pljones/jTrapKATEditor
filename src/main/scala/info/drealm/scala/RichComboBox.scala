@@ -45,7 +45,7 @@ class RichComboBox[A](_items: Seq[A], _name: String, tip: String = null, label: 
     }
 
     var editreset: A = null.asInstanceOf[A]
-    override def makeEditable()(implicit editor: ComboBox[A] => ComboBox.Editor[A]) {
+    override def makeEditable()(implicit editor: ComboBox[A] => ComboBox.Editor[A]): Unit = {
         super.makeEditable()
         val theEditor = (editor(this).component)
         listenTo(this)

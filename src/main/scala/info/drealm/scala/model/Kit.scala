@@ -110,41 +110,41 @@ abstract class Kit[TPad <: Pad](f: => PadSeq[TPad], g: Array[SoundControl])(impl
     }
 
     def curve: Byte = _curve
-    def curve_=(value: Byte): Unit = if (_curve != value) update(_curve = value) else {}
+    def curve_=(value: Byte): Unit = if (_curve != value) update(u = { _curve = value }) else {}
     def isKitCurve: Boolean = forall(p => p.curve == _curve)
     def toKitCurve(): Unit = update(foreach(p => p.curve = _curve))
 
     def gate: Byte = _gate
-    def gate_=(value: Byte): Unit = if (_gate != value) update(_gate = value) else {}
+    def gate_=(value: Byte): Unit = if (_gate != value) update(u = { _gate = value }) else {}
     def isKitGate: Boolean = forall(p => p.gate == _gate)
     def toKitGate(): Unit = update(foreach(p => p.gate = _gate))
 
     def channel: Byte = _channel
-    def channel_=(value: Byte): Unit = if (_channel != value) update(_channel = value) else {}
+    def channel_=(value: Byte): Unit = if (_channel != value) update(u = { _channel = value }) else {}
     def isKitChannel: Boolean = forall(p => p.channel == _channel)
     def toKitChannel(): Unit = update(foreach(p => p.channel = _channel))
 
     def minVelocity: Byte = _minVelocity
-    def minVelocity_=(value: Byte): Unit = if (_minVelocity != value) update(_minVelocity = value) else {}
+    def minVelocity_=(value: Byte): Unit = if (_minVelocity != value) update(u = { _minVelocity = value }) else {}
     def isKitMinVel: Boolean = forall(p => p.minVelocity == _minVelocity)
     def toKitMinVel(): Unit = update(foreach(p => p.minVelocity = _minVelocity))
 
     def maxVelocity: Byte = _maxVelocity
-    def maxVelocity_=(value: Byte): Unit = if (_maxVelocity != value) update(_maxVelocity = value) else {}
+    def maxVelocity_=(value: Byte): Unit = if (_maxVelocity != value) update(u = { _maxVelocity = value }) else {}
     def isKitMaxVel: Boolean = forall(p => p.maxVelocity == _maxVelocity)
     def toKitMaxVel(): Unit = update(foreach(p => p.maxVelocity = _maxVelocity))
 
     def fcFunction: Byte = _fcFunction
-    def fcFunction_=(value: Byte): Unit = if (_fcFunction != value) update(_fcFunction = value) else {}
+    def fcFunction_=(value: Byte): Unit = if (_fcFunction != value) update(u = { _fcFunction = value }) else {}
     def bcFunction: Byte = _bcFunction
-    def bcFunction_=(value: Byte): Unit = if (_bcFunction != value) update(_bcFunction = value) else {}
+    def bcFunction_=(value: Byte): Unit = if (_bcFunction != value) update(u = { _bcFunction = value }) else {}
     def hhPads(idx: Int): Byte = _hhPads.apply(idx)
     def hhPads(idx: Int, value: Byte) = if (_hhPads.apply(idx) != value) update(_hhPads.update(idx, value)) else {}
     def hhPadNos(value: Byte): Seq[Int] = (0 to 3).filter(idx => _hhPads(idx) == value)
     def fcChannel: Byte = _fcChannel
-    def fcChannel_=(value: Byte): Unit = if (_fcChannel != value) update(_fcChannel = value) else {}
+    def fcChannel_=(value: Byte): Unit = if (_fcChannel != value) update(u = { _fcChannel = value }) else {}
     def fcCurve: Byte = _fcCurve
-    def fcCurve_=(value: Byte): Unit = if (_fcCurve != value) update(_fcCurve = value) else {}
+    def fcCurve_=(value: Byte): Unit = if (_fcCurve != value) update(u = { _fcCurve = value }) else {}
     def kitName: String = new String(_kitName)
     def kitName_=(value: String): Unit = value.trim().padTo(12, ' ') match {
         case newName if !newName.equals(kitName) => update(Array.copy(newName.toCharArray(), 0, _kitName, 0, _kitName.length))
@@ -254,9 +254,9 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
     }
 
     def bank: Byte = _bank
-    def bank_=(value: Byte): Unit = if (_bank != value) update(_bank = value) else {}
+    def bank_=(value: Byte): Unit = if (_bank != value) update(u = { _bank = value }) else {}
     def unused: Byte = _unused
-    def unused_=(value: Byte): Unit = if (_unused != value) update(_unused = value) else {}
+    def unused_=(value: Byte): Unit = if (_unused != value) update(u = { _unused = value }) else {}
 }
 
 class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {

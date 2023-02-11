@@ -32,17 +32,25 @@ object Focus {
         val cps = container.contents map { p => findInComponent(p, found) } filter { p => p.isDefined }
         if (cps.length > 0) cps.head else None
     }
+
     def findAllInContainer(container: Container, found: Component => Boolean): Seq[Component] = {
-        container.contents flatMap { p => findAllInComponent(p, found) }
+        Seq(Seq(), container.contents).flatten flatMap {
+            p => findAllInComponent(p, found)
+        }
     }
+
     def findInTabbedPane(tabbedPane: TabbedPane, value: String): Option[Component] = findInTabbedPane(tabbedPane, (cp => cp.name == value))
     def findInTabbedPane(tabbedPane: TabbedPane, found: Component => Boolean): Option[Component] = {
         val cps = tabbedPane.pages map { pg => findInComponent(pg.content, found) } filter { p => p.isDefined }
         if (cps.length > 0) cps.head else None
     }
+
     def findAllInTabbedPane(tabbedPane: TabbedPane, found: Component => Boolean): Seq[Component] = {
-        tabbedPane.pages flatMap { pg => findAllInComponent(pg.content, found) }
+        Seq(Seq(), tabbedPane.pages).flatten flatMap {
+            pg => findAllInComponent(pg.content, found)
+        }
     }
+
     def findInComponent(component: Component, value: String): Option[Component] = findInComponent(component, (cp => cp.name == value))
     def findInComponent(component: Component, found: Component => Boolean): Option[Component] = {
         if (found(component)) Some(component) else
@@ -52,13 +60,14 @@ object Focus {
                 case _              => None
             }
     }
+
     def findAllInComponent(component: Component, found: Component => Boolean): Seq[Component] = {
-        (if (found(component)) Seq(component) else Seq()) ++ (component match {
+        Seq(if (found(component)) Seq(component) else Seq(), (component match {
             case cn: Container   => findAllInContainer(cn, found)
             case tp: TabbedPane  => findAllInTabbedPane(tp, found)
             case cp if found(cp) => Seq(cp)
             case _               => Seq()
-        })
+        })).flatten
     }
 
     def set(component: Component, target: String): Unit = {

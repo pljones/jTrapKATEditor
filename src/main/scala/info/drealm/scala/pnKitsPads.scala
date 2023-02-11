@@ -675,7 +675,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
             // Have to do this on start up, too
             onSelectedAllMemoryChanged()
 
-            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, order))
+            peer.setFocusTraversalPolicy(new NameSeqOrderTraversalPolicy(this, Seq(Seq(), order).flatten))
             peer.setFocusTraversalPolicyProvider(true)
         }
 

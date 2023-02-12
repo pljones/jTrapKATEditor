@@ -25,7 +25,7 @@ package info.drealm.scala
 import info.drealm.scala.{ Localization => L }
 
 object GateTime {
-    val gateSelection = L.G("GateTime").split("\n").toSeq
+    val gateSelection = L.G("GateTime").split("\n").toArray
 
     /*
      * Minor rant time.

@@ -29,18 +29,18 @@ import info.drealm.scala.eventX._
 import info.drealm.scala.{ Localization => L }
 
 trait Curve {
-    def curveSelection: Seq[String]
+    def curveSelection: Array[String]
 }
 
 object CurveV3 extends Curve {
-    val curveSelection = L.G("CurvesV3").split("\n").toSeq
+    val curveSelection = L.G("CurvesV3").split("\n").toArray
 }
 
 object CurveV4 extends Curve {
-    val curveSelection = L.G("CurvesV4").split("\n").toSeq
+    val curveSelection = L.G("CurvesV4").split("\n").toArray
 }
 
-abstract class CurveComboBoxParent(seq: Seq[String], _name: String, tooltip: String) extends RichComboBox[String](seq, _name, tooltip)
+abstract class CurveComboBoxParent(seq: Array[String], _name: String, tooltip: String) extends RichComboBox[String](seq, _name, tooltip)
 class CurveComboBoxV3(_name: String, tooltip: String) extends CurveComboBoxParent(CurveV3.curveSelection, _name + "V3", tooltip)
 class CurveComboBoxV4(_name: String, tooltip: String) extends CurveComboBoxParent(CurveV4.curveSelection, _name + "V4", tooltip)
 

@@ -28,8 +28,8 @@ import javax.swing.JComboBox
 import scala.swing.{ ComboBox, Label, Swing }
 import scala.swing.event._
 
-class RichComboBox[A](_items: Seq[A], _name: String, tip: String = null, label: Label = null, stepped: Boolean = false) extends ComboBox[A](_items) {
-    def this(items: Seq[A], _name: String, label: Label) = this(items, _name, null, label)
+class RichComboBox[A](_items: Array[A], _name: String, tip: String = null, label: Label = null, stepped: Boolean = false) extends ComboBox[A](_items) {
+    def this(items: Array[A], _name: String, label: Label) = this(items, _name, null, label)
 
     name = _name
     if (tip != null) tooltip = tip

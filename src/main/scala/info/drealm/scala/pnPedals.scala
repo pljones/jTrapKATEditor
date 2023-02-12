@@ -51,7 +51,7 @@ object pnPedals extends MigPanel("insets 0", "[grow,leading][][][grow,fill][][gr
         contents += (lblHH, "cell 0 0,alignx trailing,aligny baseline, gapafter 2")
 
         (1 to 4) foreach { x =>
-            val cbxHH = new RichComboBox(Seq(L.G("cbxHHOff")) ++ ((1 to 24) map (p => s"${p}")), s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with Bindings[Byte] with KitSelectionReactor with RichComboBoxReactor[String] {
+            val cbxHH = new RichComboBox(Seq(Seq(L.G("cbxHHOff")), (1 to 24) map { p => s"$p" }).flatten.toArray, s"cbxHH${x}", pnHH.tooltip, if (x == 1) lblHH else null) with Bindings[Byte] with KitSelectionReactor with RichComboBoxReactor[String] {
                 peer.setMaximumRowCount(13)
                 name = s"cbxHH${x}"
 

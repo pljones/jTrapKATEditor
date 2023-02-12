@@ -105,7 +105,7 @@ trait PadSlot {
     import DisplayMode._
 
     var displayMode: DisplayMode.DisplayMode = P.notesAs
-    val padFunction: Seq[String]
+    val padFunction: Array[String]
 
     val toNumberC3 = (new NoteNameToNumber { val octave = 3 }).toNumber _
     val toNumberC4 = (new NoteNameToNumber { val octave = 4 }).toNumber _
@@ -135,11 +135,11 @@ trait PadSlot {
 }
 
 object PadSlotV3 extends PadSlot {
-    override lazy val padFunction: Seq[String] = L.G("PadSlotV3").split("\n").toSeq
+    override lazy val padFunction: Array[String] = L.G("PadSlotV3").split("\n").toArray
 }
 
 object PadSlotV4 extends PadSlot {
-    override lazy val padFunction: Seq[String] = L.G("PadSlotV4").split("\n").toSeq
+    override lazy val padFunction: Array[String] = L.G("PadSlotV4").split("\n").toArray
 }
 
 abstract class PadSlotComboBoxParent(padSlot: PadSlot, name: String, tooltip: String, stepped: Boolean = false) extends RichComboBox[String](padSlot.padFunction, name, tooltip, stepped = stepped) {

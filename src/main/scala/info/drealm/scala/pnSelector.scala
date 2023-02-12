@@ -36,7 +36,7 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
     private[this] val lblSelectKit = new Label(L.G("lblSelectKit")) { peer.setDisplayedMnemonic(L.G("mneSelectKit").charAt(0)) }
 
     private[this] val kitNames = new Array[String](24)
-    private[this] val cbxSelectKit = new RichComboBox(kitNames, "cbxSelectKit", L.G("ttSelectKit"), lblSelectKit) with RichComboBoxReactor[String] {
+    private[this] val cbxSelectKit: RichComboBox[String] = new RichComboBox[String](_items = kitNames, _name = "cbxSelectKit", tip = L.G("ttSelectKit"), label = lblSelectKit) with RichComboBoxReactor[String] {
         peer.setMaximumRowCount(24)
         prototypeDisplayValue = Some("WWWWWWWWWWWW")
 
@@ -100,10 +100,10 @@ object pnSelector extends MigPanel("insets 0", "[][][][grow,fill][][][grow,fill]
 
     private[this] val lblSelectPad = new Label(L.G("lblSelectPad")) { peer.setDisplayedMnemonic(L.G("mneSelectPad").charAt(0)) }
 
-    private[this] val cbxSelectPad = new RichComboBox((1 to 28) map (x => x match {
+    private[this] val cbxSelectPad = new RichComboBox(_items = ((1 to 28) map (x => x match {
         case x if x < 25 => s"${x}"
         case x           => L.G(s"lbPad${x}")
-    }), "cbxSelectPad", L.G("ttSelectPad"), lblSelectPad) with RichComboBoxReactor[String] with PadSelectionReactor {
+    })).toArray, _name = "cbxSelectPad", tip = L.G("ttSelectPad"), label = lblSelectPad) with RichComboBoxReactor[String] with PadSelectionReactor {
         peer.setMaximumRowCount(28)
         prototypeDisplayValue = Some("88 mmmm")
 

@@ -532,7 +532,7 @@ object pnKitsPads extends MigPanel("insets 3", "[grow]", "[][grow]") {
                 private[this] val lblSoundControl = new Label(L.G("lblSoundControl"))
                 contents += (lblSoundControl, "cell 0 0,alignx right")
 
-                private[this] val cbxSoundControl = new RichComboBox((1 to 4), "cbxSoundControl", L.G("ttSoundControl"), lblSoundControl) with RichComboBoxReactor[Int] {
+                private[this] val cbxSoundControl = new RichComboBox((1 to 4).toArray, "cbxSoundControl", L.G("ttSoundControl"), lblSoundControl) with RichComboBoxReactor[Int] {
                     protected def _isUIChange = jTrapKATEditor.currentSoundControlNumber != selection.index
                     protected def _uiReaction() = selection.index = jTrapKATEditor.currentSoundControlNumber
                     protected def _isModelChange = jTrapKATEditor.currentSoundControlNumber != selection.index

@@ -57,7 +57,7 @@ object pnGlobal extends MigPanel("insets 5", "[]", "[]") {
     }
 
     private[this] class GlobalComboBox(_name: String, lbl: Label, _getVal: (model.Global[_ <: model.Pad]) => Byte, _setVal: (model.Global[_ <: model.Pad], Byte) => Unit, params: GlobalComboBoxParams)
-            extends RichComboBox(params.items, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with RichComboBoxReactor[String] with GlobalBindings {
+            extends RichComboBox(params.items.toArray, s"cbx${_name}", L.G(s"ttGlobal${_name}"), lbl) with RichComboBoxReactor[String] with GlobalBindings {
 
         protected def _getModelValue = _getVal
         protected def _setModelValue = _setVal

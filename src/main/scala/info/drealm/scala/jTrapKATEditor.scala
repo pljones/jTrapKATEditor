@@ -72,15 +72,25 @@ object jTrapKATEditor extends SimpleSwingApplication with Publisher {
 
     private[this] var _currentKitNumber: Int = 0
     def currentKitNumber: Int = _currentKitNumber
-    // Urrrrrghhh... well, okay, this "debugging code" appears to fix the problem being debugged...
-    val lastSet = scala.collection.mutable.Set.empty[PartialFunction[Event, Unit]]
-    def currentKitNumber_=(value: Int): Unit = {
-        for (l <- lastSet) if (!listeners.contains(l)) Console.println(s"${l.toString()} is no longer a listener")
-        lastSet.clear()
-        for (l <- listeners) lastSet.add(l)
-        _currentKitNumber = value
-        publish(new SelectedKitChanged)
+    def currentKitNumber_=(value: Int): Unit = { if (_currentKitNumber != value) {
+        if (value < 0 || value >= 24)
+            throw new RuntimeException(s"currentKitNumber_: _currentKitNumber=${_currentKitNumber}; value=${value} - out of bounds 0 to 23")
+        _currentKitNumber = value; publish(new SelectedKitChanged) }
     }
+    /*
+     Commenting this old lot out...
+
+    // Urrrrrghhh... well, okay, this "debugging code" appears to fix the problem being debugged...
+        val lastSet = scala.collection.mutable.Set.empty[PartialFunction[Event, Unit]]
+        def currentKitNumber_=(value: Int): Unit = {
+            for (l <- lastSet) if (!listeners.contains(l)) Console.println(s"${l.toString()} is no longer a listener")
+            lastSet.clear()
+            for (l <- listeners) lastSet.add(l)
+            _currentKitNumber = value
+            publish(new SelectedKitChanged)
+        }
+
+     */
     def currentKit: model.Kit[_ <: model.Pad] = currentAllMemory(_currentKitNumber)
     def kitChangedBy(source: Component) = {
         publish(new CurrentKitChanged(source))

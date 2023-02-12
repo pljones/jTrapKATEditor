@@ -35,7 +35,7 @@ abstract class AllMemory(k: => Int => Kit[_ <: Pad], kn: (Int, Kit[_ <: Pad]) =>
     def update(idx: Int, value: Kit[_ <: Pad]): Unit = {
         if (null == value)
             throw new IllegalArgumentException("Kit must not be null.")
-        if (_kits(idx) != value) update(_kits.update(idx, value))
+        if (_kits(idx) != value) update(u = { _kits.update(idx, value) })
     }
     def apply(idx: Int): Kit[_ <: Pad] = _kits.apply(idx)
 
@@ -107,7 +107,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
             (i, x) => x.kitName = allMemoryV4(i).kitName,
             () => new Array(540),
             () => new GlobalV3(allMemoryV4.global.asInstanceOf[GlobalV4]))
-        update({ /*It's all been done*/ })
+        update(u = { /*It's all been done*/ })
     }
     def this(allMemoryV5: AllMemoryV5) = {
         this(
@@ -115,7 +115,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
             (i, x) => x.kitName = allMemoryV5(i).kitName,
             () => new Array(540),
             () => new GlobalV3(allMemoryV5.global.asInstanceOf[GlobalV5]))
-        update({ /*It's all been done*/ })
+        update(u = { /*It's all been done*/ })
     }
 }
 
@@ -132,7 +132,7 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
             (i, x) => x.kitName = allMemoryV3(i).kitName,
             () => new Array(195),
             () => new GlobalV4(allMemoryV3.global.asInstanceOf[GlobalV3]))
-        update({ /*It's all been done*/ })
+        update(u = { /*It's all been done*/ })
     }
     def this(allMemoryV5: AllMemoryV5) = {
         this(
@@ -140,7 +140,7 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
             (i, x) => x.kitName = allMemoryV5(i).kitName,
             () => new Array(195),
             () => new GlobalV4(allMemoryV5.global.asInstanceOf[GlobalV5]))
-        update({ /*It's all been done*/ })
+        update(u = { /*It's all been done*/ })
     }
 }
 
@@ -157,7 +157,7 @@ class AllMemoryV5 private (k: Int => KitV5, kn: (Int, Kit[_]) => Unit, u: () => 
             (i, x) => x.kitName = allMemoryV3(i).kitName,
             () => new Array(39),
             () => new GlobalV5(allMemoryV3.global.asInstanceOf[GlobalV3]))
-        update({ /*It's all been done*/ })
+        update(u = { /*It's all been done*/ })
     }
     def this(allMemoryV4: AllMemoryV4) = {
         this(
@@ -165,6 +165,6 @@ class AllMemoryV5 private (k: Int => KitV5, kn: (Int, Kit[_]) => Unit, u: () => 
             (i, x) => x.kitName = allMemoryV4(i).kitName,
             () => new Array(39),
             () => new GlobalV5(allMemoryV4.global.asInstanceOf[GlobalV4]))
-        update({ /*It's all been done*/ })
+        update(u = { /*It's all been done*/ })
     }
 }

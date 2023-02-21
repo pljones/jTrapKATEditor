@@ -102,7 +102,7 @@ abstract class Pad protected (f: => Array[Byte]) extends DataItem with mutable.S
 }
 
 class PadV3 private (f: => Array[Byte]) extends Pad(f) {
-    def this() = this((Seq(42.toByte) ++ Stream.continually(128.toByte).take(5)).take(6).toArray)
+    def this() = this((Seq(42.toByte) ++ LazyList.continually(128.toByte).take(5)).take(6).toArray)
     def this(in: InputStream) = {
         this(new Array[Byte](6))
         deserialize(in)
@@ -152,14 +152,14 @@ class PadV3 private (f: => Array[Byte]) extends Pad(f) {
 }
 
 class PadV4 private (f: => Array[Byte], self: Byte) extends Pad(f) {
-    def this(self: Byte) = this((Seq(42.toByte) ++ Stream.continually(128.toByte).take(16)).take(16).toArray, self)
+    def this(self: Byte) = this((Seq(42.toByte) ++ LazyList.continually(128.toByte).take(16)).take(16).toArray, self)
     def this(in: InputStream) = {
         this(new Array[Byte](16), 0.toByte) // Don't really care but need to initialise
         deserialize(in)
     }
 
     def this(padV3: PadV3, self: Byte) = {
-        this((padV3 ++ Stream.continually(128.toByte).take(16)).take(16).toArray, self)
+        this((padV3 ++ LazyList.continually(128.toByte).take(16)).take(16).toArray, self)
         from(padV3)
 
         // 128 to 132 (alt reset) are defined with the same meaning

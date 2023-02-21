@@ -99,7 +99,7 @@ class AllMemoryV3 private (k: Int => KitV3, kn: (Int, Kit[_]) => Unit, u: => () 
     def this(in: InputStream) = this(
         x => new KitV3(in),
         (i, x) => x.deserializeKitName(in),
-        () => Stream.continually(in.read().toByte).take(540).toArray,
+        () => LazyList.continually(in.read().toByte).take(540).toArray,
         () => new GlobalV3(in))
     def this(allMemoryV4: AllMemoryV4) = {
         this(
@@ -124,7 +124,7 @@ class AllMemoryV4 private (k: Int => KitV4, kn: (Int, Kit[_]) => Unit, u: () => 
     def this(in: InputStream) = this(
         x => new KitV4(in),
         (i, x) => x.deserializeKitName(in),
-        () => Stream.continually(in.read().toByte).take(195).toArray,
+        () => LazyList.continually(in.read().toByte).take(195).toArray,
         () => new GlobalV4(in))
     def this(allMemoryV3: AllMemoryV3) = {
         this(
@@ -149,7 +149,7 @@ class AllMemoryV5 private (k: Int => KitV5, kn: (Int, Kit[_]) => Unit, u: () => 
     def this(in: InputStream) = this(
         x => new KitV5(in),
         (i, x) => x.deserializeKitName(in),
-        () => Stream.continually(in.read().toByte).take(39).toArray,
+        () => LazyList.continually(in.read().toByte).take(39).toArray,
         () => new GlobalV5(in))
     def this(allMemoryV3: AllMemoryV3) = {
         this(

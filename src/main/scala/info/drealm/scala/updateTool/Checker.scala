@@ -51,7 +51,7 @@ object Checker extends Publisher {
                 val url = new java.net.URL("http://pljones.github.io/jTrapKATEditor/jTrapKATEditorUpdate.txt")
                 val stream = url.openStream()
                 // Sadly need to force resolving this synchronously the first time it's mentioned
-                try { io.Source.fromInputStream(stream).getLines.toArray[String] } finally { stream.close() }
+                try { io.Source.fromInputStream(stream).getLines.toIndexedSeq } finally { stream.close() }
             }
             catch {
                 case e: Throwable => {

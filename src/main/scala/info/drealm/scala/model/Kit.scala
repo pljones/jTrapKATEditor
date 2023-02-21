@@ -260,14 +260,14 @@ class KitV3 private (f: => PadV3Seq, g: => Array[SoundControl]) extends Kit[PadV
 }
 
 class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
-    def this() = this(new PadV4Seq, (Stream.continually(new SoundControl).take(4)).toArray)
+    def this() = this(new PadV4Seq, (LazyList.continually(new SoundControl).take(4)).toArray)
     def this(in: InputStream) = {
         this(new PadV4Seq(in), new Array[SoundControl](4))
         _deserializeKit(in)
     }
 
     def this(kitV3: KitV3) = {
-        this(new PadV4Seq(kitV3.toArray), (Seq(kitV3.soundControls(0).clone) ++ (Stream.continually(new SoundControl).take(3))).toArray)
+        this(new PadV4Seq(kitV3.toArray), (Seq(kitV3.soundControls(0).clone) ++ (LazyList.continually(new SoundControl).take(3))).toArray)
         from(kitV3)
 
         // Curve needs fixing - pads can sort the details
@@ -308,14 +308,14 @@ class KitV4 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV
 class KitV5 private (f: => PadV4Seq, g: => Array[SoundControl]) extends Kit[PadV4](f, g) {
     private[this] var _unknown = Array.fill[Byte](16)(0)
 
-    def this() = this(new PadV4Seq, (Stream.continually(new SoundControl).take(4)).toArray)
+    def this() = this(new PadV4Seq, (LazyList.continually(new SoundControl).take(4)).toArray)
     def this(in: InputStream) = {
         this(new PadV4Seq(in), new Array[SoundControl](4))
         _deserializeKit(in)
     }
 
     def this(kitV3: KitV3) = {
-        this(new PadV4Seq(kitV3.toArray), (Seq(kitV3.soundControls(0).clone) ++ (Stream.continually(new SoundControl).take(3))).toArray)
+        this(new PadV4Seq(kitV3.toArray), (Seq(kitV3.soundControls(0).clone) ++ (LazyList.continually(new SoundControl).take(3))).toArray)
         from(kitV3)
 
         // Curve needs fixing - pads can sort the details

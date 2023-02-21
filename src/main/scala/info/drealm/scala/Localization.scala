@@ -34,7 +34,7 @@ object Localization {
         case e: java.util.MissingResourceException => "<<" + lookup + ">>"
     }
     def G(lookup: String, args: String*): String = {
-        def from(n: Int): Stream[Int] = n #:: from(n + 1)
+        def from(lo: Int): LazyList[Int] = 0 #:: from(lo + 1)
         (args zip from(0)).foldLeft(G(lookup))((s, x) => s.replaceAll(s"[{]${x._2}[}]", s"${x._1}"))
     }
 }

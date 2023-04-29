@@ -307,9 +307,34 @@ class Slot(slot: Int) {
         protected def _padActionName = "Slot"
 
         private[this] def v3v4(f: () => Unit): Unit = jTrapKATEditor.doV3V4V5(if (slot <= 6) f(), f(), f())
-        override protected def setValue = v3v4(super.setValue)
-        override protected def setDisplay = v3v4(super.setDisplay)
-        override protected def _isUIChange = jTrapKATEditor.doV3V4V5(if (slot <= 6) super._isUIChange else false, super._isUIChange, super._isUIChange)
+        override protected def setDisplay(): Unit = v3v4(() => {try {
+            deafTo(cbxV3)
+            deafTo(cbxV4)
+            super.setDisplay()
+        } finally {
+            listenTo(cbxV3); listenTo(cbxV4)
+        }})
+        override protected def setValue(): Unit = v3v4(() => {
+            try {
+                deafTo(cbxV3)
+                deafTo(cbxV4)
+                super.setValue()
+            } finally {
+                listenTo(cbxV3); listenTo(cbxV4)
+            }})
+        override protected def doUndoRedo(action: () => Unit): Unit = v3v4(() => {
+            try {
+                deafTo(cbxV3)
+                deafTo(cbxV4)
+                super.doUndoRedo(action)
+            } finally {
+                listenTo(cbxV3); listenTo(cbxV4)
+            }})
+
+        listenTo(cbxV3)
+        listenTo(cbxV4)
+
+        override protected def _isUIChange: Boolean = jTrapKATEditor.doV3V4V5(if (slot <= 6) super._isUIChange else false, super._isUIChange, super._isUIChange)
         override protected def _uiReaction = v3v4(super._uiReaction)
 
         setDisplay()

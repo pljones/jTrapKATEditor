@@ -34,7 +34,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     val cbxV3: C1
     val cbxV4: C2
     val lbl: Label
-    protected def cbx = jTrapKATEditor.doV3V4V5(cbxV3, cbxV4, cbxV4)
+    protected def cbx: CP = jTrapKATEditor.doV3V4V5(cbxV3, cbxV4, cbxV4)
     private[this] def peer = cbx.peer.asInstanceOf[javax.swing.JComboBox[_]]
 
     private[this] def selectionV3 = cbxV3.selection
@@ -42,7 +42,7 @@ trait V3V4ComboBox[A, CP <: ComboBox[A], C1 <: CP, C2 <: CP] extends Publisher {
     object selection extends Publisher {
         def index: Int = cbx.selection.index
         def index_=(n: Int): Unit = {
-            val nn = if (n >= peer.getItemCount()) -1 else n
+            val nn = if (n >= peer.getItemCount) -1 else n
             selectionV3.index = nn
             selectionV4.index = nn
         }

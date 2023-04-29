@@ -481,8 +481,8 @@ trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotCo
     this: PadSlotComboBoxV3V4 =>
 
     protected def _slot: Int
-    protected def _getModelValue = _(_slot)
-    protected def _setModelValue = (p, v) => p(_slot) = v
+    protected def _getModelValue: model.Pad => Byte = _(_slot)
+    protected def _setModelValue: (model.Pad, Byte) => Unit = (p, v) => p(_slot) = v
 
     // For a PadSlotComboBoxV3V4, value is magic
     protected def _uiValue: Byte = value.toByte
@@ -490,7 +490,7 @@ trait PadSlotComboBoxV3V4Bindings extends V3V4ComboBoxBindings[String, PadSlotCo
 
     override protected def _isUIChange: Boolean = cbx.selection.item != cbx.toString(_modelValue)
 
-    protected def _chg() = jTrapKATEditor.padChangedBy(cbx)
+    protected def _chg(): Unit = jTrapKATEditor.padChangedBy(cbx)
 
     listenTo(prefs.Preferences)
     reactions += {

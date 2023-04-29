@@ -1,5 +1,5 @@
 False
-17-0922-2302
-http://pljones.github.io/jTrapKATEditor/releases/v17-0922-2302.html
+23-0429-1408
+http://pljones.github.io/jTrapKATEditor/releases/v23-0429-1408.html
 Please read the full version notice carefully before using.
-Support for TrapKAT V5; fixes for kitname handling
+Minor build version bumps.

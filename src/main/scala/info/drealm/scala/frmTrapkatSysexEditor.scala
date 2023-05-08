@@ -36,14 +36,10 @@ object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with A
     protected def _isUIChange = true
     protected def _uiReaction = title = getTitle()
 
-    // There's a problem with P.windowLocation getting set to screwy values
-    // It may be because the window isn't visible either when we read the location
-    // or when we set the location - it could be a race condition, i.e. if we're lucky,
-    // the window is visible and it works, otherwise it doesn't.
-    // Needs investigating further...
     peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
     override def closeOperation = {
-        P.windowLocation = Tuple2(location.x, location.y)
+        // Saving the location is currently pointless as it cannot be used on start up reliably
+        P.windowLocation = Tuple2(this.location.x, this.location.y)
         P.currentWorkingDirectory = (
             if (jTrapKATEditor.currentFile.isDirectory()) jTrapKATEditor.currentFile
             else if (jTrapKATEditor.currentFile.isFile()) jTrapKATEditor.currentFile.getParentFile()
@@ -64,12 +60,10 @@ object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with A
 
     layout.Focus.set(pnKitsPads, "pnPad1")
 
-    val xy = P.windowLocation
-    if (xy == Tuple2(-1, -1))
-        centerOnScreen
-    else {
-        this.location = new Point(xy._1, xy._2)
-    }
+    // Doing this breaks for any non-default location
+    // this.location = new Point(P.windowLocation._1, P.windowLocation._2)
+    // and without this, it doesn't display the window manager frame...
+    centerOnScreen
 
     listenTo(jTrapKATEditor)
 

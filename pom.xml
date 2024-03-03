@@ -8,8 +8,11 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.release>11</maven.compiler.release>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<main.basedir>${basedir}/../..</main.basedir>
 		<assembly.mainClass>info.drealm.scala.jTrapKATEditor</assembly.mainClass>
 

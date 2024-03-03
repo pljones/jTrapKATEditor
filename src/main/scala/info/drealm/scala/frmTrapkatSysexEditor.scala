@@ -24,13 +24,14 @@
 
 package info.drealm.scala
 
-import swing._
-import swing.event._
-import info.drealm.scala.migPanel._
+import info.drealm.scala.{Localization => L, Resource => R}
 import info.drealm.scala.eventX._
-import info.drealm.scala.{ Localization => L, Resource => R }
-import info.drealm.scala.prefs.{ Preferences => P }
+import info.drealm.scala.migPanel._
+import info.drealm.scala.prefs.{Preferences => P}
 import info.drealm.scala.updateTool._
+
+import scala.swing._
+import scala.swing.event._
 
 object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with AnyValueReactor {
     protected def _isUIChange = true
@@ -47,7 +48,16 @@ object frmTrapkatSysexEditor extends Frame with AllMemorySelectionReactor with A
         jTrapKATEditor.exitClose
     }
 
-    iconImage = (new javax.swing.ImageIcon(R.U("info/drealm/scala/tk_wild2-sq.png"))).getImage
+    private val jTrapKATEditorIconString = "info/drealm/scala/tk_wild2-sq.png"
+    if (jTrapKATEditorIconString != null) {
+        val jTrapKATEditorIconResourceURL = R.U(jTrapKATEditorIconString)
+        if (jTrapKATEditorIconResourceURL != null) {
+            val jTrapKATEditorIconImageIcon = new javax.swing.ImageIcon(jTrapKATEditorIconResourceURL)
+            if (jTrapKATEditorIconImageIcon != null) {
+                iconImage = jTrapKATEditorIconImageIcon.getImage
+            }
+        }
+    }
     title = getTitle()
     resizable = false
 

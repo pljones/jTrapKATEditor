@@ -25,7 +25,8 @@
 package info.drealm.scala
 
 object Resource {
-    def U(id: String): java.net.URL = classOf[Resource].getClassLoader().getResource(id)
-    def S(id: String): java.io.InputStream = classOf[Resource].getClassLoader().getResourceAsStream(id)
+    private val l = classOf[Resource].getClassLoader()
+    def U(id: String): java.net.URL = l.getResource(id)
+    def S(id: String): java.io.InputStream = l.getResourceAsStream(id)
 }
 class Resource
